@@ -4,6 +4,7 @@
 #include <tuple>
 #include <regex>
 
+#include "locationdb/locdb.hh"
 #include "acmacs-virus/virus-name-v1.hh"
 
 // ----------------------------------------------------------------------
@@ -314,6 +315,51 @@ namespace virus_name
     //     return result;
 
     // } // normalize
+
+    void fix_location(Name& name)
+    {
+        const auto fix1 = [](const auto& src) {
+            // std::cerr << "DEBUG: fix1 " << src << '\n';
+            const auto& locdb = get_locdb();
+            if (detail::find_indexed_by_name_no_fixes(locdb.names(), src).has_value())
+                return src;
+            if (const auto replacement_it = detail::find_indexed_by_name_no_fixes(locdb.replacements(), src); replacement_it.has_value())
+                return replacement_it.value()->second;
+            throw LocationNotFound(src);
+        };
+
+        if (name.host.empty() && std::isalpha(name.isolation[0])) {
+            if (const auto num_start = std::find_if(std::begin(name.isolation), std::end(name.isolation), [](char cc) { return std::isdigit(cc); }); num_start != std::end(name.isolation)) {
+                // A/Jilin/Nanguan112/2007 (CDC sequences)
+                try {
+                    name.location = fix1(string::concat(name.location, ' ', std::string_view(name.isolation.data(), static_cast<size_t>(num_start - name.isolation.begin()))));
+                    name.isolation = std::string(num_start, name.isolation.end());
+                    return;
+                }
+                catch (LocationNotFound&) {
+                }
+            }
+        }
+
+        try {
+            name.location = fix1(name.location);
+        }
+        catch (LocationNotFound&) {
+            if (!name.host.empty()) {
+                try {
+                    name.location = fix1(string::concat(name.host, ' ', name.location));
+                    name.host.clear();
+                }
+                catch (LocationNotFound&) {
+                    const auto location = fix1(name.host);
+                    // A/Algeria/G0281/16/2016
+                    name.host.clear();
+                    name.isolation = string::concat(name.location, '-', name.isolation);
+                    name.location = location;
+                }
+            }
+        }
+    }
 
 } // namespace virus_name
 

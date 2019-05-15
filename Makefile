@@ -26,7 +26,7 @@ ACMACS_VIRUS_LIB = $(DIST)/$(call shared_lib_name,libacmacsvirus,$(ACMACS_VIRUS_
 
 lib: $(ACMACS_VIRUS_LIB)
 
-test: install-acmacs-base | $(TARGETS)
+test: install | $(TARGETS)
 	test/test
 .PHONY: test
 

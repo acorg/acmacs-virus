@@ -37,6 +37,8 @@ namespace virus_name
         }
     }
 
+    void fix_location(Name& name);
+
 // ----------------------------------------------------------------------
 
       // Extracts virus name without passage, reassortant, extra, etc.
@@ -45,7 +47,7 @@ namespace virus_name
     using location_func_t = std::string (*)(std::string);
     enum class prioritize_cdc_name { no, yes };
 
-    std::string location_for_cdc_name(std::string name); // throws Unrecognized, used by: LocDb::find_for_virus_name
+    std::string location_for_cdc_name(std::string name); // throws Unrecognized, used by: export_layout_sequences_into_csv
 
     // returned cdc abbreviation starts with #
     std::string location(std::string name, prioritize_cdc_name check_cdc_first = prioritize_cdc_name::no); // throws Unrecognized
