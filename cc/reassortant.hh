@@ -5,7 +5,7 @@
 
 // ----------------------------------------------------------------------
 
-namespace acmacs::chart
+namespace acmacs::virus
 {
     class Reassortant
     {
@@ -33,13 +33,13 @@ namespace acmacs::chart
 
     }; // class Reassortant
 
-} // namespace acmacs::chart
+} // namespace acmacs::virus
 
 // ----------------------------------------------------------------------
 
 namespace acmacs
 {
-    inline std::string to_string(const acmacs::chart::Reassortant& reassortant) { return *reassortant; }
+    inline std::string to_string(const acmacs::virus::Reassortant& reassortant) { return *reassortant; }
 }
 
 // ----------------------------------------------------------------------
