@@ -3,6 +3,8 @@
 #include <iostream>
 #include <string>
 
+#include "acmacs-base/string.hh"
+
 // ----------------------------------------------------------------------
 
 namespace acmacs::virus
@@ -31,6 +33,8 @@ namespace acmacs::virus
         friend inline std::ostream& operator<<(std::ostream& out, const Reassortant& reassortant) { return out << reassortant.value_; }
 
     }; // class Reassortant
+
+    std::tuple<acmacs::virus::Reassortant, std::string> parse_reassortant(std::string_view source);
 
 } // namespace acmacs::virus
 

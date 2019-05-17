@@ -51,9 +51,9 @@ void test_builtin()
 
     for (const auto& entry : data) {
         try {
-        const auto result = acmacs::virus_name::parse_name(entry.raw_name);
+        const auto result = acmacs::virus::parse_name(entry.raw_name);
         std::cout << "SRC: " << entry.raw_name << '\n'
-                  << "NAM: " << std::get<acmacs::virus_name::virus_name_t>(result) << '\n'
+                  << "NAM: " << std::get<acmacs::virus::virus_name_t>(result) << '\n'
                   << "REA: " << std::get<acmacs::virus::Reassortant>(result) << '\n'
                   << "PAS: " << std::get<acmacs::virus::Passage>(result) << '\n'
                   << "EXT: " << std::get<std::string>(result) << '\n'

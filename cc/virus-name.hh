@@ -4,6 +4,7 @@
 
 #include "acmacs-base/named-type.hh"
 
+#include "acmacs-virus/virus.hh"
 #include "acmacs-virus/passage.hh"
 #include "acmacs-virus/reassortant.hh"
 
@@ -11,14 +12,12 @@
 
 // ----------------------------------------------------------------------
 
-namespace acmacs::virus_name
+namespace acmacs::virus
 {
     inline namespace v2
     {
         // normalized or user approved virus name
         using virus_name_t = named_t<std::string, struct virus_name_tag>;
-
-        struct Error : public std::runtime_error { using std::runtime_error::runtime_error; };
 
         enum parse_name_f
         {
