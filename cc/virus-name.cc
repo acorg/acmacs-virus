@@ -3,6 +3,14 @@
 #include "acmacs-base/string.hh"
 #include "acmacs-virus/virus-name.hh"
 
+constexpr const char* sre_flu_name_general_AB =
+        "([AB])((?:/H[1-9][0-9]?(?:N[1-9][0-9]?)?)|(?:\\(H[1-9][0-9]?(?:N[1-9][0-9]?)?\\))|(?:H[1-9][0-9]?(?:N[1-9][0-9]?)?))?/" // type subtype
+        "(?:([^/]+)/)?"      // host
+        "([^/]{2,})/"        // location/
+        "0*([^/]+)/"         // isolation /
+        "\\d+"   // year
+        ;
+
 constexpr const char* re_flu_name_s =
         "([AB])((?:/H[1-9][0-9]?(?:N[1-9][0-9]?)?)|(?:\\(H[1-9][0-9]?(?:N[1-9][0-9]?)?\\))|(?:H[1-9][0-9]?(?:N[1-9][0-9]?)?))?/" // type subtype
         "(?:([^/]+)/)?"      // host

@@ -22,9 +22,8 @@ namespace acmacs::virus
         bool operator!=(const Reassortant& rhs) const { return !operator==(rhs); }
         bool operator<(const Reassortant& rhs) const { return value_ < rhs.value_; }
         int compare(const Reassortant& rhs) const { return ::string::compare(value_, rhs.value_); }
-
-        constexpr bool empty() const { return value_.empty(); }
-        constexpr size_t size() const { return value_.size(); }
+        bool empty() const { return value_.empty(); }
+        size_t size() const { return value_.size(); }
 
       private:
         std::string value_;

@@ -23,8 +23,8 @@ namespace acmacs::virus
         bool operator==(const Passage& rhs) const { return value_ == rhs.value_; }
         bool operator!=(const Passage& rhs) const { return !operator==(rhs); }
         bool operator<(const Passage& rhs) const { return value_ < rhs.value_; }
-        constexpr bool empty() const { return value_.empty(); }
-        constexpr size_t size() const { return value_.size(); }
+        bool empty() const { return value_.empty(); }
+        size_t size() const { return value_.size(); }
 
         bool is_egg() const;
         bool is_cell() const;
