@@ -24,6 +24,9 @@ constexpr const char* sre_flu_name_general_A_subtype =
         "\\s*(\\d+)"                                 // year \5 - any number of digits
         ;
 
+constexpr const char* sre_extra_keywords = "\\b(?:NEW)\\b";
+constexpr const char* sre_extra_symbols = "^[\\(\\)_\\s]+$";
+
 static std::string fix_location(std::string source, acmacs::virus::parse_name_f flags);
 static std::string fix_year(std::string source);
 
@@ -34,7 +37,11 @@ std::tuple<acmacs::virus::virus_name_t, acmacs::virus::Reassortant, acmacs::viru
 #include "acmacs-base/global-constructors-push.hh"
     static const std::regex re_flu_name_general_AB{sre_flu_name_general_AB};
     static const std::regex re_flu_name_general_A_subtype{sre_flu_name_general_A_subtype};
+    static const std::regex re_extra_keywords{sre_extra_keywords};
+    static const std::regex re_extra_symbols{sre_extra_symbols};
 #include "acmacs-base/diagnostics-pop.hh"
+
+    const auto make_extra = [](const std::smatch& match) { return ::string::join(" ", {::string::strip(match.prefix().str()), ::string::strip(match.suffix().str())}); };
 
     virus_name_t name{""};
     std::string extra;
@@ -44,13 +51,13 @@ std::tuple<acmacs::virus::virus_name_t, acmacs::virus::Reassortant, acmacs::viru
         const std::array fields{match_general_AB[1].str(), match_general_AB[2].str(), fix_location(match_general_AB[3].str(), flags & parse_name_f::lookup_location), match_general_AB[4].str(),
                                 fix_year(match_general_AB[5].str())};
         name = virus_name_t(::string::join("/", fields));
-        extra = ::string::join(" ", {::string::strip(match_general_AB.prefix().str()), ::string::strip(match_general_AB.suffix().str())});
+        extra = make_extra(match_general_AB);
     }
     else if (std::smatch match_general_A_subtype; std::regex_search(source_u, match_general_A_subtype, re_flu_name_general_A_subtype)) {
         const std::array fields{match_general_A_subtype[1].str(), match_general_A_subtype[2].str(), fix_location(match_general_A_subtype[3].str(), flags & parse_name_f::lookup_location),
                                 match_general_A_subtype[4].str(), fix_year(match_general_A_subtype[5].str())};
         name = virus_name_t(::string::join("/", fields));
-        extra = ::string::join(" ", {::string::strip(match_general_A_subtype.prefix().str()), ::string::strip(match_general_A_subtype.suffix().str())});
+        extra = make_extra(match_general_A_subtype);
     }
     else
         throw Error("cannot parse: " + std::string(source));
@@ -60,6 +67,15 @@ std::tuple<acmacs::virus::virus_name_t, acmacs::virus::Reassortant, acmacs::viru
         std::tie(reassortant, extra) = parse_reassortant(extra);
 
     Passage passage;
+
+    if (!extra.empty()) {
+        std::smatch match_extra_keywords;
+        while (std::regex_search(extra, match_extra_keywords, re_extra_keywords))
+            extra = make_extra(match_extra_keywords);
+    }
+
+    if (!extra.empty() && std::regex_match(extra, re_extra_symbols))
+        extra.clear();
 
     return {name, reassortant, passage, extra};
 
