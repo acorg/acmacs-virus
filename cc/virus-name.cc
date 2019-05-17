@@ -155,7 +155,7 @@ std::string fix_year(std::string source)
         return "20" + std::to_string(year);
     }
     else if (year <= current_year_2) {
-        std::cerr << "WARNING: ambigous year in virus name: " << year << '\n';
+        // std::cerr << "WARNING: ambigous year in virus name: " << year << '\n';
         return "20" + std::to_string(year);
     }
     else if (year < 100) {
