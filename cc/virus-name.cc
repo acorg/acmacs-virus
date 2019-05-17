@@ -56,6 +56,7 @@ constexpr const char* sre_flu_name_general_A_subtype =
 
 
 constexpr const char* sre_extra_keywords = "\\b(?:NEW)\\b";
+constexpr const char* sre_extra_keywords_when_reassortant = "\\b(?:HY)\\b";
 constexpr const char* sre_extra_symbols = "^[\\(\\)_\\s]+$";
 
 static std::string fix_location(std::string source, acmacs::virus::parse_name_f flags);
@@ -72,6 +73,7 @@ std::tuple<acmacs::virus::virus_name_t, acmacs::virus::Reassortant, acmacs::viru
     static const std::regex re_flu_name_general_AB_location_split{sre_flu_name_general_AB_location_split};
     static const std::regex re_flu_name_general_A_subtype{sre_flu_name_general_A_subtype};
     static const std::regex re_extra_keywords{sre_extra_keywords};
+    static const std::regex re_extra_keywords_when_reassortant{sre_extra_keywords_when_reassortant};
     static const std::regex re_extra_symbols{sre_extra_symbols};
 #include "acmacs-base/diagnostics-pop.hh"
 
@@ -123,6 +125,12 @@ std::tuple<acmacs::virus::virus_name_t, acmacs::virus::Reassortant, acmacs::viru
         std::smatch match_extra_keywords;
         while (std::regex_search(extra, match_extra_keywords, re_extra_keywords))
             extra = make_extra(match_extra_keywords);
+    }
+
+    if (!extra.empty() && !reassortant.empty()) {
+        std::smatch match_extra_keywords_when_reassortant;
+        while (std::regex_search(extra, match_extra_keywords_when_reassortant, re_extra_keywords_when_reassortant))
+            extra = make_extra(match_extra_keywords_when_reassortant);
     }
 
     if (!extra.empty() && std::regex_match(extra, re_extra_symbols))
