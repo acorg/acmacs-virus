@@ -8,19 +8,23 @@
 
 // ----------------------------------------------------------------------
 
+#define SRE_HOST "(?:\\s*([A-Z \\-_]+)\\s*/)?"
+#define SRE_LOC "([A-Z \\-\\.,'&_]{2,})/"
+#define SRE_ISOLATION "\\s*0*([^/]+)\\s*/+" // mutiple / at the end (found in gisaid)
+
 constexpr const char* sre_flu_name_general_AB =
         "\\b([AB])/"                    // type \1
-        "(?:\\s*([A-Z \\-_]+)\\s*/)?"   // host \2
-        "([A-Z \\-\\._]{2,})/"          // location \3
-        "\\s*0*([^/]+)\\s*/"            // isolation \4 - without leading 0
+        SRE_HOST                        // host \2
+        SRE_LOC                         // location \3
+        SRE_ISOLATION                   // isolation \4 - without leading 0
         "\\s*(\\d+)"                    // year \5 - any number of digits
         ;
 
 constexpr const char* sre_flu_name_general_A_subtype =
         "\\b(A\\(H[1-9][0-9]?(?:N[1-9][0-9]?)?\\))/" // A(H3N2) \1
-        "(?:\\s*([A-Z \\-_]+)\\s*/)?"                // host \2
-        "([A-Z \\-\\._]{2,})/"                       // location \3
-        "\\s*0*([^/]+)\\s*/"                         // isolation \4 - without leading 0
+        SRE_HOST                                     // host \2
+        SRE_LOC                                      // location \3
+        SRE_ISOLATION                                // isolation \4 - without leading 0
         "\\s*(\\d+)"                                 // year \5 - any number of digits
         ;
 
