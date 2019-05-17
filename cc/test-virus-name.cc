@@ -52,6 +52,11 @@ void test_builtin()
         // TestData{"SINGAPORE/INFIMH-16-0019/2016",                   parse_name_result_t{virus_name_t{"SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{""}, Passage{""}, ""}},
         // TestData{"SINGAPORE/INFIMH-16-0019/16",                     parse_name_result_t{virus_name_t{"SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{""}, Passage{""}, ""}},
 
+        TestData{"B/Cameroon11V-12080 GVFI/2011",                   parse_name_result_t{virus_name_t{"B/CAMEROON/11V-12080 GVFI/2011"}, Reassortant{""}, Passage{""}, ""}},
+        TestData{"A/Mali 071 Ci/2015",                              parse_name_result_t{virus_name_t{"A/MALI/71 CI/2015"}, Reassortant{""}, Passage{""}, ""}},
+        TestData{"A/Zambia/13/174/2013",                            parse_name_result_t{virus_name_t{"A/ZAMBIA/13-174/2013"}, Reassortant{""}, Passage{""}, ""}},
+        TestData{"A/Lyon/CHU/R18.54.48/2018",                       parse_name_result_t{virus_name_t{"A/LYON CHU/R18.54.48/2018"}, Reassortant{""}, Passage{""}, ""}},
+        // TestData{"A/Lyon/CHU18.54.48/2018",                         parse_name_result_t{virus_name_t{"A/LYON CHU/18.54.48/2018"}, Reassortant{""}, Passage{""}, ""}},
         TestData{"IVR-153 (A/CALIFORNIA/07/2009)",                  parse_name_result_t{virus_name_t{"A/CALIFORNIA/7/2009"}, Reassortant{"IVR-153"}, Passage{""}, ""}},
     };
 
