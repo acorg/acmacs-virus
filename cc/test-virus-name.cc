@@ -38,25 +38,32 @@ struct TestData
 void test_builtin()
 {
     const std::array data{
-        TestData{"A/SINGAPORE/INFIMH-16-0019/2016",             "A/SINGAPORE/INFIMH-16-0019/2016", acmacs::virus::Reassortant{""}, acmacs::virus::Passage{""}, ""},
-        TestData{"A/SINGAPORE/INFIMH-16-0019/16",               "A/SINGAPORE/INFIMH-16-0019/2016", acmacs::virus::Reassortant{""}, acmacs::virus::Passage{""}, ""},
-        TestData{"A(H3N2)/SINGAPORE/INFIMH-16-0019/2016",       "A(H3N2)/SINGAPORE/INFIMH-16-0019/2016", acmacs::virus::Reassortant{""}, acmacs::virus::Passage{""}, ""},
-        TestData{"A/H3N2/SINGAPORE/INFIMH-16-0019/2016",        "A(H3N2)/SINGAPORE/INFIMH-16-0019/2016", acmacs::virus::Reassortant{""}, acmacs::virus::Passage{""}, ""},
+        TestData{"A/SINGAPORE/INFIMH-16-0019/2016", "A/SINGAPORE/INFIMH-16-0019/2016", acmacs::virus::Reassortant{""}, acmacs::virus::Passage{""}, ""},
+        TestData{"A/SINGAPORE/INFIMH-16-0019/16", "A/SINGAPORE/INFIMH-16-0019/2016", acmacs::virus::Reassortant{""}, acmacs::virus::Passage{""}, ""},
+        TestData{"A(H3N2)/SINGAPORE/INFIMH-16-0019/2016", "A(H3N2)/SINGAPORE/INFIMH-16-0019/2016", acmacs::virus::Reassortant{""}, acmacs::virus::Passage{""}, ""},
+        // TestData{"A/H3N2/SINGAPORE/INFIMH-16-0019/2016", "A(H3N2)/SINGAPORE/INFIMH-16-0019/2016", acmacs::virus::Reassortant{""}, acmacs::virus::Passage{""}, ""},
         TestData{"A/SINGAPORE/INFIMH-16-0019/2016 CL2  X-307A", "A/SINGAPORE/INFIMH-16-0019/2016", acmacs::virus::Reassortant{"NYMC-307A"}, acmacs::virus::Passage{""}, "CL2"},
         // TestData{"SINGAPORE/INFIMH-16-0019/2016",               "SINGAPORE/INFIMH-16-0019/2016", acmacs::virus::Reassortant{""}, acmacs::virus::Passage{""}, ""},
         // TestData{"SINGAPORE/INFIMH-16-0019/16",                 "SINGAPORE/INFIMH-16-0019/2016", acmacs::virus::Reassortant{""}, acmacs::virus::Passage{""}, ""},
 
-        TestData{"IVR-153 (A/CALIFORNIA/07/2009)",              "A/CALIFORNIA/7/2009", acmacs::virus::Reassortant{"IVR-153"}, acmacs::virus::Passage{""}, ""},
+        TestData{"IVR-153 (A/CALIFORNIA/07/2009)", "A/CALIFORNIA/7/2009", acmacs::virus::Reassortant{"IVR-153"}, acmacs::virus::Passage{""}, ""},
     };
 
     for (const auto& entry : data) {
+        try {
         const auto result = acmacs::virus_name::parse_name(entry.raw_name);
+        std::cout << "SRC: " << entry.raw_name << '\n'
+                  << "NAM: " << std::get<acmacs::virus_name::virus_name_t>(result) << '\n'
+                  << "REA: " << std::get<acmacs::virus::Reassortant>(result) << '\n'
+                  << "PAS: " << std::get<acmacs::virus::Passage>(result) << '\n'
+                  << "EXT: " << std::get<std::string>(result) << '\n'
+                  << '\n';
+        }
+        catch (std::exception& err) {
             std::cout << "SRC: " << entry.raw_name << '\n'
-                      << "NAM: " << std::get<acmacs::virus_name::virus_name_t>(result) << '\n'
-                      << "REA: " << std::get<acmacs::virus::Reassortant>(result) << '\n'
-                      << "PAS: " << std::get<acmacs::virus::Passage>(result) << '\n'
-                      << "EXT: " << std::get<std::string>(result) << '\n'
-                      << '\n';
+                      << "ERR: " << err.what() << '\n';
+            throw;
+        }
     }
 
 } // test_builtin

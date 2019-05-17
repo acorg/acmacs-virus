@@ -19,8 +19,16 @@ namespace acmacs::virus_name
         using virus_name_t = named_t<std::string, struct virus_name_tag>;
 
         struct Error : public std::runtime_error { using std::runtime_error::runtime_error; };
-        
-        std::tuple<virus_name_t, acmacs::virus::Reassortant, acmacs::virus::Passage, std::string> parse_name(std::string_view source);
+
+        enum parse_name_f
+        {
+            none = 0,
+            lookup_location = 1 << 0
+        };
+        inline constexpr parse_name_f operator|(parse_name_f lh, parse_name_f rh) { return parse_name_f(int(lh) | int(rh)); }
+        inline constexpr parse_name_f operator&(parse_name_f lh, parse_name_f rh) { return parse_name_f(int(lh) & int(rh)); }
+
+        std::tuple<virus_name_t, acmacs::virus::Reassortant, acmacs::virus::Passage, std::string> parse_name(std::string_view source, parse_name_f flags = parse_name_f::lookup_location);
     }
 }
 
