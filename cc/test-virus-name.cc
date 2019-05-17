@@ -53,16 +53,23 @@ void test_builtin()
         TestData{"IVR-153 (A/CALIFORNIA/07/2009)",                  parse_name_result_t{virus_name_t{"A/CALIFORNIA/7/2009"}, Reassortant{"IVR-153"}, Passage{""}, ""}},
     };
 
+    const auto field_mistmatch_output = [](auto&& res, auto&& exp) {
+        if (res == exp)
+            return ::string::concat('"', acmacs::to_string(res), '"');
+        else
+            return ::string::concat("! \"", acmacs::to_string(res), "\"  vs. expected \"", acmacs::to_string(exp), '"');
+    };
+
     size_t errors = 0;
     for (const auto& entry : data) {
         try {
             const auto result = parse_name(entry.raw_name);
             if (result != entry.expected) {
                 std::cerr << "SRC: " << entry.raw_name << '\n'
-                          << "NAM: " << std::get<virus_name_t>(result) << "  vs. expected " << std::get<virus_name_t>(entry.expected) << '\n'
-                          << "REA: " << std::get<Reassortant>(result) << "  vs. expected " << std::get<Reassortant>(entry.expected) << '\n'
-                          << "PAS: " << std::get<Passage>(result) << "  vs. expected " << std::get<Passage>(entry.expected) << '\n'
-                          << "EXT: " << std::get<std::string>(result) << "  vs. expected " << std::get<std::string>(entry.expected) << '\n'
+                          << "NAM: " << field_mistmatch_output(std::get<virus_name_t>(result), std::get<virus_name_t>(entry.expected)) << '\n'
+                          << "REA: " << field_mistmatch_output(std::get<Reassortant>(result), std::get<Reassortant>(entry.expected)) << '\n'
+                          << "PAS: " << field_mistmatch_output(std::get<Passage>(result), std::get<Passage>(entry.expected)) << '\n'
+                          << "EXT: " << field_mistmatch_output(std::get<std::string>(result), std::get<std::string>(entry.expected)) << '\n'
                           << '\n';
                 ++errors;
             }
