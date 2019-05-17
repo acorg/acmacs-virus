@@ -11,7 +11,7 @@
 constexpr const char* sre_flu_name_general_AB =
         "\\b([AB])/"                    // type \1
         "(?:\\s*([A-Z \\-_]+)\\s*/)?"   // host \2
-        "\\s*([A-Z \\-_]{2,})\\s*/"     // location \3
+        "([A-Z \\-\\._]{2,})/"          // location \3
         "\\s*0*([^/]+)\\s*/"            // isolation \4 - without leading 0
         "\\s*(\\d+)"                    // year \5 - any number of digits
         ;
@@ -19,7 +19,7 @@ constexpr const char* sre_flu_name_general_AB =
 constexpr const char* sre_flu_name_general_A_subtype =
         "\\b(A\\(H[1-9][0-9]?(?:N[1-9][0-9]?)?\\))/" // A(H3N2) \1
         "(?:\\s*([A-Z \\-_]+)\\s*/)?"                // host \2
-        "\\s*([A-Z \\-_]{2,})\\s*/"                  // location \3
+        "([A-Z \\-\\._]{2,})/"                       // location \3
         "\\s*0*([^/]+)\\s*/"                         // isolation \4 - without leading 0
         "\\s*(\\d+)"                                 // year \5 - any number of digits
         ;
@@ -87,7 +87,7 @@ std::string fix_location(std::string source, acmacs::virus::parse_name_f flags)
 {
     if (flags != acmacs::virus::parse_name_f::lookup_location)
         return source;
-    return get_locdb().find(source).name;
+    return get_locdb().find(::string::strip(source)).name;
 
 } // fix_location
 
