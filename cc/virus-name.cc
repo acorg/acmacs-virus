@@ -6,6 +6,8 @@
 #include "locationdb/locdb.hh"
 #include "acmacs-virus/virus-name.hh"
 
+// ----------------------------------------------------------------------
+
 constexpr const char* sre_flu_name_general_AB =
         "\\b([AB])/"                    // type \1
         "(?:\\s*([A-Z \\-_]+)\\s*/)?"   // host \2
@@ -35,8 +37,6 @@ std::tuple<acmacs::virus::virus_name_t, acmacs::virus::Reassortant, acmacs::viru
 #include "acmacs-base/diagnostics-pop.hh"
 
     virus_name_t name{""};
-    Reassortant reassortant;
-    Passage passage;
     std::string extra;
 
     const std::string source_u = ::string::upper(source);
@@ -54,6 +54,12 @@ std::tuple<acmacs::virus::virus_name_t, acmacs::virus::Reassortant, acmacs::viru
     }
     else
         throw Error("cannot parse: " + std::string(source));
+
+    Reassortant reassortant;
+    if (!extra.empty())
+        std::tie(reassortant, extra) = parse_reassortant(extra);
+
+    Passage passage;
 
     return {name, reassortant, passage, extra};
 
