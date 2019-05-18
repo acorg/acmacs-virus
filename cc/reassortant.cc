@@ -4,7 +4,7 @@
 
 // ----------------------------------------------------------------------
 
-constexpr const char* sre_nymc = "\\b(?:NYMC\\sB?X|B?X|NYMC)[\\-\\s]?(\\d+[A-Z]*)\\b";
+constexpr const char* sre_nymc = "\\b(?:NYMC[\\s\\-]B?X|B?X|NYMC)[\\-\\s]?(\\d+[A-Z]*)\\b";
 constexpr const char* sre_nib = "\\bNIB(?:SC)?[\\-\\s]?(\\d+[A-Z]*)\\b";
 constexpr const char* sre_cber = "\\b(?:CBER|BVR)[\\-\\s]?(\\d+[A-Z]*)\\b";
 constexpr const char* sre_rest = "\\b(IVR)[\\-\\s]?(\\d+[A-Z]*)\\b";
