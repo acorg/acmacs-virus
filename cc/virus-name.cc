@@ -56,6 +56,7 @@ constexpr const char* sre_flu_name_general_A_subtype =
         ;
 
 
+constexpr const char* sre_extra_passage = "^-?(E|MDCK|C|CELL|OR|EGG)$";
 constexpr const char* sre_extra_keywords = "\\b(?:NEW)\\b";
 constexpr const char* sre_extra_keywords_when_reassortant = "\\b(?:HY)\\b";
 constexpr const char* sre_extra_symbols = "^[\\(\\)_\\s]+$";
@@ -74,6 +75,7 @@ acmacs::virus::parse_result_t acmacs::virus::parse_name(std::string_view source,
     static const std::regex re_flu_name_general_AB{sre_flu_name_general_AB};
     static const std::regex re_flu_name_general_AB_no_isolation{sre_flu_name_general_AB_no_isolation};
     static const std::regex re_flu_name_general_A_subtype{sre_flu_name_general_A_subtype};
+    static const std::regex re_extra_passage{sre_extra_passage};
     static const std::regex re_extra_keywords{sre_extra_keywords};
     static const std::regex re_extra_keywords_when_reassortant{sre_extra_keywords_when_reassortant};
     static const std::regex re_extra_symbols{sre_extra_symbols};
@@ -121,6 +123,27 @@ acmacs::virus::parse_result_t acmacs::virus::parse_name(std::string_view source,
         std::tie(reassortant, extra) = parse_reassortant(extra);
 
     Passage passage;
+
+    if (!extra.empty()) {
+        if (std::smatch match_extra_passage; std::regex_match(extra, match_extra_passage, re_extra_passage)) {
+            switch (extra[static_cast<size_t>(match_extra_passage.position(1))]) {
+              case 'E':
+                  passage = Passage{"E?"};
+                  break;
+              case 'M':
+              case 'C':
+                  passage = Passage{"MDCK?"};
+                  break;
+              case 'O':
+                  passage = Passage{"OR"};
+                  break;
+              default:
+                  passage = Passage{match_extra_passage[1].str()};
+                  break;
+            }
+            extra.clear();
+        }
+    }
 
     if (!extra.empty()) {
         std::smatch match_extra_keywords;
