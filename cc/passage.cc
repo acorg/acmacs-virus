@@ -51,20 +51,24 @@ std::string acmacs::virus::Passage::without_date() const
 std::tuple<acmacs::virus::Passage, std::string> acmacs::virus::parse_passage(std::string_view source)
 {
 #include "acmacs-base/global-constructors-push.hh"
-    static const std::regex re_normal("^\\s*(E|C|MDCK|S|SIAT)\\s*(\\d+|X|\\?)\\s*", std::regex::icase);
-    static const std::regex re_passage_type("^\\s*(E|C|MDCK|S|SIAT)()\\b", std::regex::icase);
+    static const std::regex re_normal("^\\s*(E|C|MDCK|S|SIAT)[\\s\\-]*(\\d+|X|\\?)\\s*", std::regex::icase);
+    static const std::regex re_passage_type("^\\s*(E|C|MDCK|S|SIAT)()(?![\\w\\-])", std::regex::icase);
+    static const std::regex re_mdck_siat("^\\s*MDCK-(SIAT)(\\d*)", std::regex::icase);
+    static const std::regex re_mdck_siat_1("^\\s*MDCK-(SIAT)1\\s+(\\d*)\\b", std::regex::icase);
     static const std::regex re_x("^\\s*(X)\\s*(\\d+|\\?)?\\s*", std::regex::icase);
     static const std::regex re_original("^\\s*(OR)(?:IGINAL)?(?:\\s+SPECIMEN)?()\\s*", std::regex::icase);
-    static const std::regex re_lab_separator("^\\s*[/,]\\s*", std::regex::icase);
+    static const std::regex re_lab_separator("^\\s*[/,\\+]\\s*", std::regex::icase);
 #include "acmacs-base/diagnostics-pop.hh"
 
     std::vector<std::string> parts;
     for (auto first = source.begin(); first != source.end(); ) {
-        // std::cerr << "PART: [" << std::string(first, source.end()) << "]\n";
+        // std::cerr << "  PART: [" << std::string(first, source.end()) << "]\n";
         if (std::cmatch match; std::regex_search(first, source.end(), match, re_normal)
             || std::regex_search(first, source.end(), match, re_x)
             || std::regex_search(first, source.end(), match, re_original)
             || std::regex_search(first, source.end(), match, re_passage_type)
+            || std::regex_search(first, source.end(), match, re_mdck_siat_1) // before re_mdck_siat!
+            || std::regex_search(first, source.end(), match, re_mdck_siat)
             ) {
             std::string number = match[2].str();
             if (number == "X" || number.empty())

@@ -39,6 +39,10 @@ void test_builtin()
     using namespace acmacs::virus;
 
     const std::array data{
+        TestData{"MDCK-SIAT, MDCK1",      parse_passage_result_t{Passage{"SIAT?/MDCK1"}, ""}},
+        TestData{"MDCK-2, MDCK1",         parse_passage_result_t{Passage{"MDCK2/MDCK1"}, ""}},
+        TestData{"MDCK-SIAT1 2 +SIAT1",   parse_passage_result_t{Passage{"SIAT2/SIAT1"}, ""}}, // NIID
+
         TestData{"MDCK1",                 parse_passage_result_t{Passage{"MDCK1"}, ""}},
         TestData{"MDCK1 ",                parse_passage_result_t{Passage{"MDCK1"}, ""}},
         TestData{"MDCK 1",                parse_passage_result_t{Passage{"MDCK1"}, ""}},
