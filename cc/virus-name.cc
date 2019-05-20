@@ -59,10 +59,10 @@ constexpr const char* sre_extra_keywords = "\\b(?:NEW)\\b";
 constexpr const char* sre_extra_keywords_when_reassortant = "\\b(?:HY)\\b";
 constexpr const char* sre_extra_symbols = "^[\\(\\)_\\s]+$";
 
-static std::string fix_location(std::string source, acmacs::virus::parse_name_f flags, std::vector<std::string>* messages);
-static std::string fix_year(std::string source, std::vector<std::string>* messages);
-static acmacs::virus::virus_name_t isolation_with_location(const std::smatch& match, acmacs::virus::parse_name_f flags, std::vector<std::string>& messages);
-static acmacs::virus::virus_name_t general(const std::smatch& match, acmacs::virus::parse_name_f flags, std::vector<std::string>& messages);
+static std::string fix_location(std::string source, acmacs::virus::parse_name_f flags, std::vector<acmacs::virus::parse_result_t::message_t>* messages);
+static std::string fix_year(std::string source, std::vector<acmacs::virus::parse_result_t::message_t>* messages);
+static acmacs::virus::virus_name_t isolation_with_location(const std::smatch& match, acmacs::virus::parse_name_f flags, std::vector<acmacs::virus::parse_result_t::message_t>& messages);
+static acmacs::virus::virus_name_t general(const std::smatch& match, acmacs::virus::parse_name_f flags, std::vector<acmacs::virus::parse_result_t::message_t>& messages);
 
 // ----------------------------------------------------------------------
 
@@ -82,7 +82,7 @@ acmacs::virus::parse_result_t acmacs::virus::parse_name(std::string_view source,
 
     virus_name_t name{""};
     std::string extra;
-    std::vector<std::string> messages;
+    std::vector<acmacs::virus::parse_result_t::message_t> messages;
 
     const std::string source_u = ::string::upper(source);
 
@@ -111,7 +111,8 @@ acmacs::virus::parse_result_t acmacs::virus::parse_name(std::string_view source,
         extra = make_extra(match_general_A_subtype);
     }
     else {
-        throw Error("cannot parse: " + std::string(source));
+        name = virus_name_t{source};
+        messages.emplace_back(parse_result_t::message_t::unrecognized, std::string{source});
     }
 
     Reassortant reassortant;
@@ -141,7 +142,7 @@ acmacs::virus::parse_result_t acmacs::virus::parse_name(std::string_view source,
 
 // ----------------------------------------------------------------------
 
-acmacs::virus::virus_name_t isolation_with_location(const std::smatch& match, acmacs::virus::parse_name_f flags, std::vector<std::string>& messages)
+acmacs::virus::virus_name_t isolation_with_location(const std::smatch& match, acmacs::virus::parse_name_f flags, std::vector<acmacs::virus::parse_result_t::message_t>& messages)
 {
     using namespace acmacs::virus;
 
@@ -161,7 +162,7 @@ acmacs::virus::virus_name_t isolation_with_location(const std::smatch& match, ac
 
 // ----------------------------------------------------------------------
 
-acmacs::virus::virus_name_t general(const std::smatch& match, acmacs::virus::parse_name_f flags, std::vector<std::string>& messages)
+acmacs::virus::virus_name_t general(const std::smatch& match, acmacs::virus::parse_name_f flags, std::vector<acmacs::virus::parse_result_t::message_t>& messages)
 {
     using namespace acmacs::virus;
 
@@ -177,7 +178,7 @@ acmacs::virus::virus_name_t general(const std::smatch& match, acmacs::virus::par
                 location = fix_location(host, flags & parse_name_f::lookup_location, nullptr);
                 if (location.empty()) {
                     location = match[3].str();
-                    messages.push_back(::string::concat("location-not-found: \"", location, '"'));
+                    messages.emplace_back(parse_result_t::message_t::location_not_found, location);
                 }
                 else {
                     host.clear();
@@ -195,7 +196,7 @@ acmacs::virus::virus_name_t general(const std::smatch& match, acmacs::virus::par
 
 // ----------------------------------------------------------------------
 
-std::string fix_location(std::string source, acmacs::virus::parse_name_f flags, std::vector<std::string>* messages)
+std::string fix_location(std::string source, acmacs::virus::parse_name_f flags, std::vector<acmacs::virus::parse_result_t::message_t>* messages)
 {
     if (flags != acmacs::virus::parse_name_f::lookup_location)
         return source;
@@ -204,7 +205,7 @@ std::string fix_location(std::string source, acmacs::virus::parse_name_f flags, 
     }
     catch (LocationNotFound& err) {
         if (messages) {
-            messages->push_back(::string::concat("location-not-found: \"", err.what(), '"'));
+            messages->emplace_back(acmacs::virus::parse_result_t::message_t::location_not_found, err.what());
             return source;
         }
         else
@@ -215,7 +216,7 @@ std::string fix_location(std::string source, acmacs::virus::parse_name_f flags, 
 
 // ----------------------------------------------------------------------
 
-std::string fix_year(std::string source, std::vector<std::string>* messages)
+std::string fix_year(std::string source, std::vector<acmacs::virus::parse_result_t::message_t>* messages)
 {
 #include "acmacs-base/global-constructors-push.hh"
     static const auto current_year = static_cast<size_t>(Date(Date::Today).year());
@@ -234,7 +235,7 @@ std::string fix_year(std::string source, std::vector<std::string>* messages)
     }
     else if (year < 1900 || year > current_year) {
         if (messages)
-            messages->push_back(::string::concat("invalid-year: ", source));
+            messages->emplace_back(acmacs::virus::parse_result_t::message_t::invalid_year, source);
         return source;
     }
     else

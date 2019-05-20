@@ -29,11 +29,24 @@ namespace acmacs::virus
 
         struct parse_result_t
         {
+            struct message_t
+            {
+                const char* key;
+                std::string value;
+
+                message_t(const char* a_key, std::string a_value) : key(a_key), value(a_value) {}
+                constexpr static inline const char* unrecognized = "unrecognized";
+                constexpr static inline const char* location_not_found = "location-not-found";
+                constexpr static inline const char* invalid_year = "invalid-year";
+                bool operator==(const char* a_key) const { return std::string_view(key) == a_key; }
+                friend inline std::ostream& operator<<(std::ostream& out, const message_t& msg) { return out << msg.key << ": \"" << msg.value << '"'; }
+            };
+
             virus_name_t name;
             acmacs::virus::Reassortant reassortant;
             acmacs::virus::Passage passage;
             std::string extra;
-            std::vector<std::string> messages{};
+            std::vector<message_t> messages{};
         };
 
         parse_result_t parse_name(std::string_view source, parse_name_f flags = parse_name_f::lookup_location);
