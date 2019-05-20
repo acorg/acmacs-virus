@@ -230,6 +230,7 @@ std::string fix_location(std::string source, acmacs::virus::parse_name_f flags, 
         return get_locdb().find(::string::strip(source)).name;
     }
     catch (LocationNotFound& err) {
+        // std::cerr << "LocationNotFound: \"" << source << "\"\n";
         if (messages) {
             messages->emplace_back(acmacs::virus::parse_result_t::message_t::location_not_found, err.what());
             return source;
