@@ -48,27 +48,63 @@ std::string acmacs::virus::Passage::without_date() const
 
 // ----------------------------------------------------------------------
 
-struct PassageNormalize
-{
-    std::regex look_for;
-    const char* replace_fmt;
-};
+// struct PassageNormalize
+// {
+//     std::regex look_for;
+//     const char* replace_fmt;
+// };
 
 std::tuple<acmacs::virus::Passage, std::string> acmacs::virus::parse_passage(std::string_view source)
 {
-    return {Passage{source}, {}};
+#include "acmacs-base/global-constructors-push.hh"
+    static const std::regex re_normal("^(E|C|MDCK|S|SIAT|X)(\\d+|X|\\?)", std::regex::icase);
+    static const std::regex re_original("^(OR)(?:IGINAL)?(?:\\s+SPECIMEN)?()", std::regex::icase);
+    static const std::regex re_lab_separator("^[/,]", std::regex::icase);
+#include "acmacs-base/diagnostics-pop.hh"
 
-// #include "acmacs-base/global-constructors-push.hh"
-//     static const std::array normalize_data{
-//         PassageNormalize{std::regex("nonon", std::regex::icase), ""},
-//     };
-// #include "acmacs-base/diagnostics-pop.hh"
+    // return {Passage{source}, {}};
 
-//     for (const auto& normalize_entry : normalize_data) {
-//         if (std::cmatch match; std::regex_search(std::begin(source), std::end(source), match, normalize_entry.look_for))
-//             return {Passage{match.format(normalize_entry.replace_fmt)}, ::string::join(" ", {::string::strip(match.prefix().str()), ::string::strip(match.suffix().str())})};
-//     }
-//     return {{}, std::string{source}};
+    std::vector<std::string> parts;
+    for (auto first = source.begin(); first != source.end(); ) {
+        if (std::cmatch match; std::regex_search(first, source.end(), match, re_normal) || std::regex_search(first, source.end(), match, re_original)) {
+            std::string number = match[2].str();
+            if (number == "X")
+                number.assign(1, '?');
+            if (match[1].length() == 1) {
+                switch (*match[1].first) {
+                  case 'E':
+                  case 'e':
+                      parts.push_back("E" + number);
+                      break;
+                  case 'C':
+                  case 'c':
+                      parts.push_back("MDCK" + number);
+                      break;
+                  case 'S':
+                  case 's':
+                      parts.push_back("SIAT" + number);
+                      break;
+                  case 'X':
+                  case 'x':
+                      parts.push_back("X" + number);
+                      break;
+                  default:
+                      return {{}, std::string{source}}; // unrecognized
+                }
+            }
+            else
+                parts.push_back(match[1].str() + number);
+            first = match[0].second;
+        }
+        else
+            return {{}, std::string{source}};
+        if (first != source.end()) {
+            if (std::cmatch match; std::regex_search(first, source.end(), match, re_lab_separator)) {
+                parts.push_back("/");
+            }
+        }
+    }
+    return {Passage{::string::join("", parts)}, {}};
 
 } // acmacs::virus::parse_passage
 
