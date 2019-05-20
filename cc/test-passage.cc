@@ -40,6 +40,8 @@ void test_builtin()
 
     const std::array data{
         TestData{"MDCK1",                 parse_passage_result_t{Passage{"MDCK1"}, ""}},
+        TestData{"MDCK1 ",                parse_passage_result_t{Passage{"MDCK1"}, ""}},
+        TestData{"MDCK 1",                parse_passage_result_t{Passage{"MDCK1"}, ""}},
         TestData{"C2",                    parse_passage_result_t{Passage{"MDCK2"}, ""}},
         TestData{"MDCKX",                 parse_passage_result_t{Passage{"MDCK?"}, ""}},
         TestData{"MDCK?",                 parse_passage_result_t{Passage{"MDCK?"}, ""}},
@@ -55,6 +57,13 @@ void test_builtin()
         TestData{"X",                     parse_passage_result_t{Passage{"X?"}, ""}},
         TestData{"X?",                    parse_passage_result_t{Passage{"X?"}, ""}},
         TestData{"X3",                    parse_passage_result_t{Passage{"X3"}, ""}},
+        TestData{"OR",                    parse_passage_result_t{Passage{"OR"}, ""}},
+        TestData{"ORIGINAL",              parse_passage_result_t{Passage{"OR"}, ""}},
+
+        TestData{"C1/C1",                 parse_passage_result_t{Passage{"MDCK1/MDCK1"}, ""}},
+        TestData{"C1,C1",                 parse_passage_result_t{Passage{"MDCK1/MDCK1"}, ""}},
+        TestData{"C1/S1",                 parse_passage_result_t{Passage{"MDCK1/SIAT1"}, ""}},
+        TestData{"SIAT, SIAT1",           parse_passage_result_t{Passage{"SIAT?/SIAT1"}, ""}},
     };
 
     const auto field_mistmatch_output = [](auto&& res, auto&& exp) {
@@ -69,7 +78,7 @@ void test_builtin()
         try {
             const auto result = parse_passage(entry.raw_passage);
             if (result != entry.expected) {
-                std::cerr << "SRC: " << entry.raw_passage << '\n'
+                std::cerr << "SRC: \"" << entry.raw_passage << "\"\n"
                           << "PAS: " << field_mistmatch_output(std::get<Passage>(result), std::get<Passage>(entry.expected)) << '\n'
                           << "EXT: " << field_mistmatch_output(std::get<std::string>(result), std::get<std::string>(entry.expected)) << '\n';
                 std::cerr << '\n';
