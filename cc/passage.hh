@@ -39,7 +39,17 @@ namespace acmacs::virus
         friend inline std::ostream& operator<<(std::ostream& out, const Passage& passage) { return out << passage.value_; }
 
     }; // class Passage
+
+    std::tuple<Passage, std::string> parse_passage(std::string_view source);
+
 } // namespace acmacs::virus
+
+// ----------------------------------------------------------------------
+
+namespace acmacs
+{
+    inline std::string to_string(const acmacs::virus::Passage& passage) { return *passage; }
+}
 
 // ----------------------------------------------------------------------
 /// Local Variables:

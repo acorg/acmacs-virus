@@ -34,7 +34,7 @@ namespace acmacs::virus
 
     }; // class Reassortant
 
-    std::tuple<acmacs::virus::Reassortant, std::string> parse_reassortant(std::string_view source);
+    std::tuple<Reassortant, std::string> parse_reassortant(std::string_view source);
 
 } // namespace acmacs::virus
 

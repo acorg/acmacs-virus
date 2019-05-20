@@ -1,3 +1,7 @@
+#include <regex>
+#include <array>
+
+#include "acmacs-base/string-split.hh"
 #include "acmacs-virus/passage.hh"
 
 // ----------------------------------------------------------------------
@@ -41,6 +45,32 @@ std::string acmacs::virus::Passage::without_date() const
         return value_;
 
 } // acmacs::virus::Passage::without_date
+
+// ----------------------------------------------------------------------
+
+struct PassageNormalize
+{
+    std::regex look_for;
+    const char* replace_fmt;
+};
+
+std::tuple<acmacs::virus::Passage, std::string> acmacs::virus::parse_passage(std::string_view source)
+{
+    return {Passage{source}, {}};
+
+// #include "acmacs-base/global-constructors-push.hh"
+//     static const std::array normalize_data{
+//         PassageNormalize{std::regex("nonon", std::regex::icase), ""},
+//     };
+// #include "acmacs-base/diagnostics-pop.hh"
+
+//     for (const auto& normalize_entry : normalize_data) {
+//         if (std::cmatch match; std::regex_search(std::begin(source), std::end(source), match, normalize_entry.look_for))
+//             return {Passage{match.format(normalize_entry.replace_fmt)}, ::string::join(" ", {::string::strip(match.prefix().str()), ::string::strip(match.suffix().str())})};
+//     }
+//     return {{}, std::string{source}};
+
+} // acmacs::virus::parse_passage
 
 // ----------------------------------------------------------------------
 

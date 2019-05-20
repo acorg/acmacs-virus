@@ -36,6 +36,7 @@ namespace acmacs::virus
 
                 message_t(const char* a_key, std::string a_value) : key(a_key), value(a_value) {}
                 constexpr static inline const char* unrecognized = "unrecognized";
+                constexpr static inline const char* unrecognized_passage = "unrecognized-passage";
                 constexpr static inline const char* location_not_found = "location-not-found";
                 constexpr static inline const char* invalid_year = "invalid-year";
                 bool operator==(const char* a_key) const { return std::string_view(key) == a_key; }

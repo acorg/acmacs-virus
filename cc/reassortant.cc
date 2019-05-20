@@ -11,12 +11,10 @@ struct ReassortantNormalize
     const char* replace_fmt;
 };
 
-// ----------------------------------------------------------------------
-
 std::tuple<acmacs::virus::Reassortant, std::string> acmacs::virus::parse_reassortant(std::string_view source)
 {
 #include "acmacs-base/global-constructors-push.hh"
-    static const std::array replacements{
+    static const std::array normalize_data{
         ReassortantNormalize{std::regex("\\b(?:NYMC[\\s\\-]B?X|B?X|NYMC)[\\-\\s]?(\\d+[A-Z]*)\\b", std::regex::icase), "NYMC-$1"},
         ReassortantNormalize{std::regex("\\bNIB(?:SC)?[\\-\\s]?(\\d+[A-Z]*)\\b", std::regex::icase), "NIB-$1"},
         ReassortantNormalize{std::regex("\\b(?:CBER|BVR)[\\-\\s]?(\\d+[A-Z]*)\\b", std::regex::icase), "CBER-$1"},
@@ -27,9 +25,9 @@ std::tuple<acmacs::virus::Reassortant, std::string> acmacs::virus::parse_reassor
     };
 #include "acmacs-base/diagnostics-pop.hh"
 
-    for (const auto& replacement : replacements) {
-        if (std::cmatch match; std::regex_search(std::begin(source), std::end(source), match, replacement.look_for))
-            return {Reassortant{match.format(replacement.replace_fmt)}, ::string::join(" ", {::string::strip(match.prefix().str()), ::string::strip(match.suffix().str())})};
+    for (const auto& normalize_entry : normalize_data) {
+        if (std::cmatch match; std::regex_search(std::begin(source), std::end(source), match, normalize_entry.look_for))
+            return {Reassortant{match.format(normalize_entry.replace_fmt)}, ::string::join(" ", {::string::strip(match.prefix().str()), ::string::strip(match.suffix().str())})};
     }
     return {{}, std::string{source}};
 
