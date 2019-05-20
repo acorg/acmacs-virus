@@ -7,6 +7,7 @@
 constexpr const char* sre_nymc = "\\b(?:NYMC[\\s\\-]B?X|B?X|NYMC)[\\-\\s]?(\\d+[A-Z]*)\\b";
 constexpr const char* sre_nib = "\\bNIB(?:SC)?[\\-\\s]?(\\d+[A-Z]*)\\b";
 constexpr const char* sre_cber = "\\b(?:CBER|BVR)[\\-\\s]?(\\d+[A-Z]*)\\b";
+constexpr const char* sre_cdclv = "\\b(CDC)-?(LV\\d+[AB]?)\\b";
 constexpr const char* sre_rest = "\\b(IVR)[\\-\\s]?(\\d+[A-Z]*)\\b";
 
 // ----------------------------------------------------------------------
@@ -17,6 +18,7 @@ std::tuple<acmacs::virus::Reassortant, std::string> acmacs::virus::parse_reassor
     static const std::regex re_nymc{sre_nymc, std::regex::icase};
     static const std::regex re_nib{sre_nib, std::regex::icase};
     static const std::regex re_cber{sre_cber, std::regex::icase};
+    static const std::regex re_cdclv{sre_cdclv, std::regex::icase};
     static const std::regex re_rest{sre_rest, std::regex::icase};
 #include "acmacs-base/diagnostics-pop.hh"
 
@@ -34,6 +36,10 @@ std::tuple<acmacs::virus::Reassortant, std::string> acmacs::virus::parse_reassor
     else if (std::cmatch match_cber; std::regex_search(std::begin(source), std::end(source), match_cber, re_cber)) {
         reassortant = Reassortant{"CBER-" + ::string::upper(match_cber[1].str())};
         extra = ::string::join(" ", {::string::strip(match_cber.prefix().str()), ::string::strip(match_cber.suffix().str())});
+    }
+    else if (std::cmatch match_cdclv; std::regex_search(std::begin(source), std::end(source), match_cdclv, re_cdclv)) {
+        reassortant = Reassortant{::string::upper(::string::concat(match_cdclv[1].str(), '-', match_cdclv[2].str()))};
+        extra = ::string::join(" ", {::string::strip(match_cdclv.prefix().str()), ::string::strip(match_cdclv.suffix().str())});
     }
     else if (std::cmatch match_rest; std::regex_search(std::begin(source), std::end(source), match_rest, re_rest)) {
         reassortant = Reassortant{::string::upper(::string::concat(match_rest[1].str(), '-', match_rest[2].str()))};
