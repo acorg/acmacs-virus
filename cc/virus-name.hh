@@ -1,6 +1,6 @@
 #pragma once
 
-#include <tuple>
+#include <vector>
 
 #include "acmacs-base/named-type.hh"
 
@@ -27,7 +27,16 @@ namespace acmacs::virus
         inline constexpr parse_name_f operator|(parse_name_f lh, parse_name_f rh) { return parse_name_f(int(lh) | int(rh)); }
         inline constexpr parse_name_f operator&(parse_name_f lh, parse_name_f rh) { return parse_name_f(int(lh) & int(rh)); }
 
-        std::tuple<virus_name_t, acmacs::virus::Reassortant, acmacs::virus::Passage, std::string> parse_name(std::string_view source, parse_name_f flags = parse_name_f::lookup_location);
+        struct parse_result_t
+        {
+            virus_name_t name;
+            acmacs::virus::Reassortant reassortant;
+            acmacs::virus::Passage passage;
+            std::string extra;
+            std::vector<std::string> messages{};
+        };
+
+        parse_result_t parse_name(std::string_view source, parse_name_f flags = parse_name_f::lookup_location);
     }
 }
 

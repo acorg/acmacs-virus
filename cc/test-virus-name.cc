@@ -28,6 +28,11 @@ int main(int argc, const char* const* argv)
 
 using parse_name_result_t = decltype(acmacs::virus::parse_name(std::string_view{}));
 
+inline bool operator!=(const parse_name_result_t& lh, const parse_name_result_t& rh)
+{
+    return ! (lh.name == rh.name && lh.reassortant == rh.reassortant && lh.passage == rh.passage && lh.extra == rh.extra);
+}
+
 struct TestData
 {
     std::string raw_name;
@@ -75,12 +80,18 @@ void test_builtin()
             const auto result = parse_name(entry.raw_name);
             if (result != entry.expected) {
                 std::cerr << "SRC: " << entry.raw_name << '\n'
-                          << "NAM: " << field_mistmatch_output(std::get<virus_name_t>(result), std::get<virus_name_t>(entry.expected)) << '\n'
-                          << "REA: " << field_mistmatch_output(std::get<Reassortant>(result), std::get<Reassortant>(entry.expected)) << '\n'
-                          << "PAS: " << field_mistmatch_output(std::get<Passage>(result), std::get<Passage>(entry.expected)) << '\n'
-                          << "EXT: " << field_mistmatch_output(std::get<std::string>(result), std::get<std::string>(entry.expected)) << '\n'
-                          << '\n';
+                          << "NAM: " << field_mistmatch_output(result.name, entry.expected.name) << '\n'
+                          << "REA: " << field_mistmatch_output(result.reassortant, entry.expected.reassortant) << '\n'
+                          << "PAS: " << field_mistmatch_output(result.passage, entry.expected.passage) << '\n'
+                          << "EXT: " << field_mistmatch_output(result.extra, entry.expected.extra) << '\n';
+                for (const auto& msg : result.messages)
+                    std::cerr << "MSG: " << msg << '\n';
+                std::cerr << '\n';
                 ++errors;
+            }
+            else {
+                for (const auto& msg : result.messages)
+                    std::cerr << "MSG: " << msg << '\n';
             }
         }
         catch (std::exception& err) {
