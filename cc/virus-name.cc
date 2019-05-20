@@ -24,7 +24,6 @@ constexpr const char* sre_flu_name_general_AB_isolation_with_location =
         SRE_LOC "/"                     // location \3
         SRE_ISOLATION_WITH_LOC  "/"     // isolation \4 + \5
         "\\s*(\\d+)"                    // year \5 - any number of digits
-        // "(?!(?:\\d|/\\d))"              // neither digit nor /digit at the end
         "(?![\\d\\w\\-/])"              // neither digit nor letter nor / nor - nor _
         ;
 
@@ -57,8 +56,8 @@ constexpr const char* sre_flu_name_general_A_subtype =
 
 
 constexpr const char* sre_extra_passage = "^-?(E|MDCK|C|CELL|OR|EGG)$";
-constexpr const char* sre_extra_keywords = "\\b(?:NEW)\\b";
-constexpr const char* sre_extra_keywords_when_reassortant = "\\b(?:HY|[BCD]-?\\d\\.\\d)\\b"; // HY or C-1.4, C1.4
+constexpr const char* sre_extra_remove = "\\b(?:NEW)\\b";
+constexpr const char* sre_extra_remove_when_reassortant = "\\b(?:HY)\\b"; // HY
 constexpr const char* sre_extra_symbols = "^[\\(\\)_\\-\\s]+$";
 
 static std::string fix_location(std::string source, acmacs::virus::parse_name_f flags, std::vector<acmacs::virus::parse_result_t::message_t>* messages);
@@ -76,8 +75,8 @@ acmacs::virus::parse_result_t acmacs::virus::parse_name(std::string_view source,
     static const std::regex re_flu_name_general_AB_no_isolation{sre_flu_name_general_AB_no_isolation};
     static const std::regex re_flu_name_general_A_subtype{sre_flu_name_general_A_subtype};
     static const std::regex re_extra_passage{sre_extra_passage};
-    static const std::regex re_extra_keywords{sre_extra_keywords};
-    static const std::regex re_extra_keywords_when_reassortant{sre_extra_keywords_when_reassortant};
+    static const std::regex re_extra_remove{sre_extra_remove};
+    static const std::regex re_extra_remove_when_reassortant{sre_extra_remove_when_reassortant};
     static const std::regex re_extra_symbols{sre_extra_symbols};
 #include "acmacs-base/diagnostics-pop.hh"
 
@@ -146,15 +145,15 @@ acmacs::virus::parse_result_t acmacs::virus::parse_name(std::string_view source,
     }
 
     if (!extra.empty()) {
-        std::smatch match_extra_keywords;
-        while (std::regex_search(extra, match_extra_keywords, re_extra_keywords))
-            extra = make_extra(match_extra_keywords);
+        std::smatch match_extra_remove;
+        while (std::regex_search(extra, match_extra_remove, re_extra_remove))
+            extra = make_extra(match_extra_remove);
     }
 
     if (!extra.empty() && !reassortant.empty()) {
-        std::smatch match_extra_keywords_when_reassortant;
-        while (std::regex_search(extra, match_extra_keywords_when_reassortant, re_extra_keywords_when_reassortant))
-            extra = make_extra(match_extra_keywords_when_reassortant);
+        std::smatch match_extra_remove_when_reassortant;
+        while (std::regex_search(extra, match_extra_remove_when_reassortant, re_extra_remove_when_reassortant))
+            extra = make_extra(match_extra_remove_when_reassortant);
     }
 
     if (!extra.empty() && std::regex_match(extra, re_extra_symbols))

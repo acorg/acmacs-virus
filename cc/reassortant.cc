@@ -1,54 +1,37 @@
 #include <regex>
+#include <array>
 
 #include "acmacs-virus/reassortant.hh"
 
 // ----------------------------------------------------------------------
 
-constexpr const char* sre_nymc = "\\b(?:NYMC[\\s\\-]B?X|B?X|NYMC)[\\-\\s]?(\\d+[A-Z]*)\\b";
-constexpr const char* sre_nib = "\\bNIB(?:SC)?[\\-\\s]?(\\d+[A-Z]*)\\b";
-constexpr const char* sre_cber = "\\b(?:CBER|BVR)[\\-\\s]?(\\d+[A-Z]*)\\b";
-constexpr const char* sre_cdclv = "\\b(CDC)-?(LV\\d+[AB]?)\\b";
-constexpr const char* sre_rest = "\\b(IVR)[\\-\\s]?(\\d+[A-Z]*)\\b";
+struct ReassortantNormalize
+{
+    std::regex look_for;
+    const char* replace_fmt;
+};
 
 // ----------------------------------------------------------------------
 
 std::tuple<acmacs::virus::Reassortant, std::string> acmacs::virus::parse_reassortant(std::string_view source)
 {
 #include "acmacs-base/global-constructors-push.hh"
-    static const std::regex re_nymc{sre_nymc, std::regex::icase};
-    static const std::regex re_nib{sre_nib, std::regex::icase};
-    static const std::regex re_cber{sre_cber, std::regex::icase};
-    static const std::regex re_cdclv{sre_cdclv, std::regex::icase};
-    static const std::regex re_rest{sre_rest, std::regex::icase};
+    static const std::array replacements{
+        ReassortantNormalize{std::regex("\\b(?:NYMC[\\s\\-]B?X|B?X|NYMC)[\\-\\s]?(\\d+[A-Z]*)\\b", std::regex::icase), "NYMC-$1"},
+        ReassortantNormalize{std::regex("\\bNIB(?:SC)?[\\-\\s]?(\\d+[A-Z]*)\\b", std::regex::icase), "NIB-$1"},
+        ReassortantNormalize{std::regex("\\b(?:CBER|BVR)[\\-\\s]?(\\d+[A-Z]*)\\b", std::regex::icase), "CBER-$1"},
+        ReassortantNormalize{std::regex("\\b(CDC)-?(LV\\d+[AB]?)\\b", std::regex::icase), "$1-$2"},
+        ReassortantNormalize{std::regex("\\b(?:PR8[\\- ]*IDCDC[\\- ]*)?RG[\\- ]*(\\d+)", std::regex::icase), "RG-$1"},
+
+        ReassortantNormalize{std::regex("\\b(IVR)[\\-\\s]?(\\d+[A-Z]*)\\b", std::regex::icase), "$1-$2"},
+    };
 #include "acmacs-base/diagnostics-pop.hh"
 
-    Reassortant reassortant;
-    std::string extra;
-
-    if (std::cmatch match_nymc; std::regex_search(std::begin(source), std::end(source), match_nymc, re_nymc)) {
-        reassortant = Reassortant{"NYMC-" + ::string::upper(match_nymc[1].str())};
-        extra = ::string::join(" ", {::string::strip(match_nymc.prefix().str()), ::string::strip(match_nymc.suffix().str())});
+    for (const auto& replacement : replacements) {
+        if (std::cmatch match; std::regex_search(std::begin(source), std::end(source), match, replacement.look_for))
+            return {Reassortant{match.format(replacement.replace_fmt)}, ::string::join(" ", {::string::strip(match.prefix().str()), ::string::strip(match.suffix().str())})};
     }
-    else if (std::cmatch match_nib; std::regex_search(std::begin(source), std::end(source), match_nib, re_nib)) {
-        reassortant = Reassortant{"NIB-" + ::string::upper(match_nib[1].str())};
-        extra = ::string::join(" ", {::string::strip(match_nib.prefix().str()), ::string::strip(match_nib.suffix().str())});
-    }
-    else if (std::cmatch match_cber; std::regex_search(std::begin(source), std::end(source), match_cber, re_cber)) {
-        reassortant = Reassortant{"CBER-" + ::string::upper(match_cber[1].str())};
-        extra = ::string::join(" ", {::string::strip(match_cber.prefix().str()), ::string::strip(match_cber.suffix().str())});
-    }
-    else if (std::cmatch match_cdclv; std::regex_search(std::begin(source), std::end(source), match_cdclv, re_cdclv)) {
-        reassortant = Reassortant{::string::upper(::string::concat(match_cdclv[1].str(), '-', match_cdclv[2].str()))};
-        extra = ::string::join(" ", {::string::strip(match_cdclv.prefix().str()), ::string::strip(match_cdclv.suffix().str())});
-    }
-    else if (std::cmatch match_rest; std::regex_search(std::begin(source), std::end(source), match_rest, re_rest)) {
-        reassortant = Reassortant{::string::upper(::string::concat(match_rest[1].str(), '-', match_rest[2].str()))};
-        extra = ::string::join(" ", {::string::strip(match_rest.prefix().str()), ::string::strip(match_rest.suffix().str())});
-    }
-    else
-        extra = source;
-
-    return {reassortant, extra};
+    return {{}, std::string{source}};
 
 } // acmacs::virus::parse_reassortant
 
