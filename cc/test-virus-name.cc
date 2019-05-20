@@ -49,11 +49,13 @@ void test_builtin()
         TestData{"A/ SINGAPORE/INFIMH-16-0019/16",                  parse_name_result_t{virus_name_t{"A/SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{""}, Passage{""}, ""}},
         TestData{"A/SINGAPORE /INFIMH-16-0019/16",                  parse_name_result_t{virus_name_t{"A/SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{""}, Passage{""}, ""}},
         TestData{"A(H3N2)/SINGAPORE/INFIMH-16-0019/2016",           parse_name_result_t{virus_name_t{"A(H3N2)/SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{""}, Passage{""}, ""}},
-        // TestData{"A/H3N2/SINGAPORE/INFIMH-16-0019/2016",            parse_name_result_t{virus_name_t{"A(H3N2)/SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{""}, Passage{""}, ""}},
         TestData{"A/SINGAPORE/INFIMH-16-0019/2016 CL2  X-307A",     parse_name_result_t{virus_name_t{"A/SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{"NYMC-307A"}, Passage{""}, "CL2"}},
         TestData{"A/SINGAPORE/INFIMH-16-0019/2016 NEW CL2  X-307A", parse_name_result_t{virus_name_t{"A/SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{"NYMC-307A"}, Passage{""}, "CL2"}},
         TestData{"A/SINGAPORE/INFIMH-16-0019/2016 CL2 NEW X-307A",  parse_name_result_t{virus_name_t{"A/SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{"NYMC-307A"}, Passage{""}, "CL2"}},
         TestData{"A/SINGAPORE/INFIMH-16-0019/2016 CL2  X-307A NEW", parse_name_result_t{virus_name_t{"A/SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{"NYMC-307A"}, Passage{""}, "CL2"}},
+        TestData{"A/Snowy Sheathbill/Antarctica/2899/2014",         parse_name_result_t{virus_name_t{"A/SNOWY SHEATHBILL/ANTARCTICA/2899/2014"}, Reassortant{}, Passage{""}, ""}},
+
+        // TestData{"A/H3N2/SINGAPORE/INFIMH-16-0019/2016",            parse_name_result_t{virus_name_t{"A(H3N2)/SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{""}, Passage{""}, ""}},
         // TestData{"SINGAPORE/INFIMH-16-0019/2016",                   parse_name_result_t{virus_name_t{"SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{""}, Passage{""}, ""}},
         // TestData{"SINGAPORE/INFIMH-16-0019/16",                     parse_name_result_t{virus_name_t{"SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{""}, Passage{""}, ""}},
 

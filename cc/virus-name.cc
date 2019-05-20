@@ -24,7 +24,7 @@ constexpr const char* sre_flu_name_general_AB_isolation_with_location =
         SRE_LOC "/"                     // location \3
         SRE_ISOLATION_WITH_LOC  "/"     // isolation \4 + \5
         "\\s*(\\d+)"                    // year \5 - any number of digits
-        "(?!/\\d)"                      // no /digit at the end
+        "(?!(?:\\d|/\\d))"              // neither digit nor /digit at the end
         ;
 
 // A/SINGAPORE/INFIMH-16-0019/2016
@@ -145,6 +145,8 @@ acmacs::virus::parse_result_t acmacs::virus::parse_name(std::string_view source,
 acmacs::virus::virus_name_t isolation_with_location(const std::smatch& match, acmacs::virus::parse_name_f flags, std::vector<acmacs::virus::parse_result_t::message_t>& messages)
 {
     using namespace acmacs::virus;
+
+    // std::cerr << "isoloc: " << match.format("[1: $1] [host: $2] [loc: $3] [iso: $4] [iso: $5] [y: $6]") << '\n';
 
     auto location = fix_location(::string::concat(match[3].str(), ' ', match[4].str()), flags & parse_name_f::lookup_location, nullptr);
     auto isolation = match[5].str();
