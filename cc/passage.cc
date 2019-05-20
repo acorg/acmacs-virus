@@ -57,7 +57,8 @@ std::string acmacs::virus::Passage::without_date() const
 std::tuple<acmacs::virus::Passage, std::string> acmacs::virus::parse_passage(std::string_view source)
 {
 #include "acmacs-base/global-constructors-push.hh"
-    static const std::regex re_normal("^(E|C|MDCK|S|SIAT|X)(\\d+|X|\\?)", std::regex::icase);
+    static const std::regex re_normal("^(E|C|MDCK|S|SIAT)(\\d+|X|\\?)", std::regex::icase);
+    static const std::regex re_x("^(X)(\\d+|\\?)?", std::regex::icase);
     static const std::regex re_original("^(OR)(?:IGINAL)?(?:\\s+SPECIMEN)?()", std::regex::icase);
     static const std::regex re_lab_separator("^[/,]", std::regex::icase);
 #include "acmacs-base/diagnostics-pop.hh"
@@ -66,7 +67,9 @@ std::tuple<acmacs::virus::Passage, std::string> acmacs::virus::parse_passage(std
 
     std::vector<std::string> parts;
     for (auto first = source.begin(); first != source.end(); ) {
-        if (std::cmatch match; std::regex_search(first, source.end(), match, re_normal) || std::regex_search(first, source.end(), match, re_original)) {
+        if (std::cmatch match; std::regex_search(first, source.end(), match, re_normal)
+            || std::regex_search(first, source.end(), match, re_x)
+            || std::regex_search(first, source.end(), match, re_original)) {
             std::string number = match[2].str();
             if (number == "X")
                 number.assign(1, '?');
@@ -86,7 +89,10 @@ std::tuple<acmacs::virus::Passage, std::string> acmacs::virus::parse_passage(std
                       break;
                   case 'X':
                   case 'x':
-                      parts.push_back("X" + number);
+                      if (number.empty())
+                          parts.push_back("X?");
+                      else
+                          parts.push_back("X" + number);
                       break;
                   default:
                       return {{}, std::string{source}}; // unrecognized

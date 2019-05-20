@@ -25,3 +25,4 @@ trap failed ERR
 # export LD_LIBRARY_PATH="${ACMACSD_ROOT}/lib:${LD_LIBRARY_PATH}"
 cd "$TESTDIR"
 ../dist/test-virus-name
+../dist/test-passage

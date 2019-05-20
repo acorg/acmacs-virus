@@ -3,7 +3,8 @@
 
 TARGETS = \
   $(ACMACS_VIRUS_LIB) \
-  $(DIST)/test-virus-name
+  $(DIST)/test-virus-name \
+  $(DIST)/test-passage
 
 all: install
 
