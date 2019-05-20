@@ -58,7 +58,7 @@ constexpr const char* sre_flu_name_general_A_subtype =
 
 constexpr const char* sre_extra_passage = "^-?(E|MDCK|C|CELL|OR|EGG)$";
 constexpr const char* sre_extra_keywords = "\\b(?:NEW)\\b";
-constexpr const char* sre_extra_keywords_when_reassortant = "\\b(?:HY)\\b";
+constexpr const char* sre_extra_keywords_when_reassortant = "\\b(?:HY|[BCD]-?\\d\\.\\d)\\b";
 constexpr const char* sre_extra_symbols = "^[\\(\\)_\\s]+$";
 
 static std::string fix_location(std::string source, acmacs::virus::parse_name_f flags, std::vector<acmacs::virus::parse_result_t::message_t>* messages);
