@@ -11,7 +11,7 @@
 #define SRE_AB "([AB])"
 #define SRE_HOST "(?:\\s*([A-Z \\-_]+)\\s*/)?"
 // #define SRE_LOC "([A-Z \\-\\.,'&_]{2,})"  // no digits!, otherwise possibility to omit / after LOC does not work
-#define SRE_LOC "([A-Z0-9 \\-\\.,'&_]{2,})"
+#define SRE_LOC "([A-Z0-9 \\-\\.,'&_\\?]{2,})"
 #define SRE_LOC_NO_DIGITS "([A-Z \\-\\.,'&_]{2,})"
 #define SRE_ISOLATION "\\s*0*([^/]+)\\s*"
 #define SRE_ISOLATION_WITH_LOC "\\s*([A-Z]{3,})([^/]+)\\s*"
@@ -24,7 +24,8 @@ constexpr const char* sre_flu_name_general_AB_isolation_with_location =
         SRE_LOC "/"                     // location \3
         SRE_ISOLATION_WITH_LOC  "/"     // isolation \4 + \5
         "\\s*(\\d+)"                    // year \5 - any number of digits
-        "(?!(?:\\d|/\\d))"              // neither digit nor /digit at the end
+        // "(?!(?:\\d|/\\d))"              // neither digit nor /digit at the end
+        "(?![\\d\\w\\-/])"              // neither digit nor letter nor / nor - nor _
         ;
 
 // A/SINGAPORE/INFIMH-16-0019/2016
