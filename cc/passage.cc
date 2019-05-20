@@ -52,7 +52,7 @@ std::tuple<acmacs::virus::Passage, std::string> acmacs::virus::parse_passage(std
 {
 #include "acmacs-base/global-constructors-push.hh"
     static const std::regex re_normal("^\\s*(E|C|MDCK|S|SIAT)[\\s\\-]*(\\d+|X|\\?)\\s*", std::regex::icase);
-    static const std::regex re_passage_type("^\\s*(E|C|MDCK|S|SIAT)()(?![\\w\\-])", std::regex::icase);
+    static const std::regex re_passage_type("^\\s*(E|EGG|C|MDCK|S|SIAT)()(?![\\w\\-])", std::regex::icase);
     static const std::regex re_mdck_siat("^\\s*MDCK-(SIAT)(\\d*)", std::regex::icase);
     static const std::regex re_mdck_siat_1("^\\s*MDCK-(SIAT)1\\s+(\\d*)\\b", std::regex::icase);
     static const std::regex re_x("^\\s*(X)\\s*(\\d+|\\?)?\\s*", std::regex::icase);
