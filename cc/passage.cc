@@ -54,7 +54,7 @@ std::string acmacs::virus::Passage::without_date() const
 
 using source_iter_t = decltype(std::string_view{}.cbegin());
 
-inline source_iter_t parts_push_i(std::vector<std::string>& parts, std::string& last_passage_type, const char* p1, std::string p2={}, source_iter_t result={})
+static inline source_iter_t parts_push_i(std::vector<std::string>& parts, std::string& last_passage_type, const char* p1, std::string p2={}, source_iter_t result={})
 {
     parts.push_back(p1);
     last_passage_type = p1;
@@ -113,6 +113,7 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
     static const std::regex re_p_pm("^M LUNG", std::regex::icase); // NIMR
     static const std::regex re_b_or("^RONCH[\\s\\-_\\(\\)A-Z]*", std::regex::icase);
     static const std::regex re_paren_from("^FROM[\\sA-Z]+\\)", std::regex::icase);
+    static const std::regex re_d_direct("^IRECT\\s*$", std::regex::icase); // Public Health Agency of Sweden
 
     // R R-MIX - R-mix tissure culture
     static const std::regex re_r_n("^(?:-?M[I1]?X)?[\\s\\-]*(\\d+)", std::regex::icase);
@@ -150,6 +151,13 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
              else
                  throw parsing_failed{};
              return match[0].second;
+         }},
+        {'D',
+         [](std::vector<std::string>& parts_2, std::string& last_passage_type_2, source_iter_t first, source_iter_t last) -> source_iter_t {
+             if (std::cmatch match; std::regex_search(first, last, match, re_d_direct))
+                 return parts_push_i(parts_2, last_passage_type_2, "OR", {}, match[0].second);
+             else
+                 throw parsing_failed{};
          }},
         {'E',
          [](std::vector<std::string>& parts_2, std::string& last_passage_type_2, source_iter_t first, source_iter_t last) -> source_iter_t {
