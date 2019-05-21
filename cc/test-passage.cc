@@ -45,10 +45,12 @@ void test_builtin()
         TestData{"C",                     parse_passage_result_t{Passage{"MDCK?"}, ""}},
         TestData{"MDCK1",                 parse_passage_result_t{Passage{"MDCK1"}, ""}},
         TestData{"MDCK1 ",                parse_passage_result_t{Passage{"MDCK1"}, ""}},
+        TestData{"MCDK1",                 parse_passage_result_t{Passage{"MDCK1"}, ""}},
         TestData{"MDCK 1",                parse_passage_result_t{Passage{"MDCK1"}, ""}},
         TestData{"MDCK-1",                parse_passage_result_t{Passage{"MDCK1"}, ""}},
         TestData{"MDCKX",                 parse_passage_result_t{Passage{"MDCK?"}, ""}},
         TestData{"MDCK?",                 parse_passage_result_t{Passage{"MDCK?"}, ""}},
+        TestData{"Passage-MDCK1",         parse_passage_result_t{Passage{"MDCK1"}, ""}}, // Crick
         TestData{"SIAT1",                 parse_passage_result_t{Passage{"SIAT1"}, ""}},
         TestData{"SIATX",                 parse_passage_result_t{Passage{"SIAT?"}, ""}},
         TestData{"SIAT?",                 parse_passage_result_t{Passage{"SIAT?"}, ""}},
@@ -91,6 +93,8 @@ void test_builtin()
         TestData{"X/C1",                  parse_passage_result_t{Passage{"X?/MDCK1"}, ""}},
         TestData{"P1/SIAT1",              parse_passage_result_t{Passage{"X1/SIAT1"}, ""}}, // Crick
         TestData{"PX/SIAT1",              parse_passage_result_t{Passage{"X?/SIAT1"}, ""}}, // Crick
+        TestData{"MDCKX+1/MDCK1",         parse_passage_result_t{Passage{"MDCK?/MDCK1/MDCK1"}, ""}},
+        TestData{"MDCK1+2",               parse_passage_result_t{Passage{"MDCK1/MDCK2"}, ""}},
     };
 
     const auto field_mistmatch_output = [](auto&& res, auto&& exp) {

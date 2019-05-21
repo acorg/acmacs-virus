@@ -56,14 +56,23 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
     struct parsing_failed : public std::exception { using std::exception::exception; };
     using source_iter_t = decltype(source.cbegin());
     using callback_t = std::function<source_iter_t(source_iter_t first, source_iter_t last)>; // returns new first value, throws parsing_failed
+
     std::vector<std::string> parts;
+    std::string last_passage_type;
+    const auto parts_push = [&parts,&last_passage_type](const char* p1, std::string p2={}, source_iter_t result={}) -> source_iter_t {
+        parts.push_back(p1);
+        last_passage_type = p1;
+        if (!p2.empty())
+            parts.push_back(p2);
+        return result;
+    };
 
 #include "acmacs-base/global-constructors-push.hh"
     // MDCK C
     static const std::regex re_c_mdck_x("^[\\s\\-]*[X\\?]?", std::regex::icase);
     static const std::regex re_c_mdck_n("^[\\s\\-]*(\\d+)", std::regex::icase);
-    static const std::regex re_m_mdck_x("^DCK[\\s\\-]*[X\\?]?", std::regex::icase);
-    static const std::regex re_m_mdck_n("^DCK[\\s\\-]*(\\d+)", std::regex::icase);
+    static const std::regex re_m_mdck_x("^(?:DCK|CDK)[\\s\\-]*[X\\?`]?", std::regex::icase);
+    static const std::regex re_m_mdck_n("^(?:DCK|CDK)[\\s\\-]*(\\d+)", std::regex::icase);
     static const std::regex re_m_mdck_siat_x("^DCK-SIAT[\\s\\-]*[X\\?]?", std::regex::icase);
     static const std::regex re_m_mdck_siat_n("^DCK-SIAT[\\s\\-]*(\\d+)", std::regex::icase);
     static const std::regex re_m_mdck_siat1_n("^DCK-SIAT1[\\s\\-](\\d+)", std::regex::icase);
@@ -85,130 +94,193 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
     static const std::regex re_m_mk_n("^K?[\\s\\-]*(\\d+)", std::regex::icase);
 
     // OR CS CLINICAL ORIGINAL SPECIMEN/SAMPLE
-    static const std::regex re_c_clinical("^(?:S(?:-ORI)?|LINICAL\\s*(?:SPECIMEN|SAMPLE))", std::regex::icase);
-    static const std::regex re_o_original("^R(?:IGINAL)?\\s*(?:SPECIMEN|SAMPLE)?)", std::regex::icase);
+    static const std::regex re_c_clinical("^(?:S(?:-ORI)?|LINI?CAL[\\sA-Z]*)", std::regex::icase);
+    static const std::regex re_o_original("^R(?:IGINAL)?[\\s\\-_\\(\\)A-Z]*", std::regex::icase);
+    static const std::regex re_l_lung("^UNG[\\s\\-_A-Z]*", std::regex::icase); // NIMR
+    static const std::regex re_n_nose("^(?:OSE|ASO|ASA)[\\s\\-_A-Z]*", std::regex::icase); // NIMR
+    static const std::regex re_t_throat("^HROAT SWAB", std::regex::icase); // NIMR
+    static const std::regex re_s_swab("^WAB", std::regex::icase);
+    static const std::regex re_p_pm("^M LUNG", std::regex::icase); // NIMR
+    static const std::regex re_paren_from("^FROM[\\sA-Z]+\\)", std::regex::icase);
+
+    // R R-MIX - R-mix tissure culture
+    static const std::regex re_r_n("^(?:-?M[I1]?X)?[\\s\\-]*(\\d+)", std::regex::icase);
+    static const std::regex re_r_x("^(?:-?M[I1]?X)?[\\s\\-]*[X\\?]?(?!\\w)", std::regex::icase);
+    static const std::regex re_rii_n("^II[\\s\\-]*(\\d+)", std::regex::icase);
+    static const std::regex re_rii_x("^II[X\\?]?(?!\\w)", std::regex::icase);
 
     // X
     static const std::regex re_x_n("^(\\d+)", std::regex::icase);
     static const std::regex re_p_n("^(\\d+)", std::regex::icase);
 
+    // Passage-
+    static const std::regex re_passage("^ASSAGE-?", std::regex::icase);
+
+    static const std::regex re_digits("^(\\d+)");
+
     static const std::map<char, callback_t> normalize_data{
-        {'C', [&parts](source_iter_t first, source_iter_t last) -> source_iter_t {
+        {'C', [&parts_push](source_iter_t first, source_iter_t last) -> source_iter_t {
             std::cmatch match;
             if (std::regex_search(first, last, match, re_c_mdck_n))
-                parts.push_back("MDCK" + match[1].str());
+                parts_push("MDCK", match[1].str());
             else if (std::regex_search(first, last, match, re_c_clinical))
-                parts.push_back("OR");
+                parts_push("OR");
             else if (std::regex_search(first, last, match, re_c_mdck_x))
-                parts.push_back("MDCK?");
+                parts_push("MDCK", "?");
             else
                 throw parsing_failed{};
             return match[0].second;
         }},
-        {'E', [&parts](source_iter_t first, source_iter_t last) -> source_iter_t {
+        {'E', [&parts_push](source_iter_t first, source_iter_t last) -> source_iter_t {
             std::cmatch match;
             if (std::regex_search(first, last, match, re_e_egg_n))
-                parts.push_back("E" + match[1].str());
+                parts_push("E", match[1].str());
             else if (std::regex_search(first, last, match, re_e_egg_x))
-                parts.push_back("E?");
+                parts_push("E", "?");
             else
                 throw parsing_failed{};
             return match[0].second;
         }},
-        {'M', [&parts](source_iter_t first, source_iter_t last) -> source_iter_t {
+        {'L', [&parts_push](source_iter_t first, source_iter_t last) -> source_iter_t {
+            std::cmatch match;
+            if (std::regex_search(first, last, match, re_l_lung))
+                parts_push("OR");
+            else
+                throw parsing_failed{};
+            return match[0].second;
+        }},
+        {'M', [&parts_push](source_iter_t first, source_iter_t last) -> source_iter_t {
             // std::cerr << "  M: [" << std::string(first, last) << "]\n";
             std::cmatch match;
             if (std::regex_search(first, last, match, re_m_mdck_n))
-                parts.push_back("MDCK" + match[1].str());
+                parts_push("MDCK", match[1].str());
             else if (std::regex_search(first, last, match, re_m_mdck_siat1_n))
-                parts.push_back("SIAT" + match[1].str());
+                parts_push("SIAT", match[1].str());
             else if (std::regex_search(first, last, match, re_m_mdck_siat_n))
-                parts.push_back("SIAT" + match[1].str());
+                parts_push("SIAT", match[1].str());
             else if (std::regex_search(first, last, match, re_m_mdck_siat_x))
-                parts.push_back("SIAT?");
+                parts_push("SIAT", "?");
             else if (std::regex_search(first, last, match, re_m_mk_n))
-                parts.push_back("MK" + match[1].str());
+                parts_push("MK", match[1].str());
             else if (std::regex_search(first, last, match, re_m_mdck_x))
-                parts.push_back("MDCK?");
+                parts_push("MDCK", "?");
             else if (std::regex_search(first, last, match, re_m_mk_x))
-                parts.push_back("MK?");
+                parts_push("MK", "?");
             else
                 throw parsing_failed{};
             return match[0].second;
         }},
-        {'O', [&parts](source_iter_t first, source_iter_t last) -> source_iter_t {
+        {'N', [&parts_push](source_iter_t first, source_iter_t last) -> source_iter_t {
+            std::cmatch match;
+            if (std::regex_search(first, last, match, re_n_nose))
+                parts_push("OR");
+            else
+                throw parsing_failed{};
+            return match[0].second;
+        }},
+        {'O', [&parts_push](source_iter_t first, source_iter_t last) -> source_iter_t {
             std::cmatch match;
             if (std::regex_search(first, last, match, re_o_original))
-                parts.push_back("OR");
+                parts_push("OR");
             else
                 throw parsing_failed{};
             return match[0].second;
         }},
-        {'P', [&parts](source_iter_t first, source_iter_t last) -> source_iter_t {
+        {'P', [&parts_push](source_iter_t first, source_iter_t last) -> source_iter_t {
             std::cmatch match;
-            if (std::regex_search(first, last, match, re_p_n)) {
-                parts.push_back("X" + match[1].str());
-                return match[0].second;
-            }
-            else if (first != last && (*first == 'X' || *first == 'x')) {
-                parts.push_back("X?");
-                return first + 1;
-            }
+            if (std::regex_search(first, last, match, re_p_n))
+                return parts_push("X", match[1].str(), match[0].second);
+            else if (std::regex_search(first, last, match, re_passage))
+                return match[0].second; // ignore PASSAGE-
+            else if (std::regex_search(first, last, match, re_p_pm))
+                return parts_push("OR", {}, match[0].second);
+            else if (first != last && (*first == 'X' || *first == 'x'))
+                return parts_push("X", "?", first + 1);
             else
                 throw parsing_failed{};
         }},
-        {'Q', [&parts](source_iter_t first, source_iter_t last) -> source_iter_t {
+        {'Q', [&parts_push](source_iter_t first, source_iter_t last) -> source_iter_t {
             std::cmatch match;
             if (std::regex_search(first, last, match, re_q_qmc_n))
-                parts.push_back("QMC" + match[1].str());
+                parts_push("QMC", match[1].str());
             else if (std::regex_search(first, last, match, re_q_qmc_x))
-                parts.push_back("QMC?");
+                parts_push("QMC", "?");
             else
                 throw parsing_failed{};
             return match[0].second;
         }},
-        {'S', [&parts](source_iter_t first, source_iter_t last) -> source_iter_t {
+        {'R', [&parts_push](source_iter_t first, source_iter_t last) -> source_iter_t {
+            std::cmatch match;
+            if (std::regex_search(first, last, match, re_r_n))
+                parts_push("R", match[1].str());
+            else if (std::regex_search(first, last, match, re_rii_n))
+                parts_push("RII", match[1].str());
+            else if (std::regex_search(first, last, match, re_rii_x))
+                parts_push("RII", "?");
+            else if (std::regex_search(first, last, match, re_r_x))
+                parts_push("R", "?");
+            else
+                throw parsing_failed{};
+            return match[0].second;
+        }},
+        {'S', [&parts_push](source_iter_t first, source_iter_t last) -> source_iter_t {
             std::cmatch match;
             if (std::regex_search(first, last, match, re_s_siat_n))
-                parts.push_back("SIAT" + match[1].str());
+                parts_push("SIAT", match[1].str());
+            else if (std::regex_search(first, last, match, re_s_swab))
+                parts_push("OR");
             else if (std::regex_search(first, last, match, re_s_siat_x))
-                parts.push_back("SIAT?");
+                parts_push("SIAT", "?");
             else
                 throw parsing_failed{};
             return match[0].second;
         }},
-        {'X', [&parts](source_iter_t first, source_iter_t last) -> source_iter_t {
-            if (first == last) {
-                parts.push_back("X?");
-                return first;
-            }
-            else if (*first == '?') {
-                parts.push_back("X?");
-                return first + 1;
-            }
-            else if (std::cmatch match; std::regex_search(first, last, match, re_x_n)) {
-                parts.push_back("X" + match[1].str());
-                return match[0].second;
-            }
-            else {
-                parts.push_back("X?");
-                return first;
-            }
+        {'T', [&parts_push](source_iter_t first, source_iter_t last) -> source_iter_t {
+            std::cmatch match;
+            if (std::regex_search(first, last, match, re_t_throat))
+                parts_push("OR");
+            else
+                throw parsing_failed{};
+            return match[0].second;
+        }},
+        {'X', [&parts_push](source_iter_t first, source_iter_t last) -> source_iter_t {
+            if (first == last)
+                return parts_push("X", "?", first);
+            else if (*first == '?')
+                return parts_push("X", "?", first + 1);
+            else if (std::cmatch match; std::regex_search(first, last, match, re_x_n))
+                return parts_push("X", match[1].str(), match[0].second);
+            else
+                return parts_push("X", "?", first);
         }},
         {' ', [](source_iter_t first, source_iter_t /*last*/) -> source_iter_t {
             return first;
         }},
-        {'/', [&parts](source_iter_t first, source_iter_t /*last*/) -> source_iter_t {
-            parts.push_back("/");
+        {'/', [&parts_push](source_iter_t first, source_iter_t /*last*/) -> source_iter_t {
+            return parts_push("/", {}, first);
+        }},
+        {'\\', [&parts_push](source_iter_t first, source_iter_t last) -> source_iter_t {
+            parts_push("/");
+            while (first != last && *first == '\\')
+                ++first;
             return first;
         }},
-        {',', [&parts](source_iter_t first, source_iter_t /*last*/) -> source_iter_t {
-            parts.push_back("/");
-            return first;
+        {',', [&parts_push](source_iter_t first, source_iter_t /*last*/) -> source_iter_t {
+            return parts_push("/", {}, first);
         }},
-        {'+', [&parts](source_iter_t first, source_iter_t /*last*/) -> source_iter_t {
-            parts.push_back("/");
-            return first;
+        {'+', [&parts,&parts_push,&last_passage_type](source_iter_t first, source_iter_t last) -> source_iter_t {
+            if (std::cmatch match; !last_passage_type.empty() && last_passage_type != "/" && std::regex_search(first, last, match, re_digits)) {
+                parts.push_back("/");
+                return parts_push(last_passage_type.data(), match[1].str(), match[0].second);
+            }
+            else
+                return parts_push("/", {}, first);
+        }},
+        {'(', [&parts](source_iter_t first, source_iter_t last) -> source_iter_t {
+            if (std::cmatch match; !parts.empty() && std::regex_search(first, last, match, re_paren_from))
+                return match[0].second; // ignore
+            else
+                throw parsing_failed{};
         }},
     };
 
@@ -227,56 +299,6 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
     catch (parsing_failed&) {
         return {{}, std::string{source}}; // unrecognized
     }
-
-    //     if (std::cmatch match; std::regex_search(first, source.end(), match, re_normal) || std::regex_search(first, source.end(), match, re_x) ||
-    //                            std::regex_search(first, source.end(), match, re_original) || std::regex_search(first, source.end(), match, re_passage_type) ||
-    //                            std::regex_search(first, source.end(), match, re_mdck_siat_1) // before re_mdck_siat!
-    //                            || std::regex_search(first, source.end(), match, re_mdck_siat)) {
-    //         std::string number = match[2].str();
-    //         if (number == "X" || number.empty())
-    //             number.assign(1, '?');
-    //         if (match[1].length() == 1) {
-    //             switch (*match[1].first) {
-    //                 case 'E':
-    //                 case 'e':
-    //                     parts.push_back("E" + number);
-    //                     break;
-    //                 case 'C':
-    //                 case 'c':
-    //                     parts.push_back("MDCK" + number);
-    //                     break;
-    //                 case 'S':
-    //                 case 's':
-    //                     parts.push_back("SIAT" + number);
-    //                     break;
-    //                 case 'M':
-    //                 case 'm':
-    //                     parts.push_back("MK" + number);
-    //                     break;
-    //                 case 'X':
-    //                 case 'x':
-    //                     parts.push_back("X" + number);
-    //                     break;
-    //                 default:
-    //                     return {{}, std::string{source}}; // unrecognized
-    //             }
-    //         }
-    //         else if (match[1].str() == "OR")
-    //             parts.push_back("OR");
-    //         else
-    //             parts.push_back(match[1].str() + number);
-    //         first = match[0].second;
-    //     }
-    //     else
-    //         return {{}, std::string{source}};
-    //     if (first != source.end()) {
-    //         if (std::cmatch match; std::regex_search(first, source.end(), match, re_lab_separator)) {
-    //             parts.push_back("/");
-    //             first = match[0].second;
-    //         }
-    //     }
-    // }
-    // return {Passage{::string::join("", parts)}, {}};
 
 } // acmacs::virus::parse_passage
 
