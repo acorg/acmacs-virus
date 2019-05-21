@@ -95,6 +95,14 @@ void test_builtin()
         TestData{"PX/SIAT1",              parse_passage_result_t{Passage{"X?/SIAT1"}, ""}}, // Crick
         TestData{"MDCKX+1/MDCK1",         parse_passage_result_t{Passage{"MDCK?/MDCK1/MDCK1"}, ""}},
         TestData{"MDCK1+2",               parse_passage_result_t{Passage{"MDCK1/MDCK2"}, ""}},
+        TestData{"AX-4 2 +SIAT1",         parse_passage_result_t{Passage{"A2/SIAT1"}, ""}},
+        TestData{"A2/SIAT1",              parse_passage_result_t{Passage{"A2/SIAT1"}, ""}},
+        TestData{"CACO-2 2 +SIAT1",       parse_passage_result_t{Passage{"CACO2/SIAT1"}, ""}},
+        TestData{"CACO2/SIAT1",           parse_passage_result_t{Passage{"CACO2/SIAT1"}, ""}},
+        TestData{"E5/E2Spf8",             parse_passage_result_t{Passage{"E5/E2SPF8"}, ""}},
+        TestData{"E3/D7",                 parse_passage_result_t{Passage{"E3/D7"}, ""}},
+        TestData{"E3/D7, E1",             parse_passage_result_t{Passage{"E3/D7/E1"}, ""}},
+
     };
 
     const auto field_mistmatch_output = [](auto&& res, auto&& exp) {

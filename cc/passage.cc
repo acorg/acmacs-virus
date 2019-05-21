@@ -10,7 +10,7 @@
 
 // ----------------------------------------------------------------------
 
-constexpr const char* re_egg = R"#(((E|SPF(CE)?|SPE)(\?|[0-9][0-9]?)|EGG))#";
+constexpr const char* re_egg = R"#(((E|D|SPF(CE)?|SPE)(\?|[0-9][0-9]?)|EGG))#";
 constexpr const char* re_cell = R"#((MDCK|SIAT|QMC|MK|CKC|CEK|CACO|LLC|LLK|PRMK|MEK|C|SPFCK)(\?|[0-9][0-9]?))#";
 constexpr const char* re_nimr_isolate = R"#(( (ISOLATE|CLONE) [0-9\-]+)*)#"; // NIMR isolate and/or clone, NIMR H1pdm has CLONE 38-32
 constexpr const char* re_niid_plus_number = R"#(( *\+[1-9])?)#"; // NIID has +1 at the end of passage
@@ -121,6 +121,18 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
     static const std::regex re_rii_n("^II[\\s\\-]*(\\d+)", std::regex::icase);
     static const std::regex re_rii_x("^II[X\\?]?(?!\\w)", std::regex::icase);
 
+    // AX4-PB2 cell line by Vetmed (Eileen A. Maher), used by NIID H3 FRA in 2018 as "AX-4 2"
+    static const std::regex re_a_ax4_n("^(?:X-?4\\s+)?(\\d+)", std::regex::icase);
+
+    //  Human Caucasian Colon Adenocarcinoma Cell line: CACO2 2 or CACO2
+    static const std::regex re_c_caco_n("^ACO(?:-2\\s+)?(\\d+)", std::regex::icase);
+
+    // Specific Pathogen Free Egg, CDC H3 2018 
+    static const std::regex re_s_spf_n("^PF(\\d+)", std::regex::icase);
+
+    // D (egg?)
+    static const std::regex re_d_d_n("^(\\d+)", std::regex::icase);
+
     // X
     static const std::regex re_x_n("^(\\d+)", std::regex::icase);
     static const std::regex re_p_n("^(\\d+)", std::regex::icase);
@@ -132,6 +144,13 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
     static const std::regex re_paren_date("^(\\d\\d\\d\\d-\\d\\d-\\d\\d|\\d\\d/\\d\\d/\\d\\d\\d\\d)\\)");
 
     static const std::map<char, callback_t> normalize_data{
+        {'A',
+         [](std::vector<std::string>& parts_2, std::string& last_passage_type_2, source_iter_t first, source_iter_t last) -> source_iter_t {
+             if (std::cmatch match; std::regex_search(first, last, match, re_a_ax4_n))
+                 return parts_push_i(parts_2, last_passage_type_2, "A", match[1].str(), match[0].second);
+             else
+                 throw parsing_failed{};
+         }},
         {'B',
          [](std::vector<std::string>& parts_2, std::string& last_passage_type_2, source_iter_t first, source_iter_t last) -> source_iter_t {
              if (std::cmatch match; std::regex_search(first, last, match, re_b_or))
@@ -146,6 +165,8 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
                  parts_push_i(parts_2, last_passage_type_2, "MDCK", match[1].str());
              else if (std::regex_search(first, last, match, re_c_clinical))
                  parts_push_i(parts_2, last_passage_type_2, "OR");
+             else if (std::regex_search(first, last, match, re_c_caco_n))
+                 parts_push_i(parts_2, last_passage_type_2, "CACO", match[1].str());
              else if (std::regex_search(first, last, match, re_c_mdck_x))
                  parts_push_i(parts_2, last_passage_type_2, "MDCK", "?");
              else
@@ -154,7 +175,9 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
          }},
         {'D',
          [](std::vector<std::string>& parts_2, std::string& last_passage_type_2, source_iter_t first, source_iter_t last) -> source_iter_t {
-             if (std::cmatch match; std::regex_search(first, last, match, re_d_direct))
+             if (std::cmatch match; std::regex_search(first, last, match, re_d_d_n))
+                 return parts_push_i(parts_2, last_passage_type_2, "D", match[1].str(), match[0].second);
+             else if (std::regex_search(first, last, match, re_d_direct))
                  return parts_push_i(parts_2, last_passage_type_2, "OR", {}, match[0].second);
              else
                  throw parsing_failed{};
@@ -264,6 +287,8 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
              std::cmatch match;
              if (std::regex_search(first, last, match, re_s_siat_n))
                  parts_push_i(parts_2, last_passage_type_2, "SIAT", match[1].str());
+             else if (std::regex_search(first, last, match, re_s_spf_n))
+                 parts_push_i(parts_2, last_passage_type_2, "SPF", match[1].str());
              else if (std::regex_search(first, last, match, re_s_swab))
                  parts_push_i(parts_2, last_passage_type_2, "OR");
              else if (std::regex_search(first, last, match, re_s_siat_x))
