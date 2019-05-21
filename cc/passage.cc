@@ -117,6 +117,8 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
     static const std::regex re_paren_from("^FROM[\\sA-Z]+\\)", std::regex::icase);
     static const std::regex re_d_direct("^IRECT\\s*$", std::regex::icase); // Public Health Agency of Sweden
     static const std::regex re_n_not_passaged("^OT PASSAGED\\s*$", std::regex::icase); // University of Michigan
+    static const std::regex re_a_autopsy("^UTOPSY[\\s\\-_\\(\\)A-Z]*$", std::regex::icase);
+    static const std::regex re_n_na("^/A\\s*$", std::regex::icase);
 
     // R R-MIX - R-mix tissure culture
     static const std::regex re_r_n("^(?:-?M[I1]?X)?[\\s\\-]*(\\d+)", std::regex::icase);
@@ -144,7 +146,7 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
     static const std::regex re_p_n("^(\\d+)", std::regex::icase);
 
     // ignore/remove
-    static const std::regex re_passage("^ASSAGE[:\\-]?", std::regex::icase);
+    static const std::regex re_passage("^ASSAGE[:\\-\\s]?(?:DETAILS:)?", std::regex::icase);
     static const std::regex re_dash_ori("^\\s*ORI\\s*$", std::regex::icase);
 
     static const std::regex re_digits("^(\\d+)");
@@ -155,6 +157,8 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
          [](std::vector<std::string>& parts_2, std::string& last_passage_type_2, source_iter_t first, source_iter_t last) -> source_iter_t {
              if (std::cmatch match; std::regex_search(first, last, match, re_a_ax4_n))
                  return parts_push_i(parts_2, last_passage_type_2, "A", match[1].str(), match[0].second);
+             else if (std::regex_search(first, last, match, re_a_autopsy))
+                 return parts_push_i(parts_2, last_passage_type_2, "OR", {}, match[0].second);
              else
                  throw parsing_failed{};
          }},
@@ -234,7 +238,7 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
         {'N',
          [](std::vector<std::string>& parts_2, std::string& last_passage_type_2, source_iter_t first, source_iter_t last) -> source_iter_t {
              std::cmatch match;
-             if (std::regex_search(first, last, match, re_n_nose) || std::regex_search(first, last, match, re_n_not_passaged))
+             if (std::regex_search(first, last, match, re_n_nose) || std::regex_search(first, last, match, re_n_not_passaged) || std::regex_search(first, last, match, re_n_na))
                  parts_push_i(parts_2, last_passage_type_2, "OR");
              else if (std::regex_search(first, last, match, re_n_nc_n))
                  parts_push_i(parts_2, last_passage_type_2, "QMC", match[1].str());

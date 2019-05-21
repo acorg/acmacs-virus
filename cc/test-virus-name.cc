@@ -69,6 +69,8 @@ void test_builtin()
         TestData{"A/Algeria/G0281/16/2016",                         parse_name_result_t{virus_name_t{"A/ALGERIA/G0281-16/2016"}, Reassortant{""}, Passage{""}, ""}},
         TestData{"A/chicken/Ghana/7/2015",                          parse_name_result_t{virus_name_t{"A/CHICKEN/GHANA/7/2015"}, Reassortant{""}, Passage{""}, ""}},
         TestData{"IVR-153 (A/CALIFORNIA/07/2009)",                  parse_name_result_t{virus_name_t{"A/CALIFORNIA/7/2009"}, Reassortant{"IVR-153"}, Passage{""}, ""}},
+        TestData{"A/Brisbane/01/2018  NYMC-X-311 (18/160)",         parse_name_result_t{virus_name_t{"A/BRISBANE/1/2018"}, Reassortant{"NYMC-311"}, Passage{""}, "(18/160)"}}, // NIBSC
+        // TestData{"A-Rostov-CRIE-1-2018",                            parse_name_result_t{virus_name_t{"A/ROSTOV/CRIE-1/2018"}, Reassortant{""}, Passage{""}, ""}}, // CRIE (Russia)
     };
 
     const auto field_mistmatch_output = [](auto&& res, auto&& exp) {

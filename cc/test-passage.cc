@@ -105,6 +105,9 @@ void test_builtin()
         TestData{"E3/D7, E1",             parse_passage_result_t{Passage{"E3/D7/E1"}, ""}},
         TestData{"MDCK1-ORI",             parse_passage_result_t{Passage{"MDCK1"}, ""}},
         TestData{"MDCK-MIX1/SIAT1",       parse_passage_result_t{Passage{"MDCK-MIX1/SIAT1"}, ""}},
+        TestData{"PASSAGE DETAILS: OR",   parse_passage_result_t{Passage{"OR"}, ""}},
+        TestData{"PASSAGE DETAILS: ORIGINAL SPECIMEN", parse_passage_result_t{Passage{"OR"}, ""}},
+        TestData{"PASSAGE DETAILS: N/A",  parse_passage_result_t{Passage{"OR"}, ""}},
 
     };
 

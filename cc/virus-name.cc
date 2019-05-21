@@ -28,7 +28,17 @@ constexpr const char* sre_flu_name_general_AB_isolation_with_location =
         ;
 
 // A/SINGAPORE/INFIMH-16-0019/2016
-constexpr const char* sre_flu_name_general_AB =
+constexpr const char* sre_flu_name_general_AB_1 =
+        "\\b"
+        SRE_AB "/"                      // type \1
+        SRE_HOST                        // host \2
+        SRE_LOC_NO_DIGITS "/"           // location \3
+        SRE_ISOLATION  "/+"             // isolation \4  - without leading 0, mutiple / at the end (found in gisaid)
+        "\\s*(\\d+)"                    // year \5 - any number of digits
+        "(?![\\d\\w\\-/])"              // neither digit nor letter nor / nor - nor _
+        ;
+
+constexpr const char* sre_flu_name_general_AB_2 =
         "\\b"
         SRE_AB "/"                      // type \1
         SRE_HOST                        // host \2
@@ -71,7 +81,8 @@ acmacs::virus::parse_result_t acmacs::virus::parse_name(std::string_view source,
 {
 #include "acmacs-base/global-constructors-push.hh"
     static const std::regex re_flu_name_general_AB_isolation_with_location{sre_flu_name_general_AB_isolation_with_location};
-    static const std::regex re_flu_name_general_AB{sre_flu_name_general_AB};
+    static const std::regex re_flu_name_general_AB_1{sre_flu_name_general_AB_1};
+    static const std::regex re_flu_name_general_AB_2{sre_flu_name_general_AB_2};
     static const std::regex re_flu_name_general_AB_no_isolation{sre_flu_name_general_AB_no_isolation};
     static const std::regex re_flu_name_general_A_subtype{sre_flu_name_general_A_subtype};
     static const std::regex re_extra_passage{sre_extra_passage};
@@ -93,10 +104,15 @@ acmacs::virus::parse_result_t acmacs::virus::parse_name(std::string_view source,
         name = isolation_with_location(match_general_AB_isolation_with_location, flags, messages);
         extra = make_extra(match_general_AB_isolation_with_location);
     }
-    else if (std::smatch match_general_AB; std::regex_search(source_u, match_general_AB, re_flu_name_general_AB)) {
-        // std::cerr << "??: " << source_u << ' ' << match_general_AB.format("[1: $1] [host: $2] [loc: $3] [iso: $4], [y: $5]") << '\n';
-        name = general(match_general_AB, flags, messages);
-        extra = make_extra(match_general_AB);
+    else if (std::smatch match_general_AB_1; std::regex_search(source_u, match_general_AB_1, re_flu_name_general_AB_1)) {
+        // std::cerr << "genAB1: " << source_u << ' ' << match_general_AB_1.format("[1: $1] [host: $2] [loc: $3] [iso: $4], [y: $5]") << '\n';
+        name = general(match_general_AB_1, flags, messages);
+        extra = make_extra(match_general_AB_1);
+    }
+    else if (std::smatch match_general_AB_2; std::regex_search(source_u, match_general_AB_2, re_flu_name_general_AB_2)) {
+        // std::cerr << "genAB2: " << source_u << ' ' << match_general_AB_2.format("[1: $1] [host: $2] [loc: $3] [iso: $4], [y: $5]") << '\n';
+        name = general(match_general_AB_2, flags, messages);
+        extra = make_extra(match_general_AB_2);
     }
     else if (std::smatch match_general_AB_no_isolation; std::regex_search(source_u, match_general_AB_no_isolation, re_flu_name_general_AB_no_isolation)) {
         // std::cerr << "??: " << source_u << ' ' << match_general_AB_no_isolation.format("[1: $1] [host: $2] [loc: $3] [y: $4]") << '\n';
