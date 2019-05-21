@@ -85,6 +85,7 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
     static const std::regex re_m_mdck_siat_x("^DCK-SIAT[\\s\\-]*[X\\?]?", std::regex::icase);
     static const std::regex re_m_mdck_siat_n("^DCK-SIAT[\\s\\-]*(\\d+)", std::regex::icase);
     static const std::regex re_m_mdck_siat1_n("^DCK-SIAT1[\\s\\-](\\d+)", std::regex::icase);
+    static const std::regex re_m_mdck_mix_n("^DCK-MIX(\\d+)", std::regex::icase);
 
     // SIAT S
     static const std::regex re_s_siat_x("^(?:IAT)?[\\s\\-]*[X\\?]?", std::regex::icase);
@@ -104,12 +105,12 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
     static const std::regex re_m_mk_n("^K?[\\s\\-]*(\\d+)", std::regex::icase);
 
     // OR CS CLINICAL ORIGINAL SPECIMEN/SAMPLE
-    static const std::regex re_c_clinical("^(?:S(?:-ORI)?|LINI?CAL[\\sA-Z]*)", std::regex::icase);
+    static const std::regex re_c_clinical("^(?:S(?:-ORI|\\(ORIGINAL\\))?|LINI?CAL[\\sA-Z]*)", std::regex::icase);
     static const std::regex re_o_original("^R(?:IGINAL)?[\\s\\-_\\(\\)A-Z]*", std::regex::icase);
     static const std::regex re_l_lung("^UNG[\\s\\-_A-Z]*", std::regex::icase);             // NIMR
     static const std::regex re_n_nose("^(?:OSE|ASO|ASA)[\\s\\-_A-Z]*", std::regex::icase); // NIMR
     static const std::regex re_t_throat("^HROAT SWAB", std::regex::icase);                 // NIMR
-    static const std::regex re_s_swab("^WAB", std::regex::icase);
+    static const std::regex re_s_swab("^(?:WAB|PECIMEN)", std::regex::icase);
     static const std::regex re_p_pm("^M LUNG", std::regex::icase); // NIMR
     static const std::regex re_b_or("^RONCH[\\s\\-_\\(\\)A-Z]*", std::regex::icase);
     static const std::regex re_paren_from("^FROM[\\sA-Z]+\\)", std::regex::icase);
@@ -133,12 +134,16 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
     // D (egg?)
     static const std::regex re_d_d_n("^(\\d+)", std::regex::icase);
 
+    // Specific Pathogen Free Chicken Kidney Cell line 
+    static const std::regex re_s_spfck_n("^PFCK(\\d+)", std::regex::icase);
+
     // X
     static const std::regex re_x_n("^(\\d+)", std::regex::icase);
     static const std::regex re_p_n("^(\\d+)", std::regex::icase);
 
-    // Passage-
+    // ignore/remove
     static const std::regex re_passage("^ASSAGE[:\\-]?", std::regex::icase);
+    static const std::regex re_dash_ori("^\\s*ORI\\s*$", std::regex::icase);
 
     static const std::regex re_digits("^(\\d+)");
     static const std::regex re_paren_date("^(\\d\\d\\d\\d-\\d\\d-\\d\\d|\\d\\d/\\d\\d/\\d\\d\\d\\d)\\)");
@@ -212,6 +217,8 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
                  parts_push_i(parts_2, last_passage_type_2, "SIAT", match[1].str());
              else if (std::regex_search(first, last, match, re_m_mdck_siat_x))
                  parts_push_i(parts_2, last_passage_type_2, "SIAT", "?");
+             else if (std::regex_search(first, last, match, re_m_mdck_mix_n))
+                 parts_push_i(parts_2, last_passage_type_2, "MDCK-MIX", match[1].str());
              else if (std::regex_search(first, last, match, re_m_mk_n))
                  parts_push_i(parts_2, last_passage_type_2, "MK", match[1].str());
              else if (std::regex_search(first, last, match, re_m_mdck_x))
@@ -289,6 +296,8 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
                  parts_push_i(parts_2, last_passage_type_2, "SIAT", match[1].str());
              else if (std::regex_search(first, last, match, re_s_spf_n))
                  parts_push_i(parts_2, last_passage_type_2, "SPF", match[1].str());
+             else if (std::regex_search(first, last, match, re_s_spfck_n))
+                 parts_push_i(parts_2, last_passage_type_2, "SPFCK", match[1].str());
              else if (std::regex_search(first, last, match, re_s_swab))
                  parts_push_i(parts_2, last_passage_type_2, "OR");
              else if (std::regex_search(first, last, match, re_s_siat_x))
@@ -328,6 +337,12 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
          }},
         {',', [](std::vector<std::string>& parts_2, std::string& last_passage_type_2, source_iter_t first, source_iter_t /*last*/) -> source_iter_t { return parts_push_i(parts_2, last_passage_type_2, "/", {}, first); }},
         {'.', [](std::vector<std::string>& parts_2, std::string& last_passage_type_2, source_iter_t first, source_iter_t /*last*/) -> source_iter_t { return parts_push_i(parts_2, last_passage_type_2, "/", {}, first); }},
+        {'-', [](std::vector<std::string>& parts_2, std::string& /*last_passage_type_2*/, source_iter_t first, source_iter_t last) -> source_iter_t {
+             if (std::cmatch match; !parts_2.empty() && std::regex_search(first, last, match, re_dash_ori))
+                 return match[0].second; // ignore
+             else
+                 throw parsing_failed{};
+        }},
         {'+',
          [](std::vector<std::string>& parts_2, std::string& last_passage_type_2, source_iter_t first, source_iter_t last) -> source_iter_t {
              if (std::cmatch match; !last_passage_type_2.empty() && last_passage_type_2 != "/" && std::regex_search(first, last, match, re_digits)) {
