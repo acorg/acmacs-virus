@@ -85,11 +85,12 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
     static const std::regex re_m_mk_n("^K?[\\s\\-]*(\\d+)", std::regex::icase);
 
     // OR CS CLINICAL ORIGINAL SPECIMEN/SAMPLE
-    static const std::regex re_c_clinical("^(?:S|LINICAL\\s*(?:SPECIMEN|SAMPLE))", std::regex::icase);
+    static const std::regex re_c_clinical("^(?:S(?:-ORI)?|LINICAL\\s*(?:SPECIMEN|SAMPLE))", std::regex::icase);
     static const std::regex re_o_original("^R(?:IGINAL)?\\s*(?:SPECIMEN|SAMPLE)?)", std::regex::icase);
 
     // X
     static const std::regex re_x_n("^(\\d+)", std::regex::icase);
+    static const std::regex re_p_n("^(\\d+)", std::regex::icase);
 
     static const std::map<char, callback_t> normalize_data{
         {'C', [&parts](source_iter_t first, source_iter_t last) -> source_iter_t {
@@ -142,6 +143,19 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
             else
                 throw parsing_failed{};
             return match[0].second;
+        }},
+        {'P', [&parts](source_iter_t first, source_iter_t last) -> source_iter_t {
+            std::cmatch match;
+            if (std::regex_search(first, last, match, re_p_n)) {
+                parts.push_back("X" + match[1].str());
+                return match[0].second;
+            }
+            else if (first != last && (*first == 'X' || *first == 'x')) {
+                parts.push_back("X?");
+                return first + 1;
+            }
+            else
+                throw parsing_failed{};
         }},
         {'Q', [&parts](source_iter_t first, source_iter_t last) -> source_iter_t {
             std::cmatch match;

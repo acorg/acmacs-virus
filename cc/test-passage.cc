@@ -69,6 +69,7 @@ void test_builtin()
         TestData{"OR",                    parse_passage_result_t{Passage{"OR"}, ""}},
         TestData{"ORIGINAL",              parse_passage_result_t{Passage{"OR"}, ""}},
         TestData{"CS",                    parse_passage_result_t{Passage{"OR"}, ""}},
+        TestData{"CS-ORI",                parse_passage_result_t{Passage{"OR"}, ""}},
         TestData{"ORIGINAL SAMPLE",       parse_passage_result_t{Passage{"OR"}, ""}},
         TestData{"CLINICAL SPECIMEN",     parse_passage_result_t{Passage{"OR"}, ""}},
         TestData{"CLINICAL SAMPLE",       parse_passage_result_t{Passage{"OR"}, ""}},
@@ -88,6 +89,8 @@ void test_builtin()
         TestData{"MDCK-2, MDCK1",         parse_passage_result_t{Passage{"MDCK2/MDCK1"}, ""}},
         TestData{"MDCK-SIAT1 2 +SIAT1",   parse_passage_result_t{Passage{"SIAT2/SIAT1"}, ""}}, // NIID
         TestData{"X/C1",                  parse_passage_result_t{Passage{"X?/MDCK1"}, ""}},
+        TestData{"P1/SIAT1",              parse_passage_result_t{Passage{"X1/SIAT1"}, ""}}, // Crick
+        TestData{"PX/SIAT1",              parse_passage_result_t{Passage{"X?/SIAT1"}, ""}}, // Crick
     };
 
     const auto field_mistmatch_output = [](auto&& res, auto&& exp) {
