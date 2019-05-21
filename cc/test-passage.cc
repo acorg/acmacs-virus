@@ -39,35 +39,55 @@ void test_builtin()
     using namespace acmacs::virus;
 
     const std::array data{
-        TestData{"MDCK-SIAT, MDCK1",      parse_passage_result_t{Passage{"SIAT?/MDCK1"}, ""}},
-        TestData{"MDCK-2, MDCK1",         parse_passage_result_t{Passage{"MDCK2/MDCK1"}, ""}},
-        TestData{"MDCK-SIAT1 2 +SIAT1",   parse_passage_result_t{Passage{"SIAT2/SIAT1"}, ""}}, // NIID
 
+        TestData{"C2",                    parse_passage_result_t{Passage{"MDCK2"}, ""}},
+        TestData{"CX",                    parse_passage_result_t{Passage{"MDCK?"}, ""}},
+        TestData{"C",                     parse_passage_result_t{Passage{"MDCK?"}, ""}},
         TestData{"MDCK1",                 parse_passage_result_t{Passage{"MDCK1"}, ""}},
         TestData{"MDCK1 ",                parse_passage_result_t{Passage{"MDCK1"}, ""}},
         TestData{"MDCK 1",                parse_passage_result_t{Passage{"MDCK1"}, ""}},
-        TestData{"C2",                    parse_passage_result_t{Passage{"MDCK2"}, ""}},
+        TestData{"MDCK-1",                parse_passage_result_t{Passage{"MDCK1"}, ""}},
         TestData{"MDCKX",                 parse_passage_result_t{Passage{"MDCK?"}, ""}},
         TestData{"MDCK?",                 parse_passage_result_t{Passage{"MDCK?"}, ""}},
-        TestData{"CX",                    parse_passage_result_t{Passage{"MDCK?"}, ""}},
         TestData{"SIAT1",                 parse_passage_result_t{Passage{"SIAT1"}, ""}},
-        TestData{"S2",                    parse_passage_result_t{Passage{"SIAT2"}, ""}},
         TestData{"SIATX",                 parse_passage_result_t{Passage{"SIAT?"}, ""}},
         TestData{"SIAT?",                 parse_passage_result_t{Passage{"SIAT?"}, ""}},
+        TestData{"S2",                    parse_passage_result_t{Passage{"SIAT2"}, ""}},
         TestData{"SX",                    parse_passage_result_t{Passage{"SIAT?"}, ""}},
+        TestData{"QMC1",                  parse_passage_result_t{Passage{"QMC1"}, ""}},
+        TestData{"QMCX",                  parse_passage_result_t{Passage{"QMC?"}, ""}},
+        TestData{"QMC?",                  parse_passage_result_t{Passage{"QMC?"}, ""}},
+
         TestData{"E3",                    parse_passage_result_t{Passage{"E3"}, ""}},
         TestData{"EX",                    parse_passage_result_t{Passage{"E?"}, ""}},
         TestData{"E?",                    parse_passage_result_t{Passage{"E?"}, ""}},
+
         TestData{"X",                     parse_passage_result_t{Passage{"X?"}, ""}},
         TestData{"X?",                    parse_passage_result_t{Passage{"X?"}, ""}},
         TestData{"X3",                    parse_passage_result_t{Passage{"X3"}, ""}},
+
         TestData{"OR",                    parse_passage_result_t{Passage{"OR"}, ""}},
         TestData{"ORIGINAL",              parse_passage_result_t{Passage{"OR"}, ""}},
+        TestData{"CS",                    parse_passage_result_t{Passage{"OR"}, ""}},
+        TestData{"ORIGINAL SAMPLE",       parse_passage_result_t{Passage{"OR"}, ""}},
+        TestData{"CLINICAL SPECIMEN",     parse_passage_result_t{Passage{"OR"}, ""}},
+        TestData{"CLINICAL SAMPLE",       parse_passage_result_t{Passage{"OR"}, ""}},
+
+        TestData{"M?",                    parse_passage_result_t{Passage{"MK?"}, ""}},
+        TestData{"M3",                    parse_passage_result_t{Passage{"MK3"}, ""}},
+        TestData{"MX",                    parse_passage_result_t{Passage{"MK?"}, ""}},
+        TestData{"MK?",                   parse_passage_result_t{Passage{"MK?"}, ""}},
+        TestData{"MK3",                   parse_passage_result_t{Passage{"MK3"}, ""}},
+        TestData{"MKX",                   parse_passage_result_t{Passage{"MK?"}, ""}},
 
         TestData{"C1/C1",                 parse_passage_result_t{Passage{"MDCK1/MDCK1"}, ""}},
         TestData{"C1,C1",                 parse_passage_result_t{Passage{"MDCK1/MDCK1"}, ""}},
         TestData{"C1/S1",                 parse_passage_result_t{Passage{"MDCK1/SIAT1"}, ""}},
         TestData{"SIAT, SIAT1",           parse_passage_result_t{Passage{"SIAT?/SIAT1"}, ""}},
+        TestData{"MDCK-SIAT, MDCK1",      parse_passage_result_t{Passage{"SIAT?/MDCK1"}, ""}},
+        TestData{"MDCK-2, MDCK1",         parse_passage_result_t{Passage{"MDCK2/MDCK1"}, ""}},
+        TestData{"MDCK-SIAT1 2 +SIAT1",   parse_passage_result_t{Passage{"SIAT2/SIAT1"}, ""}}, // NIID
+        TestData{"X/C1",                  parse_passage_result_t{Passage{"X?/MDCK1"}, ""}},
     };
 
     const auto field_mistmatch_output = [](auto&& res, auto&& exp) {

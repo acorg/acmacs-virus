@@ -40,7 +40,8 @@ namespace acmacs::virus
 
     }; // class Passage
 
-    std::tuple<Passage, std::string> parse_passage(std::string_view source);
+    using parse_passage_t = std::tuple<Passage, std::string>;
+    parse_passage_t parse_passage(std::string_view source);
 
 } // namespace acmacs::virus
 
