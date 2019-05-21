@@ -117,7 +117,7 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
     static const std::regex re_p_n("^(\\d+)", std::regex::icase);
 
     // Passage-
-    static const std::regex re_passage("^ASSAGE-?", std::regex::icase);
+    static const std::regex re_passage("^ASSAGE[:\\-]?", std::regex::icase);
 
     static const std::regex re_digits("^(\\d+)");
     static const std::regex re_paren_date("^(\\d\\d\\d\\d-\\d\\d-\\d\\d|\\d\\d/\\d\\d/\\d\\d\\d\\d)\\)");
