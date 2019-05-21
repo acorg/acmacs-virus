@@ -90,6 +90,7 @@ void test_builtin()
         TestData{"MDCK-SIAT, MDCK1",      parse_passage_result_t{Passage{"SIAT?/MDCK1"}, ""}},
         TestData{"MDCK-2, MDCK1",         parse_passage_result_t{Passage{"MDCK2/MDCK1"}, ""}},
         TestData{"MDCK-SIAT1 2 +SIAT1",   parse_passage_result_t{Passage{"SIAT2/SIAT1"}, ""}}, // NIID
+        TestData{"MDCKX-Siat 1",          parse_passage_result_t{Passage{"SIAT1"}, ""}}, // NIID
         TestData{"X/C1",                  parse_passage_result_t{Passage{"X?/MDCK1"}, ""}},
         TestData{"P1/SIAT1",              parse_passage_result_t{Passage{"X1/SIAT1"}, ""}}, // Crick
         TestData{"PX/SIAT1",              parse_passage_result_t{Passage{"X?/SIAT1"}, ""}}, // Crick

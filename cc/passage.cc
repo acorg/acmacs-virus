@@ -82,8 +82,8 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
     static const std::regex re_c_mdck_n("^[\\s\\-]*(\\d+)", std::regex::icase);
     static const std::regex re_m_mdck_x("^(?:DCK|CDK)[\\s\\-]*[X\\?`]?", std::regex::icase);
     static const std::regex re_m_mdck_n("^(?:DCK|CDK)[\\s\\-]*(\\d+)", std::regex::icase);
-    static const std::regex re_m_mdck_siat_x("^DCK-SIAT[\\s\\-]*[X\\?]?", std::regex::icase);
-    static const std::regex re_m_mdck_siat_n("^DCK-SIAT[\\s\\-]*(\\d+)", std::regex::icase);
+    static const std::regex re_m_mdck_siat_x("^DCKX?-SIAT[\\s\\-]*[X\\?]?", std::regex::icase);
+    static const std::regex re_m_mdck_siat_n("^DCKX?-SIAT[\\s\\-]*(\\d+)", std::regex::icase);
     static const std::regex re_m_mdck_siat1_n("^DCK-SIAT1[\\s\\-](\\d+)", std::regex::icase);
     static const std::regex re_m_mdck_mix_n("^DCK-MIX(\\d+)", std::regex::icase);
 
@@ -107,6 +107,7 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
     // OR CS CLINICAL ORIGINAL SPECIMEN/SAMPLE
     static const std::regex re_c_clinical("^(?:S(?:-ORI|\\(ORIGINAL\\))?|LINI?CAL[\\sA-Z]*)", std::regex::icase);
     static const std::regex re_o_original("^R(?:IGINAL)?[\\s\\-_\\(\\)A-Z]*", std::regex::icase);
+    static const std::regex re_o_opnp("^P&NP\\s*$", std::regex::icase); // CDC:Congo/2015
     static const std::regex re_l_lung("^UNG[\\s\\-_A-Z]*", std::regex::icase);             // NIMR
     static const std::regex re_n_nose("^(?:OSE|ASO|ASA)[\\s\\-_A-Z]*", std::regex::icase); // NIMR
     static const std::regex re_t_throat("^HROAT SWAB", std::regex::icase);                 // NIMR
@@ -115,6 +116,7 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
     static const std::regex re_b_or("^RONCH[\\s\\-_\\(\\)A-Z]*", std::regex::icase);
     static const std::regex re_paren_from("^FROM[\\sA-Z]+\\)", std::regex::icase);
     static const std::regex re_d_direct("^IRECT\\s*$", std::regex::icase); // Public Health Agency of Sweden
+    static const std::regex re_n_not_passaged("^OT PASSAGED\\s*$", std::regex::icase); // University of Michigan
 
     // R R-MIX - R-mix tissure culture
     static const std::regex re_r_n("^(?:-?M[I1]?X)?[\\s\\-]*(\\d+)", std::regex::icase);
@@ -232,7 +234,7 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
         {'N',
          [](std::vector<std::string>& parts_2, std::string& last_passage_type_2, source_iter_t first, source_iter_t last) -> source_iter_t {
              std::cmatch match;
-             if (std::regex_search(first, last, match, re_n_nose))
+             if (std::regex_search(first, last, match, re_n_nose) || std::regex_search(first, last, match, re_n_not_passaged))
                  parts_push_i(parts_2, last_passage_type_2, "OR");
              else if (std::regex_search(first, last, match, re_n_nc_n))
                  parts_push_i(parts_2, last_passage_type_2, "QMC", match[1].str());
@@ -243,7 +245,7 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
         {'O',
          [](std::vector<std::string>& parts_2, std::string& last_passage_type_2, source_iter_t first, source_iter_t last) -> source_iter_t {
              std::cmatch match;
-             if (std::regex_search(first, last, match, re_o_original))
+             if (std::regex_search(first, last, match, re_o_original) || std::regex_search(first, last, match, re_o_opnp))
                  parts_push_i(parts_2, last_passage_type_2, "OR");
              else
                  throw parsing_failed{};
