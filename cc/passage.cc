@@ -355,7 +355,7 @@ static const std::map<char, callback_t> normalize_data{
              return parts_push_i(data, "X", "?", first + 1);
          else if (std::cmatch match; std::regex_search(first, last, match, re_x_n))
              return parts_push_i(data, "X", match[1].str(), match[0].second);
-         else if (*first == '/')
+         else if (*first == '/' || *first == ',')
              return parts_push_i(data, "X", "?", first);
          else
              throw parsing_failed{};

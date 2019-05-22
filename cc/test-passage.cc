@@ -113,6 +113,7 @@ void test_builtin()
         TestData{"PASSAGE DETAILS: N/A",  parse_passage_result_t{Passage{"OR"}, ""}},
         TestData{"CXS1",                  parse_passage_result_t{Passage{"MDCK?SIAT1"}, ""}},
         TestData{"CXSX",                  parse_passage_result_t{Passage{"MDCK?SIAT?"}, ""}},
+        TestData{"X, MDCK1",              parse_passage_result_t{Passage{"X?/MDCK1"}, ""}},
 
         TestData{"CL2",                   parse_passage_result_t{Passage{""}, "CL2"}},
         TestData{"EGGPLANT",              parse_passage_result_t{Passage{""}, "EGGPLANT"}},
