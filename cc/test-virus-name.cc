@@ -68,6 +68,7 @@ void test_builtin()
         TestData{"A/Brisbane/01/2018  NYMC-X-311 (18/160)",         parse_name_result_t{virus_name_t{"A/BRISBANE/1/2018"}, Reassortant{"NYMC-311"}, Passage{""}, "(18/160)"}}, // NIBSC
         TestData{"A/Antananarivo/1067/2016 CBER-11B C1.3",          parse_name_result_t{virus_name_t{"A/ANTANANARIVO/1067/2016"}, Reassortant{"CBER-11B"}, Passage{""}, "C1.3"}}, // CDC
         TestData{"A/Montana/50/2016 CBER-07 D2.3",                  parse_name_result_t{virus_name_t{"A/MONTANA/50/2016"}, Reassortant{"CBER-07"}, Passage{""}, "D2.3"}}, // CDC
+        TestData{"A/duck/Guangdong/02.11 DGQTXC195-P/2015(Mixed)",  parse_name_result_t{virus_name_t{"A/DUCK/GUANGDONG/2.11 DGQTXC195-P/2015"}, Reassortant{""}, Passage{""}, "(MIXED)"}},
 
         //TestData{"",          parse_name_result_t{virus_name_t{""}, Reassortant{""}, Passage{""}, ""}},
 

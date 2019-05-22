@@ -113,7 +113,7 @@ static const std::regex re_e_egg_n("^[\\s\\-]*(\\d+)", std::regex::icase);
 static const std::regex re_s_spfe_n("^PFE[\\s\\-]*(\\d+)", std::regex::icase);
 
 // MK M - Monkey Kidney Cell line
-static const std::regex re_m_mk_x("^K?[\\s\\-]*[X\\?]?", std::regex::icase);
+static const std::regex re_m_mk_x("^K?[\\s\\-]*[X\\?]", std::regex::icase);
 static const std::regex re_m_mk_n("^K?[\\s\\-]*(\\d+)", std::regex::icase);
 
 // OR CS CLINICAL ORIGINAL SPECIMEN/SAMPLE
