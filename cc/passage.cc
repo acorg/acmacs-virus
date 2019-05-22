@@ -88,7 +88,7 @@ static inline source_iter_t push_lab_separator(processing_data_t& data, char ori
 #include "acmacs-base/global-constructors-push.hh"
 
 // MDCK C
-static const std::regex re_c_mdck_x("^[X\\?](?!\\w)", std::regex::icase);
+static const std::regex re_c_mdck_x("^[X\\?]", std::regex::icase);
 static const std::regex re_c_mdck_n("^[\\s\\-]*(\\d+)", std::regex::icase);
 static const std::regex re_m_mdck_x("^(?:DCK|CDK)[\\s\\-]*[X\\?`]?", std::regex::icase);
 static const std::regex re_m_mdck_n("^(?:DCK|CDK)[\\s\\-]*(\\d+)", std::regex::icase);
@@ -119,14 +119,14 @@ static const std::regex re_m_mk_n("^K?[\\s\\-]*(\\d+)", std::regex::icase);
 static const std::regex re_c_clinical("^(?:S(?:-ORI|\\(ORIGINAL\\))?|LINI?CAL[\\sA-Z]*)", std::regex::icase);
 static const std::regex re_o_original("^R(?:IGINAL)?[\\s\\-_\\(\\)A-Z]*", std::regex::icase);
 static const std::regex re_o_opnp("^P&NP\\s*$", std::regex::icase); // CDC:Congo/2015
-static const std::regex re_l_lung("^UNG[\\s\\-_A-Z]*", std::regex::icase);             // NIMR
+static const std::regex re_l_lung("^(?:UNG|AB)[\\s\\-\\w]*", std::regex::icase);             // NIMR
 static const std::regex re_n_nose("^(?:OSE|ASO|ASA)[\\s\\-_A-Z]*", std::regex::icase); // NIMR
 static const std::regex re_t_throat("^HROAT SWAB", std::regex::icase);                 // NIMR
 static const std::regex re_s_swab("^(?:WAB|PECIMEN)", std::regex::icase);
 static const std::regex re_p_pm("^M LUNG", std::regex::icase); // NIMR
 static const std::regex re_b_or("^RONCH[\\s\\-_\\(\\)A-Z]*", std::regex::icase);
 static const std::regex re_paren_from("^FROM[\\sA-Z]+\\)", std::regex::icase);
-static const std::regex re_d_direct("^IRECT\\s*$", std::regex::icase); // Public Health Agency of Sweden
+static const std::regex re_d_direct("^IRECT(?:\\s+SEQ\\w*)?\\s*$", std::regex::icase); // Public Health Agency of Sweden
 static const std::regex re_n_not_passaged("^OT PASSAGED\\s*$", std::regex::icase); // University of Michigan
 static const std::regex re_a_autopsy("^UTOPSY[\\s\\-_\\(\\)A-Z]*$", std::regex::icase);
 static const std::regex re_n_na("^/A\\s*$", std::regex::icase);

@@ -76,6 +76,8 @@ void test_builtin()
         TestData{"ORIGINAL SAMPLE",       parse_passage_result_t{Passage{"OR"}, ""}},
         TestData{"CLINICAL SPECIMEN",     parse_passage_result_t{Passage{"OR"}, ""}},
         TestData{"CLINICAL SAMPLE",       parse_passage_result_t{Passage{"OR"}, ""}},
+        TestData{"DIRECT SEQUENCING",     parse_passage_result_t{Passage{"OR"}, ""}},
+        TestData{"LABORATORY ISOLATE",    parse_passage_result_t{Passage{"OR"}, ""}},
 
         TestData{"M?",                    parse_passage_result_t{Passage{"MK?"}, ""}},
         TestData{"M3",                    parse_passage_result_t{Passage{"MK3"}, ""}},
@@ -109,6 +111,8 @@ void test_builtin()
         TestData{"PASSAGE DETAILS: OR",   parse_passage_result_t{Passage{"OR"}, ""}},
         TestData{"PASSAGE DETAILS: ORIGINAL SPECIMEN", parse_passage_result_t{Passage{"OR"}, ""}},
         TestData{"PASSAGE DETAILS: N/A",  parse_passage_result_t{Passage{"OR"}, ""}},
+        TestData{"CXS1",                  parse_passage_result_t{Passage{"MDCK?SIAT1"}, ""}},
+        TestData{"CXSX",                  parse_passage_result_t{Passage{"MDCK?SIAT?"}, ""}},
 
         TestData{"CL2",                   parse_passage_result_t{Passage{""}, "CL2"}},
         TestData{"EGGPLANT",              parse_passage_result_t{Passage{""}, "EGGPLANT"}},
