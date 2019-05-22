@@ -58,6 +58,7 @@ struct processing_data_t
 {
     std::vector<std::string> parts;
     std::string last_passage_type;
+    std::string extra;
 };
 
 struct parsing_failed : public std::exception { using std::exception::exception; };
@@ -341,14 +342,21 @@ static const std::map<char, callback_t> normalize_data{
      }},
     {'X',
      [](processing_data_t& data, source_iter_t first, source_iter_t last) -> source_iter_t {
-         if (first == last)
-             return parts_push_i(data, "X", "?", first);
+         // signle X is a passage only if there is no extra before it
+         if (first == last) {
+             if (data.extra.empty())
+                 return parts_push_i(data, "X", "?", first);
+             else
+                 throw parsing_failed{};
+         }
          else if (*first == '?')
              return parts_push_i(data, "X", "?", first + 1);
          else if (std::cmatch match; std::regex_search(first, last, match, re_x_n))
              return parts_push_i(data, "X", match[1].str(), match[0].second);
-         else
+         else if (*first == '/')
              return parts_push_i(data, "X", "?", first);
+         else
+             throw parsing_failed{};
      }},
     {' ', [](processing_data_t&, source_iter_t first, source_iter_t /*last*/) -> source_iter_t { return first; }},
     {'/', [](processing_data_t& data, source_iter_t first, source_iter_t /*last*/) -> source_iter_t { return push_lab_separator(data, first); }},
@@ -400,7 +408,6 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
     // std::cerr << "parse_passage " << source << '\n';
 
     processing_data_t data;
-    std::string extra;
 
     for (auto first = source.begin(); first != source.end();) {
         // std::cerr << "  PART: [" << std::string(first, source.end()) << "]\n";
@@ -425,29 +432,29 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
                     if (std::isalnum(*first)) {
                             // put word into extra
                         const auto end = std::find_if(first + 1, source.end(), [](char chr) { return !std::isalnum(chr); });
-                        extra.append(first, end);
+                        data.extra.append(first, end);
                         first = end;
                     }
                     else {
-                        extra.append(1, *first);
+                        data.extra.append(1, *first);
                         ++first;
                     }
                 }
                 else { // some parts of passage found
-                    if (!extra.empty())
-                        extra.append(1, ' ');
-                    extra.append(first, source.end());
+                    if (!data.extra.empty())
+                        data.extra.append(1, ' ');
+                    data.extra.append(first, source.end());
                     break;
                 }
             }
         }
         else {
-            if (!extra.empty())
-                extra.append(1, ' ');
+            if (!data.extra.empty())
+                data.extra.append(1, ' ');
             ++first;
         }
     }
-    return {Passage{::string::join("", data.parts)}, extra};
+    return {Passage{::string::join("", data.parts)}, data.extra};
 
 } // acmacs::virus::parse_passage
 
