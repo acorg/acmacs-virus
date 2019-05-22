@@ -129,7 +129,7 @@ static const std::regex re_p_pm("^M LUNG", std::regex::icase); // NIMR
 static const std::regex re_b_or("^RONCH[\\s\\-_\\(\\)A-Z]*", std::regex::icase);
 static const std::regex re_paren_from("^FROM[\\sA-Z]+\\)", std::regex::icase);
 static const std::regex re_d_direct("^IRECT[\\sA-Z\\-]*$", std::regex::icase); // Public Health Agency of Sweden
-static const std::regex re_n_not_passaged("^OT PASSAGED\\s*$", std::regex::icase); // University of Michigan
+static const std::regex re_n_not_passaged("^OT? PASSAGED?\\s*$", std::regex::icase); // University of Michigan
 static const std::regex re_a_autopsy("^UTOPSY[\\s\\-_\\(\\)A-Z]*$", std::regex::icase);
 static const std::regex re_n_na("^(?:/A|ONE)\\s*$", std::regex::icase);
 static const std::regex re_i_initial("^NITIAL\\s*$", std::regex::icase);
