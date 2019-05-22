@@ -16,6 +16,7 @@
 #define SRE_LOC_NO_DIGITS "([A-Z \\-\\.,'&_]{2,})"
 #define SRE_ISOLATION "\\s*0*([^/]+)\\s*"
 #define SRE_ISOLATION_WITH_LOC "\\s*([A-Z]{3,})([^/]+)\\s*"
+#define SRE_LOOKAHEAD_EXCEPT "(?![\\.\\d\\w\\-/])"
 
 // A/LYON/CHU18.54.48/2018
 constexpr const char* sre_flu_name_general_AB_isolation_with_location =
@@ -24,8 +25,8 @@ constexpr const char* sre_flu_name_general_AB_isolation_with_location =
         SRE_HOST                        // host \2
         SRE_LOC "/"                     // location \3
         SRE_ISOLATION_WITH_LOC  "/"     // isolation \4 + \5
-        "\\s*(\\d+)"                    // year \5 - any number of digits
-        "(?![\\d\\w\\-/])"              // neither digit nor letter nor / nor - nor _
+        "\\s*(\\d+)"                    // year \6 - any number of digits
+        SRE_LOOKAHEAD_EXCEPT              // neither digit nor letter nor / nor - nor _
         ;
 
 // A/SINGAPORE/INFIMH-16-0019/2016
@@ -36,7 +37,7 @@ constexpr const char* sre_flu_name_general_AB_1 =
         SRE_LOC_NO_DIGITS "/"           // location \3
         SRE_ISOLATION  "/+"             // isolation \4  - without leading 0, mutiple / at the end (found in gisaid)
         "\\s*(\\d+)"                    // year \5 - any number of digits
-        "(?![\\d\\w\\-/])"              // neither digit nor letter nor / nor - nor _
+        SRE_LOOKAHEAD_EXCEPT            // neither digit nor letter nor / nor - nor _
         ;
 
 constexpr const char* sre_flu_name_general_AB_2 =
@@ -101,7 +102,7 @@ acmacs::virus::parse_result_t acmacs::virus::parse_name(std::string_view source,
     const std::string source_u = ::string::upper(source);
 
     if (std::smatch match_general_AB_isolation_with_location; std::regex_search(source_u, match_general_AB_isolation_with_location, re_flu_name_general_AB_isolation_with_location)) {
-        // std::cerr << "isoloc: " << source_u << '\n';
+        // std::cerr << "isoloc: " << source_u << ' ' << match_general_AB_isolation_with_location.format("[1: $1] [host: $2] [loc: $3] [iso1: $4], [iso2: $5], [y: $6]") << '\n';
         name = isolation_with_location(match_general_AB_isolation_with_location, flags, messages);
         extra = make_extra(match_general_AB_isolation_with_location);
     }

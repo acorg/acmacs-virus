@@ -44,6 +44,7 @@ void test_builtin()
     using namespace acmacs::virus;
 
     const std::array data{
+        TestData{"A/duck/Guangdong/4.30 DGCPLB014-O/2017",          parse_name_result_t{virus_name_t{"A/DUCK/GUANGDONG/4.30 DGCPLB014-O/2017"}, Reassortant{""}, Passage{""}, ""}},
         TestData{"A/SINGAPORE/INFIMH-16-0019/2016",                 parse_name_result_t{virus_name_t{"A/SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{""}, Passage{""}, ""}},
         TestData{"A/SINGAPORE/INFIMH-16-0019/16",                   parse_name_result_t{virus_name_t{"A/SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{""}, Passage{""}, ""}},
         TestData{"A/ SINGAPORE/INFIMH-16-0019/16",                  parse_name_result_t{virus_name_t{"A/SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{""}, Passage{""}, ""}},
@@ -56,11 +57,6 @@ void test_builtin()
         TestData{"A/Snowy Sheathbill/Antarctica/2899/2014",         parse_name_result_t{virus_name_t{"A/SNOWY SHEATHBILL/ANTARCTICA/2899/2014"}, Reassortant{}, Passage{""}, ""}},
         TestData{"A/wigeon/Italy/6127-23/2007",                     parse_name_result_t{virus_name_t{"A/WIGEON/ITALY/6127-23/2007"}, Reassortant{}, Passage{""}, ""}},
         TestData{"B/Via?A Del Mar/73490/2017",                      parse_name_result_t{virus_name_t{"B/VINA DEL MAR/73490/2017"}, Reassortant{}, Passage{""}, ""}},
-
-        // TestData{"A/H3N2/SINGAPORE/INFIMH-16-0019/2016",            parse_name_result_t{virus_name_t{"A(H3N2)/SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{""}, Passage{""}, ""}},
-        // TestData{"SINGAPORE/INFIMH-16-0019/2016",                   parse_name_result_t{virus_name_t{"SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{""}, Passage{""}, ""}},
-        // TestData{"SINGAPORE/INFIMH-16-0019/16",                     parse_name_result_t{virus_name_t{"SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{""}, Passage{""}, ""}},
-
         TestData{"B/Cameroon11V-12080 GVFI/2011",                   parse_name_result_t{virus_name_t{"B/CAMEROON/11V-12080 GVFI/2011"}, Reassortant{""}, Passage{""}, ""}},
         TestData{"A/Mali 071 Ci/2015",                              parse_name_result_t{virus_name_t{"A/MALI/71 CI/2015"}, Reassortant{""}, Passage{""}, ""}},
         TestData{"A/Zambia/13/174/2013",                            parse_name_result_t{virus_name_t{"A/ZAMBIA/13-174/2013"}, Reassortant{""}, Passage{""}, ""}},
@@ -70,6 +66,11 @@ void test_builtin()
         TestData{"A/chicken/Ghana/7/2015",                          parse_name_result_t{virus_name_t{"A/CHICKEN/GHANA/7/2015"}, Reassortant{""}, Passage{""}, ""}},
         TestData{"IVR-153 (A/CALIFORNIA/07/2009)",                  parse_name_result_t{virus_name_t{"A/CALIFORNIA/7/2009"}, Reassortant{"IVR-153"}, Passage{""}, ""}},
         TestData{"A/Brisbane/01/2018  NYMC-X-311 (18/160)",         parse_name_result_t{virus_name_t{"A/BRISBANE/1/2018"}, Reassortant{"NYMC-311"}, Passage{""}, "(18/160)"}}, // NIBSC
+
+        // TestData{"A/H3N2/SINGAPORE/INFIMH-16-0019/2016",            parse_name_result_t{virus_name_t{"A(H3N2)/SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{""}, Passage{""}, ""}},
+        // TestData{"SINGAPORE/INFIMH-16-0019/2016",                   parse_name_result_t{virus_name_t{"SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{""}, Passage{""}, ""}},
+        // TestData{"SINGAPORE/INFIMH-16-0019/16",                     parse_name_result_t{virus_name_t{"SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{""}, Passage{""}, ""}},
+
         // TestData{"A-Rostov-CRIE-1-2018",                            parse_name_result_t{virus_name_t{"A/ROSTOV/CRIE-1/2018"}, Reassortant{""}, Passage{""}, ""}}, // CRIE (Russia)
     };
 
