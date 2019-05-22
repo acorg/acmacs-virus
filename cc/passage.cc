@@ -108,8 +108,9 @@ static const std::regex re_q_qmc_n("^MC[\\s\\-]*(\\d+)", std::regex::icase);
 static const std::regex re_n_nc_n("^C[\\s\\-]*(\\d+)", std::regex::icase);
 
 // E EGG
-static const std::regex re_e_egg_x("^(?:GG)?[\\s\\-]*[X\\?](?!\\w)", std::regex::icase);
-static const std::regex re_e_egg_n("^(?:GG)?[\\s\\-]*(\\d+)", std::regex::icase);
+static const std::regex re_e_e_x("^[\\s\\-]*[X\\?](?!\\w)", std::regex::icase);
+static const std::regex re_e_egg_x("^GG[\\s\\-]*[X\\?]?(?!\\w)", std::regex::icase);
+static const std::regex re_e_egg_n("^(?:GG(?:\\s+PASSAGE)?)?[\\s\\-]*(\\d+)", std::regex::icase);
 static const std::regex re_s_spfe_n("^PFE[\\s\\-]*(\\d+)", std::regex::icase);
 
 // MK M - Monkey Kidney Cell line
@@ -131,6 +132,7 @@ static const std::regex re_d_direct("^IRECT[\\sA-Z\\-]*$", std::regex::icase); /
 static const std::regex re_n_not_passaged("^OT PASSAGED\\s*$", std::regex::icase); // University of Michigan
 static const std::regex re_a_autopsy("^UTOPSY[\\s\\-_\\(\\)A-Z]*$", std::regex::icase);
 static const std::regex re_n_na("^(?:/A|ONE)\\s*$", std::regex::icase);
+static const std::regex re_i_initial("^NITIAL\\s*$", std::regex::icase);
 
 // R R-MIX - R-mix tissure culture
 static const std::regex re_r_n("^(?:-?M[I1]?X)?[\\s\\-]*(\\d+)", std::regex::icase);
@@ -220,11 +222,18 @@ static const std::map<char, callback_t> normalize_data{
              return parts_push_i(data, "E", "?", first);
          if (std::regex_search(first, last, match, re_e_egg_n))
              parts_push_i(data, "E", match[1].str());
-         else if (std::regex_search(first, last, match, re_e_egg_x))
+         else if (std::regex_search(first, last, match, re_e_egg_x) || std::regex_search(first, last, match, re_e_e_x))
              parts_push_i(data, "E", "?");
          else
              throw parsing_failed{};
          return match[0].second;
+     }},
+    {'I',
+     [](processing_data_t& data, source_iter_t first, source_iter_t last) -> source_iter_t {
+         if (std::cmatch match; std::regex_search(first, last, match, re_i_initial))
+             return parts_push_i(data, "OR", {}, match[0].second);
+         else
+             throw parsing_failed{};
      }},
     {'L',
      [](processing_data_t& data, source_iter_t first, source_iter_t last) -> source_iter_t {
