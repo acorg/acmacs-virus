@@ -74,11 +74,12 @@ static inline source_iter_t parts_push_i(processing_data_t& data, const char* p1
     return result;
 }
 
-static inline source_iter_t push_lab_separator(processing_data_t& data, source_iter_t result={})
+static inline source_iter_t push_lab_separator(processing_data_t& data, char orig_symbol, source_iter_t result={})
 {
     if (data.parts.empty())
-        throw parsing_failed{};
-    data.parts.push_back("/");
+        data.extra.append(1, orig_symbol);
+    else
+        data.parts.push_back("/");
     return result;
 }
 
@@ -360,7 +361,7 @@ static const std::map<char, callback_t> normalize_data{
              throw parsing_failed{};
      }},
     {' ', [](processing_data_t&, source_iter_t first, source_iter_t /*last*/) -> source_iter_t { return first; }},
-    {'/', [](processing_data_t& data, source_iter_t first, source_iter_t /*last*/) -> source_iter_t { return push_lab_separator(data, first); }},
+    {'/', [](processing_data_t& data, source_iter_t first, source_iter_t /*last*/) -> source_iter_t { return push_lab_separator(data, '/', first); }},
     {'\\',
      [](processing_data_t& data, source_iter_t first, source_iter_t last) -> source_iter_t {
          parts_push_i(data, "/");
@@ -368,8 +369,8 @@ static const std::map<char, callback_t> normalize_data{
              ++first;
          return first;
      }},
-    {',', [](processing_data_t& data, source_iter_t first, source_iter_t /*last*/) -> source_iter_t { return push_lab_separator(data, first); }},
-    {'.', [](processing_data_t& data, source_iter_t first, source_iter_t /*last*/) -> source_iter_t { return push_lab_separator(data, first); }},
+    {',', [](processing_data_t& data, source_iter_t first, source_iter_t /*last*/) -> source_iter_t { return push_lab_separator(data, ',', first); }},
+    {'.', [](processing_data_t& data, source_iter_t first, source_iter_t /*last*/) -> source_iter_t { return push_lab_separator(data, '.', first); }},
     {'-',
      [](processing_data_t& data, source_iter_t first, source_iter_t last) -> source_iter_t {
          if (std::cmatch match; !data.parts.empty() && std::regex_search(first, last, match, re_dash_ori))
@@ -380,11 +381,11 @@ static const std::map<char, callback_t> normalize_data{
     {'+',
      [](processing_data_t& data, source_iter_t first, source_iter_t last) -> source_iter_t {
          if (std::cmatch match; !data.last_passage_type.empty() && data.last_passage_type != "/" && std::regex_search(first, last, match, re_digits)) {
-             push_lab_separator(data);
+             push_lab_separator(data, '+');
              return parts_push_i(data, data.last_passage_type.data(), match[1].str(), match[0].second);
          }
          else
-             return push_lab_separator(data, first);
+             return push_lab_separator(data, '+', first);
      }},
     {'(',
      [](processing_data_t& data, source_iter_t first, source_iter_t last) -> source_iter_t {
