@@ -84,7 +84,7 @@ static const std::regex re_flu_name_general_A_subtype{sre_flu_name_general_A_sub
 static const std::regex re_extra_remove{"\\b(?:NEW)\\b"}; // NEW
 static const std::regex re_extra_remove_when_reassortant{"\\b(?:HY)\\b"}; // HY
 static const std::regex re_extra_symbols{"^[\\(\\)_\\-\\s,\\.]+$"};
-static const std::regex re_flu_a_subtype{"\\(H[1-9][0-9]?(?:N[1-9][0-9]?)?\\)"};
+static const std::regex re_flu_a_subtype{"\\(H[1-9][0-9]?(?:N[1-9][0-9]?V?)?\\)"};
 
 #include "acmacs-base/diagnostics-pop.hh"
 
