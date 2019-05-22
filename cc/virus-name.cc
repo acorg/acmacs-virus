@@ -5,6 +5,7 @@
 #include "acmacs-base/date.hh"
 #include "locationdb/locdb.hh"
 #include "acmacs-virus/virus-name.hh"
+#include "acmacs-virus/passage.hh"
 
 // ----------------------------------------------------------------------
 
@@ -140,24 +141,29 @@ acmacs::virus::parse_result_t acmacs::virus::parse_name(std::string_view source,
     Passage passage;
 
     if (!extra.empty()) {
-        if (std::smatch match_extra_passage; std::regex_match(extra, match_extra_passage, re_extra_passage)) {
-            switch (extra[static_cast<size_t>(match_extra_passage.position(1))]) {
-              case 'E':
-                  passage = Passage{"E?"};
-                  break;
-              case 'M':
-              case 'C':
-                  passage = Passage{"MDCK?"};
-                  break;
-              case 'O':
-                  passage = Passage{"OR"};
-                  break;
-              default:
-                  passage = Passage{match_extra_passage[1].str()};
-                  break;
-            }
-            extra.clear();
-        }
+        const auto orig_extra = extra;
+        std::tie(passage, extra) = parse_passage(extra, passage_only::no);
+        if (!passage.empty())
+            std::cerr << "EXTRA: " << orig_extra << " --> P: " << passage << " E: " << extra << '\n';
+
+        // if (std::smatch match_extra_passage; std::regex_match(extra, match_extra_passage, re_extra_passage)) {
+        //     switch (extra[static_cast<size_t>(match_extra_passage.position(1))]) {
+        //       case 'E':
+        //           passage = Passage{"E?"};
+        //           break;
+        //       case 'M':
+        //       case 'C':
+        //           passage = Passage{"MDCK?"};
+        //           break;
+        //       case 'O':
+        //           passage = Passage{"OR"};
+        //           break;
+        //       default:
+        //           passage = Passage{match_extra_passage[1].str()};
+        //           break;
+        //     }
+        //     extra.clear();
+        // }
     }
 
     if (!extra.empty()) {

@@ -26,7 +26,7 @@ int main(int argc, const char* const* argv)
 
 // ----------------------------------------------------------------------
 
-using parse_passage_result_t = decltype(acmacs::virus::parse_passage(std::string_view{}));
+using parse_passage_result_t = decltype(acmacs::virus::parse_passage(std::string_view{}, acmacs::virus::passage_only::no));
 
 struct TestData
 {
@@ -63,6 +63,7 @@ void test_builtin()
         TestData{"E3",                    parse_passage_result_t{Passage{"E3"}, ""}},
         TestData{"EX",                    parse_passage_result_t{Passage{"E?"}, ""}},
         TestData{"E?",                    parse_passage_result_t{Passage{"E?"}, ""}},
+        TestData{"E",                     parse_passage_result_t{Passage{"E?"}, ""}},
 
         TestData{"X",                     parse_passage_result_t{Passage{"X?"}, ""}},
         TestData{"X?",                    parse_passage_result_t{Passage{"X?"}, ""}},
@@ -109,6 +110,11 @@ void test_builtin()
         TestData{"PASSAGE DETAILS: ORIGINAL SPECIMEN", parse_passage_result_t{Passage{"OR"}, ""}},
         TestData{"PASSAGE DETAILS: N/A",  parse_passage_result_t{Passage{"OR"}, ""}},
 
+        TestData{"CL2",                   parse_passage_result_t{Passage{""}, "CL2"}},
+        TestData{"EGGPLANT",              parse_passage_result_t{Passage{""}, "EGGPLANT"}},
+        TestData{"NEW",                   parse_passage_result_t{Passage{""}, "NEW"}},
+        TestData{"NEE",                   parse_passage_result_t{Passage{""}, "NEE"}},
+        TestData{"NEC",                   parse_passage_result_t{Passage{""}, "NEC"}},
     };
 
     const auto field_mistmatch_output = [](auto&& res, auto&& exp) {
@@ -121,7 +127,7 @@ void test_builtin()
     size_t errors = 0;
     for (const auto& entry : data) {
         try {
-            const auto result = parse_passage(entry.raw_passage);
+            const auto result = parse_passage(entry.raw_passage, passage_only::no);
             if (result != entry.expected) {
                 std::cerr << "SRC: \"" << entry.raw_passage << "\"\n"
                           << "PAS: " << field_mistmatch_output(std::get<Passage>(result), std::get<Passage>(entry.expected)) << '\n'
@@ -148,7 +154,7 @@ void test_from_command_line(int argc, const char* const* argv)
     using namespace acmacs::virus;
 
     for (int arg = 1; arg < argc; ++arg) {
-        const auto result = parse_passage(argv[arg]);
+        const auto result = parse_passage(argv[arg], passage_only::no);
         std::cerr << "SRC: \"" << argv[arg] << "\"\n"
                   << "PAS: \"" << std::get<Passage>(result) << "\"\n"
                   << "EXT: \"" << std::get<std::string>(result) << "\"\n";
