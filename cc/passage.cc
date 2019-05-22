@@ -97,7 +97,8 @@ static const std::regex re_m_mdck_siat1_n("^DCK-SIAT1[\\s\\-](\\d+)", std::regex
 static const std::regex re_m_mdck_mix_n("^DCK-MIX(\\d+)", std::regex::icase);
 
 // SIAT S
-static const std::regex re_s_siat_x("^(?:IAT)?[\\s\\-]*[X\\?]?", std::regex::icase);
+static const std::regex re_s_s_x("^[X\\?]", std::regex::icase);
+static const std::regex re_s_siat_x("^IAT?[\\s\\-]*[X\\?]?", std::regex::icase);
 static const std::regex re_s_siat_n("^(?:IAT)?[\\s\\-]*(\\d+)", std::regex::icase);
 
 // QMC Seqirus (Novartis) qualified MDCK cells. Previously the cell line called "NC"
@@ -325,7 +326,7 @@ static const std::map<char, callback_t> normalize_data{
              parts_push_i(data, "SPFCK", match[1].str());
          else if (std::regex_search(first, last, match, re_s_swab))
              parts_push_i(data, "OR");
-         else if (std::regex_search(first, last, match, re_s_siat_x))
+         else if (std::regex_search(first, last, match, re_s_s_x) || std::regex_search(first, last, match, re_s_siat_x))
              parts_push_i(data, "SIAT", "?");
          else
              throw parsing_failed{};
