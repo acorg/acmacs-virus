@@ -88,8 +88,8 @@ static inline source_iter_t push_lab_separator(processing_data_t& data, char ori
 #include "acmacs-base/global-constructors-push.hh"
 
 // MDCK C
-static const std::regex re_c_mdck_x("^[X\\?]", std::regex::icase);
-static const std::regex re_c_mdck_n("^[\\s\\-]*(\\d+)", std::regex::icase);
+static const std::regex re_c_c_x("^[X\\?]", std::regex::icase);
+static const std::regex re_c_c_n("^[\\s\\-]*(\\d+)(?![\\.])", std::regex::icase); // no . afterwards to support C1.3 annotation (CDC)
 static const std::regex re_m_mdck_x("^(?:DCK|CDK)[\\s\\-]*[X\\?`]?", std::regex::icase);
 static const std::regex re_m_mdck_n("^(?:DCK|CDK)[\\s\\-]*(\\d+)", std::regex::icase);
 static const std::regex re_m_mdck_siat_x("^DCKX?-SIAT[\\s\\-]*[X\\?]?", std::regex::icase);
@@ -110,6 +110,7 @@ static const std::regex re_n_nc_n("^C[\\s\\-]*(\\d+)", std::regex::icase);
 // E EGG
 static const std::regex re_e_egg_x("^(?:GG)?[\\s\\-]*[X\\?](?!\\w)", std::regex::icase);
 static const std::regex re_e_egg_n("^[\\s\\-]*(\\d+)", std::regex::icase);
+static const std::regex re_s_spfe_n("^PFE[\\s\\-]*(\\d+)", std::regex::icase);
 
 // MK M - Monkey Kidney Cell line
 static const std::regex re_m_mk_x("^K?[\\s\\-]*[X\\?]?", std::regex::icase);
@@ -126,10 +127,10 @@ static const std::regex re_s_swab("^(?:WAB|PECIMEN)", std::regex::icase);
 static const std::regex re_p_pm("^M LUNG", std::regex::icase); // NIMR
 static const std::regex re_b_or("^RONCH[\\s\\-_\\(\\)A-Z]*", std::regex::icase);
 static const std::regex re_paren_from("^FROM[\\sA-Z]+\\)", std::regex::icase);
-static const std::regex re_d_direct("^IRECT(?:\\s+SEQ\\w*)?\\s*$", std::regex::icase); // Public Health Agency of Sweden
+static const std::regex re_d_direct("^IRECT[\\sA-Z\\-]*$", std::regex::icase); // Public Health Agency of Sweden
 static const std::regex re_n_not_passaged("^OT PASSAGED\\s*$", std::regex::icase); // University of Michigan
 static const std::regex re_a_autopsy("^UTOPSY[\\s\\-_\\(\\)A-Z]*$", std::regex::icase);
-static const std::regex re_n_na("^/A\\s*$", std::regex::icase);
+static const std::regex re_n_na("^(?:/A|ONE)\\s*$", std::regex::icase);
 
 // R R-MIX - R-mix tissure culture
 static const std::regex re_r_n("^(?:-?M[I1]?X)?[\\s\\-]*(\\d+)", std::regex::icase);
@@ -147,7 +148,7 @@ static const std::regex re_c_caco_n("^ACO(?:-2\\s+)?(\\d+)", std::regex::icase);
 static const std::regex re_s_spf_n("^PF(\\d+)", std::regex::icase);
 
 // D (egg?)
-static const std::regex re_d_d_n("^(\\d+)", std::regex::icase);
+static const std::regex re_d_d_n("^(\\d+)(?![\\.])", std::regex::icase); // no . afterwards to support D1.3 annotation (CDC)
 
 // Specific Pathogen Free Chicken Kidney Cell line
 static const std::regex re_s_spfck_n("^PFCK(\\d+)", std::regex::icase);
@@ -191,13 +192,13 @@ static const std::map<char, callback_t> normalize_data{
          std::cmatch match;
          if (first == last)     // just C
              return parts_push_i(data, "MDCK", "?", first);
-         if (std::regex_search(first, last, match, re_c_mdck_n))
+         if (std::regex_search(first, last, match, re_c_c_n))
              parts_push_i(data, "MDCK", match[1].str());
          else if (std::regex_search(first, last, match, re_c_clinical))
              parts_push_i(data, "OR");
          else if (std::regex_search(first, last, match, re_c_caco_n))
              parts_push_i(data, "CACO", match[1].str());
-         else if (std::regex_search(first, last, match, re_c_mdck_x))
+         else if (std::regex_search(first, last, match, re_c_c_x))
              parts_push_i(data, "MDCK", "?");
          else
              throw parsing_failed{};
@@ -321,6 +322,8 @@ static const std::map<char, callback_t> normalize_data{
          std::cmatch match;
          if (std::regex_search(first, last, match, re_s_siat_n))
              parts_push_i(data, "SIAT", match[1].str());
+         else if (std::regex_search(first, last, match, re_s_spfe_n))
+             parts_push_i(data, "SPFE", match[1].str());
          else if (std::regex_search(first, last, match, re_s_spf_n))
              parts_push_i(data, "SPF", match[1].str());
          else if (std::regex_search(first, last, match, re_s_spfck_n))

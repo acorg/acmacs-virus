@@ -66,6 +66,10 @@ void test_builtin()
         TestData{"A/chicken/Ghana/7/2015",                          parse_name_result_t{virus_name_t{"A/CHICKEN/GHANA/7/2015"}, Reassortant{""}, Passage{""}, ""}},
         TestData{"IVR-153 (A/CALIFORNIA/07/2009)",                  parse_name_result_t{virus_name_t{"A/CALIFORNIA/7/2009"}, Reassortant{"IVR-153"}, Passage{""}, ""}},
         TestData{"A/Brisbane/01/2018  NYMC-X-311 (18/160)",         parse_name_result_t{virus_name_t{"A/BRISBANE/1/2018"}, Reassortant{"NYMC-311"}, Passage{""}, "(18/160)"}}, // NIBSC
+        TestData{"A/Antananarivo/1067/2016 CBER-11B C1.3",          parse_name_result_t{virus_name_t{"A/ANTANANARIVO/1067/2016"}, Reassortant{"CBER-11B"}, Passage{""}, "C1.3"}}, // CDC
+        TestData{"A/Montana/50/2016 CBER-07 D2.3",                  parse_name_result_t{virus_name_t{"A/MONTANA/50/2016"}, Reassortant{"CBER-07"}, Passage{""}, "D2.3"}}, // CDC
+
+        //TestData{"",          parse_name_result_t{virus_name_t{""}, Reassortant{""}, Passage{""}, ""}},
 
         // TestData{"A/H3N2/SINGAPORE/INFIMH-16-0019/2016",            parse_name_result_t{virus_name_t{"A(H3N2)/SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{""}, Passage{""}, ""}},
         // TestData{"SINGAPORE/INFIMH-16-0019/2016",                   parse_name_result_t{virus_name_t{"SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{""}, Passage{""}, ""}},
