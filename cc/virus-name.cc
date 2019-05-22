@@ -66,11 +66,6 @@ constexpr const char* sre_flu_name_general_A_subtype =
         ;
 
 
-constexpr const char* sre_extra_passage = "^-?(E|MDCK|C|CELL|OR|EGG)$";
-constexpr const char* sre_extra_remove = "\\b(?:NEW)\\b";
-constexpr const char* sre_extra_remove_when_reassortant = "\\b(?:HY)\\b"; // HY
-constexpr const char* sre_extra_symbols = "^[\\(\\)_\\-\\s]+$";
-
 static std::string fix_location(std::string source, acmacs::virus::parse_name_f flags, std::vector<acmacs::virus::parse_result_t::message_t>* messages);
 static std::string fix_year(std::string source, std::vector<acmacs::virus::parse_result_t::message_t>* messages);
 static acmacs::virus::virus_name_t isolation_with_location(const std::smatch& match, acmacs::virus::parse_name_f flags, std::vector<acmacs::virus::parse_result_t::message_t>& messages);
@@ -78,19 +73,24 @@ static acmacs::virus::virus_name_t general(const std::smatch& match, acmacs::vir
 
 // ----------------------------------------------------------------------
 
+#include "acmacs-base/global-constructors-push.hh"
+static const std::regex re_flu_name_general_AB_isolation_with_location{sre_flu_name_general_AB_isolation_with_location};
+static const std::regex re_flu_name_general_AB_1{sre_flu_name_general_AB_1};
+static const std::regex re_flu_name_general_AB_2{sre_flu_name_general_AB_2};
+static const std::regex re_flu_name_general_AB_no_isolation{sre_flu_name_general_AB_no_isolation};
+static const std::regex re_flu_name_general_A_subtype{sre_flu_name_general_A_subtype};
+// static const std::regex re_extra_passage{"^-?(E|MDCK|C|CELL|OR|EGG)$"};
+static const std::regex re_extra_remove{"\\b(?:NEW)\\b"}; // NEW
+static const std::regex re_extra_remove_when_reassortant{"\\b(?:HY)\\b"}; // HY
+static const std::regex re_extra_symbols{"^[\\(\\)_\\-\\s]+$"};
+static const std::regex re_flu_a_subtype{"\\(H[1-9][0-9]?(?:N[1-9][0-9]?)?\\)"};
+
+#include "acmacs-base/diagnostics-pop.hh"
+
+// ----------------------------------------------------------------------
+
 acmacs::virus::parse_result_t acmacs::virus::parse_name(std::string_view source, parse_name_f flags)
 {
-#include "acmacs-base/global-constructors-push.hh"
-    static const std::regex re_flu_name_general_AB_isolation_with_location{sre_flu_name_general_AB_isolation_with_location};
-    static const std::regex re_flu_name_general_AB_1{sre_flu_name_general_AB_1};
-    static const std::regex re_flu_name_general_AB_2{sre_flu_name_general_AB_2};
-    static const std::regex re_flu_name_general_AB_no_isolation{sre_flu_name_general_AB_no_isolation};
-    static const std::regex re_flu_name_general_A_subtype{sre_flu_name_general_A_subtype};
-    static const std::regex re_extra_passage{sre_extra_passage};
-    static const std::regex re_extra_remove{sre_extra_remove};
-    static const std::regex re_extra_remove_when_reassortant{sre_extra_remove_when_reassortant};
-    static const std::regex re_extra_symbols{sre_extra_symbols};
-#include "acmacs-base/diagnostics-pop.hh"
 
     const auto make_extra = [](const std::smatch& match) { return ::string::join(" ", {::string::strip(match.prefix().str()), ::string::strip(match.suffix().str())}); };
 
@@ -144,6 +144,11 @@ acmacs::virus::parse_result_t acmacs::virus::parse_name(std::string_view source,
         std::tie(passage, extra) = parse_passage(extra, passage_only::no);
         // if (!passage.empty())
         //     std::cerr << "EXTRA: " << orig_extra << " --> P: " << passage << " E: " << extra << '\n';
+    }
+
+    if (!extra.empty() && (flags & parse_name_f::remove_extra_subtype)) {
+        if (std::smatch match_flu_a_subtype; std::regex_search(extra, match_flu_a_subtype, re_flu_a_subtype))
+            extra = make_extra(match_flu_a_subtype);
     }
 
     if (!extra.empty()) {

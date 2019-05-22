@@ -22,11 +22,12 @@ namespace acmacs::virus
         enum parse_name_f
         {
             none = 0,
-            lookup_location = 1 << 0
+            lookup_location = 1 << 0,
+            remove_extra_subtype = 1 << 1 // remove (H3N2) at the end of the name, do not put it in extra
         };
         inline constexpr parse_name_f operator|(parse_name_f lh, parse_name_f rh) { return parse_name_f(int(lh) | int(rh)); }
         inline constexpr parse_name_f operator&(parse_name_f lh, parse_name_f rh) { return parse_name_f(int(lh) & int(rh)); }
-
+        
         struct parse_result_t
         {
             struct message_t
@@ -50,7 +51,7 @@ namespace acmacs::virus
             std::vector<message_t> messages{};
         };
 
-        parse_result_t parse_name(std::string_view source, parse_name_f flags = parse_name_f::lookup_location);
+        parse_result_t parse_name(std::string_view source, parse_name_f flags = parse_name_f::lookup_location|parse_name_f::remove_extra_subtype);
     }
 }
 
