@@ -67,6 +67,8 @@ constexpr const char* sre_flu_name_general_A_subtype =
         ;
 
 
+struct parse_name_error : public std::exception {};
+
 static std::string fix_location(std::string source, acmacs::virus::parse_name_f flags, std::vector<acmacs::virus::parse_result_t::message_t>* messages);
 static std::string fix_year(std::string source, std::vector<acmacs::virus::parse_result_t::message_t>* messages);
 static acmacs::virus::virus_name_t isolation_with_location(const std::smatch& match, acmacs::virus::parse_name_f flags, std::vector<acmacs::virus::parse_result_t::message_t>& messages);
@@ -75,16 +77,17 @@ static acmacs::virus::virus_name_t general(const std::smatch& match, acmacs::vir
 // ----------------------------------------------------------------------
 
 #include "acmacs-base/global-constructors-push.hh"
+
 static const std::regex re_flu_name_general_AB_isolation_with_location{sre_flu_name_general_AB_isolation_with_location};
 static const std::regex re_flu_name_general_AB_1{sre_flu_name_general_AB_1};
 static const std::regex re_flu_name_general_AB_2{sre_flu_name_general_AB_2};
 static const std::regex re_flu_name_general_AB_no_isolation{sre_flu_name_general_AB_no_isolation};
 static const std::regex re_flu_name_general_A_subtype{sre_flu_name_general_A_subtype};
-// static const std::regex re_extra_passage{"^-?(E|MDCK|C|CELL|OR|EGG)$"};
 static const std::regex re_extra_remove{"\\b(?:NEW)\\b"}; // NEW
 static const std::regex re_extra_remove_when_reassortant{"\\b(?:HY)\\b"}; // HY
 static const std::regex re_extra_symbols{"^[\\(\\)_\\-\\s,\\.]+$"};
 static const std::regex re_flu_a_subtype{"\\(H[1-9][0-9]?(?:N[1-9][0-9]?V?)?\\)"};
+static const std::regex re_location_stop_list("(?:REASSORTANT|DOMESTIC|-$)", std::regex::icase); // if location matches, throw parse_name_error (i.e. name unrecognized)
 
 #include "acmacs-base/diagnostics-pop.hh"
 
@@ -101,73 +104,80 @@ acmacs::virus::parse_result_t acmacs::virus::parse_name(std::string_view source,
 
     const std::string source_u = ::string::upper(source);
 
-    if (std::smatch match_general_AB_isolation_with_location; std::regex_search(source_u, match_general_AB_isolation_with_location, re_flu_name_general_AB_isolation_with_location)) {
-        // std::cerr << "isoloc: " << source_u << ' ' << match_general_AB_isolation_with_location.format("[1: $1] [host: $2] [loc: $3] [iso1: $4], [iso2: $5], [y: $6]") << '\n';
-        name = isolation_with_location(match_general_AB_isolation_with_location, flags, messages);
-        extra = make_extra(match_general_AB_isolation_with_location);
-    }
-    else if (std::smatch match_general_AB_1; std::regex_search(source_u, match_general_AB_1, re_flu_name_general_AB_1)) {
-        // std::cerr << "genAB1: " << source_u << ' ' << match_general_AB_1.format("[1: $1] [host: $2] [loc: $3] [iso: $4], [y: $5]") << '\n';
-        name = general(match_general_AB_1, flags, messages);
-        extra = make_extra(match_general_AB_1);
-    }
-    else if (std::smatch match_general_AB_2; std::regex_search(source_u, match_general_AB_2, re_flu_name_general_AB_2)) {
-        // std::cerr << "genAB2: " << source_u << ' ' << match_general_AB_2.format("[1: $1] [host: $2] [loc: $3] [iso: $4], [y: $5]") << '\n';
-        name = general(match_general_AB_2, flags, messages);
-        extra = make_extra(match_general_AB_2);
-    }
-    else if (std::smatch match_general_AB_no_isolation; std::regex_search(source_u, match_general_AB_no_isolation, re_flu_name_general_AB_no_isolation)) {
-        // std::cerr << "??: " << source_u << ' ' << match_general_AB_no_isolation.format("[1: $1] [host: $2] [loc: $3] [y: $4]") << '\n';
-        const std::array fields{match_general_AB_no_isolation[1].str(), match_general_AB_no_isolation[2].str(),
-                                fix_location(match_general_AB_no_isolation[3].str(), flags & parse_name_f::lookup_location, &messages), match_general_AB_no_isolation[4].str(),
-                                fix_year(match_general_AB_no_isolation[5].str(), &messages)};
-        name = virus_name_t(::string::join("/", fields));
-        extra = make_extra(match_general_AB_no_isolation);
-    }
-    else if (std::smatch match_general_A_subtype; std::regex_search(source_u, match_general_A_subtype, re_flu_name_general_A_subtype)) {
-        const std::array fields{match_general_A_subtype[1].str(), match_general_A_subtype[2].str(), fix_location(match_general_A_subtype[3].str(), flags & parse_name_f::lookup_location, &messages),
-                                match_general_A_subtype[4].str(), fix_year(match_general_A_subtype[5].str(), &messages)};
-        name = virus_name_t(::string::join("/", fields));
-        extra = make_extra(match_general_A_subtype);
-    }
-    else {
-        name = virus_name_t{source};
-        messages.emplace_back(parse_result_t::message_t::unrecognized, std::string{source});
-    }
+    try {
+        if (std::smatch match_general_AB_isolation_with_location; std::regex_search(source_u, match_general_AB_isolation_with_location, re_flu_name_general_AB_isolation_with_location)) {
+            // std::cerr << "isoloc: " << source_u << ' ' << match_general_AB_isolation_with_location.format("[1: $1] [host: $2] [loc: $3] [iso1: $4], [iso2: $5], [y: $6]") << '\n';
+            name = isolation_with_location(match_general_AB_isolation_with_location, flags, messages);
+            extra = make_extra(match_general_AB_isolation_with_location);
+        }
+        else if (std::smatch match_general_AB_1; std::regex_search(source_u, match_general_AB_1, re_flu_name_general_AB_1)) {
+            // std::cerr << "genAB1: " << source_u << ' ' << match_general_AB_1.format("[1: $1] [host: $2] [loc: $3] [iso: $4], [y: $5]") << '\n';
+            name = general(match_general_AB_1, flags, messages);
+            extra = make_extra(match_general_AB_1);
+        }
+        else if (std::smatch match_general_AB_2; std::regex_search(source_u, match_general_AB_2, re_flu_name_general_AB_2)) {
+            // std::cerr << "genAB2: " << source_u << ' ' << match_general_AB_2.format("[1: $1] [host: $2] [loc: $3] [iso: $4], [y: $5]") << '\n';
+            name = general(match_general_AB_2, flags, messages);
+            extra = make_extra(match_general_AB_2);
+        }
+        else if (std::smatch match_general_AB_no_isolation; std::regex_search(source_u, match_general_AB_no_isolation, re_flu_name_general_AB_no_isolation)) {
+            // std::cerr << "??: " << source_u << ' ' << match_general_AB_no_isolation.format("[1: $1] [host: $2] [loc: $3] [y: $4]") << '\n';
+            const std::array fields{match_general_AB_no_isolation[1].str(), match_general_AB_no_isolation[2].str(),
+                                    fix_location(match_general_AB_no_isolation[3].str(), flags & parse_name_f::lookup_location, &messages), match_general_AB_no_isolation[4].str(),
+                                    fix_year(match_general_AB_no_isolation[5].str(), &messages)};
+            name = virus_name_t(::string::join("/", fields));
+            extra = make_extra(match_general_AB_no_isolation);
+        }
+        else if (std::smatch match_general_A_subtype; std::regex_search(source_u, match_general_A_subtype, re_flu_name_general_A_subtype)) {
+            const std::array fields{match_general_A_subtype[1].str(), match_general_A_subtype[2].str(),
+                                    fix_location(match_general_A_subtype[3].str(), flags & parse_name_f::lookup_location, &messages), match_general_A_subtype[4].str(),
+                                    fix_year(match_general_A_subtype[5].str(), &messages)};
+            name = virus_name_t(::string::join("/", fields));
+            extra = make_extra(match_general_A_subtype);
+        }
+        else {
+            // name = virus_name_t{source};
+            messages.emplace_back(parse_result_t::message_t::unrecognized, std::string{source});
+            throw parse_name_error{};
+        }
 
-    Reassortant reassortant;
-    if (!extra.empty())
-        std::tie(reassortant, extra) = parse_reassortant(extra);
+        Reassortant reassortant;
+        if (!extra.empty())
+            std::tie(reassortant, extra) = parse_reassortant(extra);
 
-    Passage passage;
-    if (!extra.empty()) {
-        // const auto orig_extra = extra;
-        std::tie(passage, extra) = parse_passage(extra, passage_only::no);
-        // if (!passage.empty())
-        //     std::cerr << "EXTRA: " << orig_extra << " --> P: " << passage << " E: " << extra << '\n';
+        Passage passage;
+        if (!extra.empty()) {
+            // const auto orig_extra = extra;
+            std::tie(passage, extra) = parse_passage(extra, passage_only::no);
+            // if (!passage.empty())
+            //     std::cerr << "EXTRA: " << orig_extra << " --> P: " << passage << " E: " << extra << '\n';
+        }
+
+        if (!extra.empty() && (flags & parse_name_f::remove_extra_subtype)) {
+            if (std::smatch match_flu_a_subtype; std::regex_search(extra, match_flu_a_subtype, re_flu_a_subtype))
+                extra = make_extra(match_flu_a_subtype);
+        }
+
+        if (!extra.empty()) {
+            std::smatch match_extra_remove;
+            while (std::regex_search(extra, match_extra_remove, re_extra_remove))
+                extra = make_extra(match_extra_remove);
+        }
+
+        if (!extra.empty() && !reassortant.empty()) {
+            std::smatch match_extra_remove_when_reassortant;
+            while (std::regex_search(extra, match_extra_remove_when_reassortant, re_extra_remove_when_reassortant))
+                extra = make_extra(match_extra_remove_when_reassortant);
+        }
+
+        if (!extra.empty() && std::regex_match(extra, re_extra_symbols))
+            extra.clear();
+
+        return {name, reassortant, passage, extra, messages};
     }
-
-    if (!extra.empty() && (flags & parse_name_f::remove_extra_subtype)) {
-        if (std::smatch match_flu_a_subtype; std::regex_search(extra, match_flu_a_subtype, re_flu_a_subtype))
-            extra = make_extra(match_flu_a_subtype);
+    catch (parse_name_error&) {
+        return {virus_name_t{source}, Reassortant{}, Passage{}, {}, messages};
     }
-
-    if (!extra.empty()) {
-        std::smatch match_extra_remove;
-        while (std::regex_search(extra, match_extra_remove, re_extra_remove))
-            extra = make_extra(match_extra_remove);
-    }
-
-    if (!extra.empty() && !reassortant.empty()) {
-        std::smatch match_extra_remove_when_reassortant;
-        while (std::regex_search(extra, match_extra_remove_when_reassortant, re_extra_remove_when_reassortant))
-            extra = make_extra(match_extra_remove_when_reassortant);
-    }
-
-    if (!extra.empty() && std::regex_match(extra, re_extra_symbols))
-        extra.clear();
-
-    return {name, reassortant, passage, extra, messages};
 
 } // acmacs::virus::parse_name
 
@@ -211,7 +221,12 @@ acmacs::virus::virus_name_t general(const std::smatch& match, acmacs::virus::par
                 location = fix_location(host, flags & parse_name_f::lookup_location, nullptr);
                 if (location.empty()) {
                     location = match[3].str();
-                    messages.emplace_back(parse_result_t::message_t::location_not_found, location);
+                    if (location.size() < 3) {
+                        messages.emplace_back(acmacs::virus::parse_result_t::message_t::unrecognized, "not a location: " + location);
+                        throw parse_name_error{};
+                    }
+                    else
+                        messages.emplace_back(parse_result_t::message_t::location_not_found, location);
                 }
                 else {
                     host.clear();
@@ -233,14 +248,29 @@ std::string fix_location(std::string source, acmacs::virus::parse_name_f flags, 
 {
     if (flags != acmacs::virus::parse_name_f::lookup_location)
         return source;
+    if (source.size() < 3) {
+        if (messages) {
+            messages->emplace_back(acmacs::virus::parse_result_t::message_t::unrecognized, "not a location: " + source);
+            throw parse_name_error{};
+        }
+        else
+            return {};
+    }
+
     try {
         return get_locdb().find(::string::strip(source)).name;
     }
-    catch (LocationNotFound& err) {
+    catch (LocationNotFound& /*err*/) {
         // std::cerr << "LocationNotFound: \"" << source << "\"\n";
         if (messages) {
-            messages->emplace_back(acmacs::virus::parse_result_t::message_t::location_not_found, err.what());
-            return source;
+            if (std::regex_search(source, re_location_stop_list)) {
+                messages->emplace_back(acmacs::virus::parse_result_t::message_t::unrecognized, "not a location: " + source);
+                throw parse_name_error{};
+            }
+            else {
+                messages->emplace_back(acmacs::virus::parse_result_t::message_t::location_not_found, source);
+                return source;
+            }
         }
         else
             return {};
@@ -257,7 +287,10 @@ std::string fix_year(std::string source, std::vector<acmacs::virus::parse_result
     static const auto current_year_2 = current_year % 100;
 #include "acmacs-base/diagnostics-pop.hh"
 
-    if (const auto year = std::stoul(source); year < 18) {
+    if (const auto year = std::stoul(source); year < 10) {
+        return "200" + std::to_string(year);
+    }
+    else if (year < 18) {
         return "20" + std::to_string(year);
     }
     else if (year <= current_year_2) {
@@ -270,7 +303,8 @@ std::string fix_year(std::string source, std::vector<acmacs::virus::parse_result
     else if (year < 1900 || year > current_year) {
         if (messages)
             messages->emplace_back(acmacs::virus::parse_result_t::message_t::invalid_year, source);
-        return source;
+        throw parse_name_error{};
+        // return source;
     }
     else
         return std::to_string(year);

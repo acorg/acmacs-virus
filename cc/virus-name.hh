@@ -27,7 +27,7 @@ namespace acmacs::virus
         };
         inline constexpr parse_name_f operator|(parse_name_f lh, parse_name_f rh) { return parse_name_f(int(lh) | int(rh)); }
         inline constexpr parse_name_f operator&(parse_name_f lh, parse_name_f rh) { return parse_name_f(int(lh) & int(rh)); }
-        
+
         struct parse_result_t
         {
             struct message_t
