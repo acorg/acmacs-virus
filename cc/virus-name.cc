@@ -26,7 +26,7 @@ constexpr const char* sre_flu_name_general_AB_isolation_with_location =
         SRE_LOC "/"                     // location \3
         SRE_ISOLATION_WITH_LOC  "/"     // isolation \4 + \5
         "\\s*(\\d+)"                    // year \6 - any number of digits
-        SRE_LOOKAHEAD_EXCEPT              // neither digit nor letter nor / nor - nor _
+        SRE_LOOKAHEAD_EXCEPT              // neither digit nor letter nor / nor - nor _ nor .
         ;
 
 // A/SINGAPORE/INFIMH-16-0019/2016
@@ -37,7 +37,7 @@ constexpr const char* sre_flu_name_general_AB_1 =
         SRE_LOC_NO_DIGITS "/"           // location \3
         SRE_ISOLATION  "/+"             // isolation \4  - without leading 0, mutiple / at the end (found in gisaid)
         "\\s*(\\d+)"                    // year \5 - any number of digits
-        SRE_LOOKAHEAD_EXCEPT            // neither digit nor letter nor / nor - nor _
+        SRE_LOOKAHEAD_EXCEPT            // neither digit nor letter nor / nor - nor _ nor .
         ;
 
 constexpr const char* sre_flu_name_general_AB_2 =
@@ -47,6 +47,7 @@ constexpr const char* sre_flu_name_general_AB_2 =
         SRE_LOC "/"                     // location \3
         SRE_ISOLATION  "/+"             // isolation \4  - without leading 0, mutiple / at the end (found in gisaid)
         "\\s*(\\d+)"                    // year \5 - any number of digits
+        SRE_LOOKAHEAD_EXCEPT            // neither digit nor letter nor / nor - nor _ nor .
         ;
 
 constexpr const char* sre_flu_name_general_AB_no_isolation = // or no slash after location
@@ -56,6 +57,7 @@ constexpr const char* sre_flu_name_general_AB_no_isolation = // or no slash afte
         SRE_LOC_NO_DIGITS               // location \3
         SRE_ISOLATION "/"               // isolation \4
         "\\s*(\\d+)"                    // year \5 - any number of digits
+        SRE_LOOKAHEAD_EXCEPT            // neither digit nor letter nor / nor - nor _ nor .
         ;
 
 constexpr const char* sre_flu_name_general_A_subtype =
@@ -64,6 +66,7 @@ constexpr const char* sre_flu_name_general_A_subtype =
         SRE_LOC "/"                                  // location \3
         SRE_ISOLATION "/+"                           // isolation \4 - without leading 0, mutiple / at the end (found in gisaid)
         "\\s*(\\d+)"                                 // year \5 - any number of digits
+        SRE_LOOKAHEAD_EXCEPT            // neither digit nor letter nor / nor - nor _ nor .
         ;
 
 
@@ -87,7 +90,7 @@ static const std::regex re_extra_remove{"\\b(?:NEW)\\b"}; // NEW
 static const std::regex re_extra_remove_when_reassortant{"\\b(?:HY)\\b"}; // HY
 static const std::regex re_extra_symbols{"^[\\(\\)_\\-\\s,\\.]+$"};
 static const std::regex re_flu_a_subtype{"\\(H[1-9][0-9]?(?:N[1-9][0-9]?V?)?\\)"};
-static const std::regex re_location_stop_list("(?:REASSORTANT|DOMESTIC|-$)", std::regex::icase); // if location matches, throw parse_name_error (i.e. name unrecognized)
+static const std::regex re_location_stop_list("(?:REASSORTANT|DOMESTIC|EQUINE|SWINE|-$)", std::regex::icase); // if location matches, throw parse_name_error (i.e. name unrecognized)
 
 #include "acmacs-base/diagnostics-pop.hh"
 
