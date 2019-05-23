@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "acmacs-base/named-type.hh"
-
+#include "acmacs-base/fmt.hh"
 #include "acmacs-virus/virus.hh"
 #include "acmacs-virus/passage.hh"
 #include "acmacs-virus/reassortant.hh"
@@ -54,6 +54,14 @@ namespace acmacs::virus
         parse_result_t parse_name(std::string_view source, parse_name_f flags = parse_name_f::lookup_location|parse_name_f::remove_extra_subtype);
     }
 }
+
+// ----------------------------------------------------------------------
+
+template <> struct fmt::formatter<acmacs::virus::parse_result_t::message_t>
+{
+  template <typename ParseContext> constexpr auto parse(ParseContext &ctx) { return ctx.begin(); }
+  template <typename FormatContext> auto format(const acmacs::virus::parse_result_t::message_t& msg, FormatContext& ctx) { return format_to(ctx.out(), "{}: \"{}\"", msg.key, msg.value); }
+};
 
 // ----------------------------------------------------------------------
 /// Local Variables:
