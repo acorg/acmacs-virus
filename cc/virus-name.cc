@@ -16,7 +16,7 @@
 #define SRE_LOC_NO_DIGITS "([A-Z \\-\\.,'&_]{2,})"
 #define SRE_ISOLATION "\\s*0*([^/]+)\\s*"
 #define SRE_ISOLATION_WITH_LOC "\\s*([A-Z]{3,})([^/]+)\\s*"
-#define SRE_LOOKAHEAD_EXCEPT "(?![\\.\\d\\w\\-/])"
+#define SRE_LOOKAHEAD_EXCEPT "(?![\\.\\d[:alpha:]\\-/])"
 
 // A/LYON/CHU18.54.48/2018
 constexpr const char* sre_flu_name_general_AB_isolation_with_location =
