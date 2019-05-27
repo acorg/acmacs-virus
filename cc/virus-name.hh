@@ -18,6 +18,7 @@ namespace acmacs::virus
     {
         // normalized or user approved virus name
         using virus_name_t = named_t<std::string, struct virus_name_tag>;
+        using host_t = named_t<std::string, struct host_t_tag>;
 
         enum parse_name_f
         {
@@ -45,6 +46,7 @@ namespace acmacs::virus
             };
 
             virus_name_t name;
+            host_t host;
             acmacs::virus::Reassortant reassortant;
             acmacs::virus::Passage passage;
             std::string extra;

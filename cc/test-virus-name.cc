@@ -30,7 +30,7 @@ using parse_name_result_t = decltype(acmacs::virus::parse_name(std::string_view{
 
 inline bool operator!=(const parse_name_result_t& lh, const parse_name_result_t& rh)
 {
-    return ! (lh.name == rh.name && lh.reassortant == rh.reassortant && lh.passage == rh.passage && lh.extra == rh.extra);
+    return ! (lh.name == rh.name && lh.host == rh.host && lh.reassortant == rh.reassortant && lh.passage == rh.passage && lh.extra == rh.extra);
 }
 
 struct TestData
@@ -44,39 +44,40 @@ void test_builtin()
     using namespace acmacs::virus;
 
     const std::array data{
-        TestData{"A/duck/Guangdong/4.30 DGCPLB014-O/2017",          parse_name_result_t{virus_name_t{"A/DUCK/GUANGDONG/4.30 DGCPLB014-O/2017"}, Reassortant{""}, Passage{""}, ""}},
-        TestData{"A/SINGAPORE/INFIMH-16-0019/2016",                 parse_name_result_t{virus_name_t{"A/SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{""}, Passage{""}, ""}},
-        TestData{"A/SINGAPORE/INFIMH-16-0019/16",                   parse_name_result_t{virus_name_t{"A/SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{""}, Passage{""}, ""}},
-        TestData{"A/ SINGAPORE/INFIMH-16-0019/16",                  parse_name_result_t{virus_name_t{"A/SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{""}, Passage{""}, ""}},
-        TestData{"A/SINGAPORE /INFIMH-16-0019/16",                  parse_name_result_t{virus_name_t{"A/SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{""}, Passage{""}, ""}},
-        TestData{"A(H3N2)/SINGAPORE/INFIMH-16-0019/2016",           parse_name_result_t{virus_name_t{"A(H3N2)/SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{""}, Passage{""}, ""}},
-        TestData{"A/SINGAPORE/INFIMH-16-0019/2016 CL2  X-307A",     parse_name_result_t{virus_name_t{"A/SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{"NYMC-307A"}, Passage{""}, "CL2"}},
-        TestData{"A/SINGAPORE/INFIMH-16-0019/2016 NEW CL2  X-307A", parse_name_result_t{virus_name_t{"A/SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{"NYMC-307A"}, Passage{""}, "CL2"}},
-        TestData{"A/SINGAPORE/INFIMH-16-0019/2016 CL2 NEW X-307A",  parse_name_result_t{virus_name_t{"A/SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{"NYMC-307A"}, Passage{""}, "CL2"}},
-        TestData{"A/SINGAPORE/INFIMH-16-0019/2016 CL2  X-307A NEW", parse_name_result_t{virus_name_t{"A/SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{"NYMC-307A"}, Passage{""}, "CL2"}},
-        TestData{"A/Snowy Sheathbill/Antarctica/2899/2014",         parse_name_result_t{virus_name_t{"A/SNOWY SHEATHBILL/ANTARCTICA/2899/2014"}, Reassortant{}, Passage{""}, ""}},
-        TestData{"A/wigeon/Italy/6127-23/2007",                     parse_name_result_t{virus_name_t{"A/WIGEON/ITALY/6127-23/2007"}, Reassortant{}, Passage{""}, ""}},
-        TestData{"B/Via?A Del Mar/73490/2017",                      parse_name_result_t{virus_name_t{"B/VINA DEL MAR/73490/2017"}, Reassortant{}, Passage{""}, ""}},
-        TestData{"B/Cameroon11V-12080 GVFI/2011",                   parse_name_result_t{virus_name_t{"B/CAMEROON/11V-12080 GVFI/2011"}, Reassortant{""}, Passage{""}, ""}},
-        TestData{"A/Mali 071 Ci/2015",                              parse_name_result_t{virus_name_t{"A/MALI/71 CI/2015"}, Reassortant{""}, Passage{""}, ""}},
-        TestData{"A/Zambia/13/174/2013",                            parse_name_result_t{virus_name_t{"A/ZAMBIA/13-174/2013"}, Reassortant{""}, Passage{""}, ""}},
-        TestData{"A/Lyon/CHU18.54.48/2018",                         parse_name_result_t{virus_name_t{"A/LYON CHU/18.54.48/2018"}, Reassortant{""}, Passage{""}, ""}},
-        TestData{"A/Lyon/CHU/R18.54.48/2018",                       parse_name_result_t{virus_name_t{"A/LYON CHU/R18.54.48/2018"}, Reassortant{""}, Passage{""}, ""}},
-        TestData{"A/Algeria/G0281/16/2016",                         parse_name_result_t{virus_name_t{"A/ALGERIA/G0281-16/2016"}, Reassortant{""}, Passage{""}, ""}},
-        TestData{"A/chicken/Ghana/7/2015",                          parse_name_result_t{virus_name_t{"A/CHICKEN/GHANA/7/2015"}, Reassortant{""}, Passage{""}, ""}},
-        TestData{"IVR-153 (A/CALIFORNIA/07/2009)",                  parse_name_result_t{virus_name_t{"A/CALIFORNIA/7/2009"}, Reassortant{"IVR-153"}, Passage{""}, ""}},
-        TestData{"A/Brisbane/01/2018  NYMC-X-311 (18/160)",         parse_name_result_t{virus_name_t{"A/BRISBANE/1/2018"}, Reassortant{"NYMC-311"}, Passage{""}, "(18/160)"}}, // NIBSC
-        TestData{"A/Antananarivo/1067/2016 CBER-11B C1.3",          parse_name_result_t{virus_name_t{"A/ANTANANARIVO/1067/2016"}, Reassortant{"CBER-11B"}, Passage{""}, "C1.3"}}, // CDC
-        TestData{"A/Montana/50/2016 CBER-07 D2.3",                  parse_name_result_t{virus_name_t{"A/MONTANA/50/2016"}, Reassortant{"CBER-07"}, Passage{""}, "D2.3"}}, // CDC
-        TestData{"A/duck/Guangdong/02.11 DGQTXC195-P/2015(Mixed)",  parse_name_result_t{virus_name_t{"A/DUCK/GUANGDONG/2.11 DGQTXC195-P/2015"}, Reassortant{""}, Passage{""}, "(MIXED)"}},
+        TestData{"A/duck/Guangdong/4.30 DGCPLB014-O/2017",          parse_name_result_t{virus_name_t{"A/DUCK/GUANGDONG/4.30 DGCPLB014-O/2017"}, host_t{"DUCK"}, Reassortant{}, Passage{}, ""}},
+        TestData{"A/SINGAPORE/INFIMH-16-0019/2016",                 parse_name_result_t{virus_name_t{"A/SINGAPORE/INFIMH-16-0019/2016"}, host_t{}, Reassortant{}, Passage{}, ""}},
+        TestData{"A/SINGAPORE/INFIMH-16-0019/16",                   parse_name_result_t{virus_name_t{"A/SINGAPORE/INFIMH-16-0019/2016"}, host_t{}, Reassortant{}, Passage{}, ""}},
+        TestData{"A/ SINGAPORE/INFIMH-16-0019/16",                  parse_name_result_t{virus_name_t{"A/SINGAPORE/INFIMH-16-0019/2016"}, host_t{}, Reassortant{}, Passage{}, ""}},
+        TestData{"A/SINGAPORE /INFIMH-16-0019/16",                  parse_name_result_t{virus_name_t{"A/SINGAPORE/INFIMH-16-0019/2016"}, host_t{}, Reassortant{}, Passage{}, ""}},
+        TestData{"A(H3N2)/SINGAPORE/INFIMH-16-0019/2016",           parse_name_result_t{virus_name_t{"A(H3N2)/SINGAPORE/INFIMH-16-0019/2016"}, host_t{}, Reassortant{}, Passage{}, ""}},
+        TestData{"A/SINGAPORE/INFIMH-16-0019/2016 CL2  X-307A",     parse_name_result_t{virus_name_t{"A/SINGAPORE/INFIMH-16-0019/2016"}, host_t{}, Reassortant{"NYMC-307A"}, Passage{}, "CL2"}},
+        TestData{"A/SINGAPORE/INFIMH-16-0019/2016 NEW CL2  X-307A", parse_name_result_t{virus_name_t{"A/SINGAPORE/INFIMH-16-0019/2016"}, host_t{}, Reassortant{"NYMC-307A"}, Passage{}, "CL2"}},
+        TestData{"A/SINGAPORE/INFIMH-16-0019/2016 CL2 NEW X-307A",  parse_name_result_t{virus_name_t{"A/SINGAPORE/INFIMH-16-0019/2016"}, host_t{}, Reassortant{"NYMC-307A"}, Passage{}, "CL2"}},
+        TestData{"A/SINGAPORE/INFIMH-16-0019/2016 CL2  X-307A NEW", parse_name_result_t{virus_name_t{"A/SINGAPORE/INFIMH-16-0019/2016"}, host_t{}, Reassortant{"NYMC-307A"}, Passage{}, "CL2"}},
+        TestData{"A/Snowy Sheathbill/Antarctica/2899/2014",         parse_name_result_t{virus_name_t{"A/SNOWY SHEATHBILL/ANTARCTICA/2899/2014"}, host_t{"SNOWY SHEATHBILL"}, Reassortant{}, Passage{}, ""}},
+        TestData{"A/wigeon/Italy/6127-23/2007",                     parse_name_result_t{virus_name_t{"A/WIGEON/ITALY/6127-23/2007"}, host_t{"WIGEON"}, Reassortant{}, Passage{}, ""}},
+        TestData{"B/Via?A Del Mar/73490/2017",                      parse_name_result_t{virus_name_t{"B/VINA DEL MAR/73490/2017"}, host_t{}, Reassortant{}, Passage{}, ""}},
+        TestData{"B/Cameroon11V-12080 GVFI/2011",                   parse_name_result_t{virus_name_t{"B/CAMEROON/11V-12080 GVFI/2011"}, host_t{}, Reassortant{}, Passage{}, ""}},
+        TestData{"A/Mali 071 Ci/2015",                              parse_name_result_t{virus_name_t{"A/MALI/71 CI/2015"}, host_t{}, Reassortant{}, Passage{}, ""}},
+        TestData{"A/Zambia/13/174/2013",                            parse_name_result_t{virus_name_t{"A/ZAMBIA/13-174/2013"}, host_t{}, Reassortant{}, Passage{}, ""}},
+        TestData{"A/Lyon/CHU18.54.48/2018",                         parse_name_result_t{virus_name_t{"A/LYON CHU/18.54.48/2018"}, host_t{}, Reassortant{}, Passage{}, ""}},
+        TestData{"A/Lyon/CHU/R18.54.48/2018",                       parse_name_result_t{virus_name_t{"A/LYON CHU/R18.54.48/2018"}, host_t{}, Reassortant{}, Passage{}, ""}},
+        TestData{"A/Algeria/G0281/16/2016",                         parse_name_result_t{virus_name_t{"A/ALGERIA/G0281-16/2016"}, host_t{}, Reassortant{}, Passage{}, ""}},
+        TestData{"A/chicken/Ghana/7/2015",                          parse_name_result_t{virus_name_t{"A/CHICKEN/GHANA/7/2015"}, host_t{"CHICKEN"}, Reassortant{}, Passage{}, ""}},
+        TestData{"IVR-153 (A/CALIFORNIA/07/2009)",                  parse_name_result_t{virus_name_t{"A/CALIFORNIA/7/2009"}, host_t{}, Reassortant{"IVR-153"}, Passage{}, ""}},
+        TestData{"A/Brisbane/01/2018  NYMC-X-311 (18/160)",         parse_name_result_t{virus_name_t{"A/BRISBANE/1/2018"}, host_t{}, Reassortant{"NYMC-311"}, Passage{}, "(18/160)"}}, // NIBSC
+        TestData{"A/Antananarivo/1067/2016 CBER-11B C1.3",          parse_name_result_t{virus_name_t{"A/ANTANANARIVO/1067/2016"}, host_t{}, Reassortant{"CBER-11B"}, Passage{}, "C1.3"}}, // CDC
+        TestData{"A/Montana/50/2016 CBER-07 D2.3",                  parse_name_result_t{virus_name_t{"A/MONTANA/50/2016"}, host_t{}, Reassortant{"CBER-07"}, Passage{}, "D2.3"}}, // CDC
+        TestData{"A/duck/Guangdong/02.11 DGQTXC195-P/2015(Mixed)",  parse_name_result_t{virus_name_t{"A/DUCK/GUANGDONG/2.11 DGQTXC195-P/2015"}, host_t{"DUCK"}, Reassortant{}, Passage{}, "(MIXED)"}},
+        TestData{"A/swine/Chachoengsao/2003",                       parse_name_result_t{virus_name_t{"A/SWINE/CHACHOENGSAO/UNKNOWN/2003"}, host_t{"SWINE"}, Reassortant{}, Passage{}, ""}},
 
-        //TestData{"",          parse_name_result_t{virus_name_t{""}, Reassortant{""}, Passage{""}, ""}},
+        //TestData{"",          parse_name_result_t{virus_name_t{""}, Reassortant{}, Passage{}, ""}},
 
-        // TestData{"A/H3N2/SINGAPORE/INFIMH-16-0019/2016",            parse_name_result_t{virus_name_t{"A(H3N2)/SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{""}, Passage{""}, ""}},
-        // TestData{"SINGAPORE/INFIMH-16-0019/2016",                   parse_name_result_t{virus_name_t{"SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{""}, Passage{""}, ""}},
-        // TestData{"SINGAPORE/INFIMH-16-0019/16",                     parse_name_result_t{virus_name_t{"SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{""}, Passage{""}, ""}},
+        // TestData{"A/H3N2/SINGAPORE/INFIMH-16-0019/2016",            parse_name_result_t{virus_name_t{"A(H3N2)/SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{}, Passage{}, ""}},
+        // TestData{"SINGAPORE/INFIMH-16-0019/2016",                   parse_name_result_t{virus_name_t{"SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{}, Passage{}, ""}},
+        // TestData{"SINGAPORE/INFIMH-16-0019/16",                     parse_name_result_t{virus_name_t{"SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{}, Passage{}, ""}},
 
-        // TestData{"A-Rostov-CRIE-1-2018",                            parse_name_result_t{virus_name_t{"A/ROSTOV/CRIE-1/2018"}, Reassortant{""}, Passage{""}, ""}}, // CRIE (Russia)
+        // TestData{"A-Rostov-CRIE-1-2018",                            parse_name_result_t{virus_name_t{"A/ROSTOV/CRIE-1/2018"}, Reassortant{}, Passage{}, ""}}, // CRIE (Russia)
     };
 
     const auto field_mistmatch_output = [](auto&& res, auto&& exp) {
@@ -93,6 +94,7 @@ void test_builtin()
             if (result != entry.expected) {
                 std::cerr << "SRC: " << entry.raw_name << '\n'
                           << "NAM: " << field_mistmatch_output(result.name, entry.expected.name) << '\n'
+                          << "HOS: " << field_mistmatch_output(result.host, entry.expected.host) << '\n'
                           << "REA: " << field_mistmatch_output(result.reassortant, entry.expected.reassortant) << '\n'
                           << "PAS: " << field_mistmatch_output(result.passage, entry.expected.passage) << '\n'
                           << "EXT: " << field_mistmatch_output(result.extra, entry.expected.extra) << '\n';
