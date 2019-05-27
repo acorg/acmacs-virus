@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <optional>
 
 #include "acmacs-base/named-type.hh"
 #include "acmacs-base/fmt.hh"
@@ -19,6 +20,8 @@ namespace acmacs::virus
         // normalized or user approved virus name
         using virus_name_t = named_t<std::string, struct virus_name_tag>;
         using host_t = named_t<std::string, struct host_t_tag>;
+
+        std::optional<size_t> year(const virus_name_t& name);
 
         enum parse_name_f
         {

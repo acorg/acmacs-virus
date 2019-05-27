@@ -328,6 +328,22 @@ std::string fix_year(std::string source, std::vector<acmacs::virus::parse_result
 
 // ----------------------------------------------------------------------
 
+std::optional<size_t> acmacs::virus::year(const virus_name_t& name)
+{
+    if (name->size() > 4) {
+        std::array<char, 5> data{0, 0, 0, 0, 0}; // avoid acceing beyond the name by strtoul
+        std::copy_n(name->data() + name->size() - 4, 4, std::begin(data));
+        char* end;
+        const auto yr = std::strtoul(data.data(), &end, 10);
+        if (end == (data.data() + 4) && yr > 0)
+            return yr;
+    }
+    return std::nullopt;
+
+} // acmacs::virus::year
+
+// ----------------------------------------------------------------------
+
 
 // ----------------------------------------------------------------------
 /// Local Variables:
