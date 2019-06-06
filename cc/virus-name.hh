@@ -21,10 +21,66 @@ namespace acmacs::virus
         using virus_name_t = named_t<std::string, struct virus_name_tag>;
         using host_t = named_t<std::string, struct host_t_tag>;
 
+        class type_subtype_t
+        {
+          public:
+            type_subtype_t() = default;
+            template <typename T> explicit constexpr type_subtype_t(T&& value) : value_(std::forward<T>(value)) {}
+
+            constexpr operator const std::string&() const { return value_; }
+            constexpr operator std::string_view() const { return value_; }
+            constexpr const std::string& operator*() const { return value_; }
+            constexpr const std::string* operator->() const { return &value_; }
+            constexpr const std::string& get() const { return value_; }
+
+            bool operator==(const type_subtype_t& rhs) const { return value_ == rhs.value_; }
+            bool operator!=(const type_subtype_t& rhs) const { return !operator==(rhs); }
+            bool operator<(const type_subtype_t& rhs) const { return value_ < rhs.value_; }
+            int compare(const type_subtype_t& rhs) const { return ::string::compare(value_, rhs.value_); }
+            bool empty() const { return value_.empty(); }
+            size_t size() const { return value_.size(); }
+
+            // returns part of the type_subtype: B for B, H1 for A(H1...), etc.
+            std::string_view h_or_b() const
+            {
+                if (!value_.empty()) {
+                    switch (value_[0]) {
+                        case 'B':
+                            return std::string_view(value_.data(), 1);
+                        case 'A':
+                            if (value_.size() > 4) {
+                                switch (value_[4]) {
+                                  case 'N':
+                                  case ')':
+                                      return std::string_view(value_.data() + 2, 2);
+                                  default:
+                                      return std::string_view(value_.data() + 2, 3);
+                                }
+                            }
+                    }
+                }
+                return value_;
+            }
+
+            constexpr char type() const
+            {
+                if (value_.empty())
+                    return '?';
+                else
+                    return value_[0];
+            }
+
+          private:
+            std::string value_;
+
+            friend inline std::ostream& operator<<(std::ostream& out, const type_subtype_t& ts) { return out << ts.value_; }
+        };
+
+        // ----------------------------------------------------------------------
+
         std::optional<size_t> year(const virus_name_t& name);
 
-        enum parse_name_f
-        {
+        enum parse_name_f {
             none = 0,
             lookup_location = 1 << 0,
             remove_extra_subtype = 1 << 1 // remove (H3N2) at the end of the name, do not put it in extra
@@ -57,11 +113,17 @@ namespace acmacs::virus
             std::vector<message_t> messages{};
         };
 
-        parse_result_t parse_name(std::string_view source, parse_name_f flags = parse_name_f::lookup_location|parse_name_f::remove_extra_subtype);
-    }
-}
+        parse_result_t parse_name(std::string_view source, parse_name_f flags = parse_name_f::lookup_location | parse_name_f::remove_extra_subtype);
+    } // namespace v2
+} // namespace acmacs::virus
 
 // ----------------------------------------------------------------------
+
+template <> struct fmt::formatter<acmacs::virus::type_subtype_t>
+{
+  template <typename ParseContext> constexpr auto parse(ParseContext &ctx) { return ctx.begin(); }
+  template <typename FormatContext> auto format(const acmacs::virus::type_subtype_t& ts, FormatContext& ctx) { return format_to(ctx.out(), "{}", *ts); }
+};
 
 template <> struct fmt::formatter<acmacs::virus::parse_result_t::message_t>
 {
