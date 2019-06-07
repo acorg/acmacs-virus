@@ -62,7 +62,7 @@ namespace acmacs::virus
                 return value_;
             }
 
-            constexpr char type() const
+            char type() const
             {
                 if (value_.empty())
                     return '?';
