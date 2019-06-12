@@ -114,6 +114,8 @@ namespace acmacs::virus
         };
 
         parse_result_t parse_name(std::string_view source, parse_name_f flags = parse_name_f::lookup_location | parse_name_f::remove_extra_subtype);
+        void set_type_subtype(virus_name_t& name, const type_subtype_t& type_subtype);
+
     } // namespace v2
 } // namespace acmacs::virus
 

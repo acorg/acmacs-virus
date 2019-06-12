@@ -190,6 +190,17 @@ acmacs::virus::v2::parse_result_t acmacs::virus::v2::parse_name(std::string_view
 
 // ----------------------------------------------------------------------
 
+void acmacs::virus::v2::set_type_subtype(virus_name_t& name, const type_subtype_t& type_subtype)
+{
+    const std::string_view ts = type_subtype;
+    std::string& nam = name.get();
+    if (ts.size() > 1 && ts[0] == 'A' && nam.size() > 2 && nam[0] == 'A' && nam[1] == '/')
+        nam.replace(0, 1, ts);
+
+} // acmacs::virus::v2::set_type_subtype
+
+// ----------------------------------------------------------------------
+
 std::tuple<acmacs::virus::v2::virus_name_t, acmacs::virus::v2::host_t> isolation_with_location(const std::smatch& match, acmacs::virus::v2::parse_name_f flags, std::vector<acmacs::virus::v2::parse_result_t::message_t>& messages)
 {
     using namespace acmacs::virus::v2;
