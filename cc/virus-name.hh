@@ -18,8 +18,9 @@ namespace acmacs::virus
     inline namespace v2
     {
         // normalized or user approved virus name
-        using virus_name_t = named_t<std::string, struct virus_name_tag>;
-        using host_t = named_t<std::string, struct host_t_tag>;
+        using virus_name_t = named_string_t<struct virus_name_tag>;
+        using host_t = named_string_t<struct host_t_tag>;
+        using lineage_t = named_string_t<struct lineage_tag>;
 
         class type_subtype_t
         {
