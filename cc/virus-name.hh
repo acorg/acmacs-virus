@@ -22,6 +22,15 @@ namespace acmacs::virus
         using host_t = named_string_t<struct host_t_tag>;
         using lineage_t = named_string_t<struct lineage_tag>;
 
+        // ----------------------------------------------------------------------
+
+        std::string_view host(const virus_name_t& name);
+        std::string_view location(const virus_name_t& name);
+        std::string_view isolation(const virus_name_t& name);
+        std::optional<size_t> year(const virus_name_t& name);
+
+        // ----------------------------------------------------------------------
+
         class type_subtype_t
         {
           public:
@@ -78,8 +87,6 @@ namespace acmacs::virus
         };
 
         // ----------------------------------------------------------------------
-
-        std::optional<size_t> year(const virus_name_t& name);
 
         enum parse_name_f {
             none = 0,

@@ -1,7 +1,7 @@
 #include <regex>
 #include <array>
 
-#include "acmacs-base/string.hh"
+#include "acmacs-base/string-split.hh"
 #include "acmacs-base/date.hh"
 #include "acmacs-base/fmt.hh"
 #include "locationdb/locdb.hh"
@@ -352,6 +352,35 @@ std::optional<size_t> acmacs::virus::v2::year(const virus_name_t& name)
     return std::nullopt;
 
 } // acmacs::virus::v2::year
+
+// ----------------------------------------------------------------------
+
+std::string_view acmacs::virus::v2::host(const virus_name_t& name)
+{
+    if (const auto fields = acmacs::string::split(*name, "/"); fields.size() == 5)
+        return fields[1];
+    else
+        return {};
+
+} // acmacs::virus::v2::host
+
+// ----------------------------------------------------------------------
+
+std::string_view acmacs::virus::v2::location(const virus_name_t& name)
+{
+    const auto fields = acmacs::string::split(*name, "/");
+    return fields[fields.size() - 3];
+
+} // acmacs::virus::v2::location
+
+// ----------------------------------------------------------------------
+
+std::string_view acmacs::virus::v2::isolation(const virus_name_t& name)
+{
+    const auto fields = acmacs::string::split(*name, "/");
+    return fields[fields.size() - 2];
+
+} // acmacs::virus::v2::isolation
 
 // ----------------------------------------------------------------------
 
