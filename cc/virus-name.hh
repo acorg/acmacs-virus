@@ -129,10 +129,9 @@ namespace acmacs::virus
 
 // ----------------------------------------------------------------------
 
-template <> struct fmt::formatter<acmacs::virus::type_subtype_t>
+template <> struct fmt::formatter<acmacs::virus::type_subtype_t> : fmt::formatter<std::string>
 {
-  template <typename ParseContext> constexpr auto parse(ParseContext &ctx) { return ctx.begin(); }
-  template <typename FormatContext> auto format(const acmacs::virus::type_subtype_t& ts, FormatContext& ctx) { return format_to(ctx.out(), "{}", *ts); }
+  template <typename FormatContext> auto format(const acmacs::virus::type_subtype_t& ts, FormatContext& ctx) { return fmt::formatter<std::string>::format(*ts, ctx); }
 };
 
 template <> struct fmt::formatter<acmacs::virus::parse_result_t::message_t>
