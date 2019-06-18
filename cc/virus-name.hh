@@ -118,6 +118,8 @@ namespace acmacs::virus
             acmacs::virus::Reassortant reassortant;
             acmacs::virus::Passage passage;
             std::string extra;
+            std::string country;
+            std::string continent;
             std::vector<message_t> messages{};
         };
 

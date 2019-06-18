@@ -193,10 +193,10 @@ acmacs::virus::v2::parse_result_t acmacs::virus::v2::parse_name(std::string_view
         if (!extra.empty() && std::regex_match(extra, re_extra_symbols))
             extra.clear();
 
-        return {name_data.name, name_data.host, reassortant, passage, extra, messages};
+        return {name_data.name, name_data.host, reassortant, passage, extra, name_data.country, name_data.continent, messages};
     }
     catch (parse_name_error&) {
-        return {virus_name_t{source}, host_t{}, Reassortant{}, Passage{}, {}, messages};
+        return {virus_name_t{source}, host_t{}, Reassortant{}, Passage{}, {}, {}, {}, messages};
     }
 
 } // acmacs::virus::v2::parse_name
