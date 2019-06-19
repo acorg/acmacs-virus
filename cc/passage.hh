@@ -45,6 +45,11 @@ namespace acmacs::virus
 
     parse_passage_t parse_passage(std::string_view source, passage_only po);
 
+    inline bool passages_match(const Passage& p1, const Passage& p2)
+    {
+        return p1.is_egg() == p2.is_egg();
+    }
+
 } // namespace acmacs::virus
 
 // ----------------------------------------------------------------------
