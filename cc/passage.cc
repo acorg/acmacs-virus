@@ -4,6 +4,7 @@
 #include <functional>
 #include <cctype>
 
+#include "acmacs-base/fmt.hh"
 #include "acmacs-base/string-split.hh"
 #include "acmacs-base/date.hh"
 #include "acmacs-virus/passage.hh"
@@ -91,7 +92,7 @@ static inline source_iter_t push_lab_separator(processing_data_t& data, char ori
 static const std::regex re_c_c_x("^[X\\?]", std::regex::icase);
 static const std::regex re_c_c_n("^[\\s\\-]*(\\d+)(?![\\.])", std::regex::icase); // no . afterwards to support C1.3 annotation (CDC)
 static const std::regex re_m_mdck_x("^(?:DCK|CDK)[\\s\\-]*[X\\?`]?", std::regex::icase);
-static const std::regex re_m_mdck_n("^(?:DCK|CDK)[\\s\\-]*(\\d+)", std::regex::icase);
+static const std::regex re_m_mdck_n("^(?:DCK|CDK)[\\s\\-/]*(\\d+)", std::regex::icase);
 static const std::regex re_m_mdck_siat_x("^DCKX?-SIAT[\\s\\-]*[X\\?]?", std::regex::icase);
 static const std::regex re_m_mdck_siat_n("^DCKX?-SIAT[\\s\\-]*(\\d+)", std::regex::icase);
 static const std::regex re_m_mdck_siat1_n("^DCK-SIAT1[\\s\\-](\\d+)", std::regex::icase);
@@ -244,7 +245,6 @@ static const std::map<char, callback_t> normalize_data{
      }},
     {'M',
      [](processing_data_t& data, source_iter_t first, source_iter_t last) -> source_iter_t {
-         // std::cerr << "  M: [" << std::string(first, last) << "]\n";
          std::cmatch match;
          if (std::regex_search(first, last, match, re_m_mdck_n))
              parts_push_i(data, "MDCK", match[1].str());
@@ -419,12 +419,9 @@ static const std::map<char, callback_t> normalize_data{
 
 acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view source, passage_only po)
 {
-    // std::cerr << "parse_passage " << source << '\n';
-
     processing_data_t data;
 
     for (auto first = source.begin(); first != source.end();) {
-        // std::cerr << "  PART: [" << std::string(first, source.end()) << "]\n";
         if (*first != ' ') {
             bool skip = false;
             if (const auto entry = normalize_data.find(static_cast<char>(std::toupper(*first))); entry != normalize_data.end()) {
@@ -468,12 +465,10 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
             ++first;
         }
     }
+    // fmt::print(stderr, "parse_passage \"{}\" --> \"{}\"\n", source, data.parts);
     return {Passage{::string::join("", data.parts)}, data.extra};
 
 } // acmacs::virus::parse_passage
-
-// ----------------------------------------------------------------------
-
 
 // ----------------------------------------------------------------------
 /// Local Variables:
