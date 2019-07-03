@@ -3,7 +3,7 @@
 #include <vector>
 #include <optional>
 
-#include "acmacs-base/named-type.hh"
+#include "acmacs-base/uppercase.hh"
 #include "acmacs-base/fmt.hh"
 #include "acmacs-virus/virus.hh"
 #include "acmacs-virus/passage.hh"
@@ -18,9 +18,9 @@ namespace acmacs::virus
     inline namespace v2
     {
         // normalized or user approved virus name
-        using virus_name_t = named_string_t<struct virus_name_tag>;
-        using host_t = named_string_t<struct host_t_tag>;
-        using lineage_t = named_string_t<struct lineage_tag>;
+        using virus_name_t = acmacs::uppercased<struct virus_name_tag>;
+        using host_t = acmacs::uppercased<struct host_t_tag>;
+        using lineage_t = acmacs::uppercased<struct lineage_tag>;
 
         // ----------------------------------------------------------------------
 
