@@ -404,7 +404,7 @@ static const std::map<char, callback_t> normalize_data{
          if (std::cmatch match; !data.parts.empty() && std::regex_search(first, last, match, re_paren_from))
              return match[0].second; // ignore
          else if (!data.parts.empty() && std::regex_search(first, last, match, re_paren_date)) {
-             data.parts.push_back(" (" + Date(match[1].str()).display() + ')');
+             data.parts.push_back(fmt::format(" ({})", date::from_string(match[1].str())));
              data.last_passage_type.clear();
              return match[0].second;
          }

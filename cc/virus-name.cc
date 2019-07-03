@@ -325,7 +325,7 @@ location_t fix_location(std::string source, acmacs::virus::v2::parse_name_f flag
 std::string fix_year(std::string source, std::vector<acmacs::virus::v2::parse_result_t::message_t>* messages)
 {
 #include "acmacs-base/global-constructors-push.hh"
-    static const auto current_year = static_cast<size_t>(Date(Date::Today).year());
+    static const auto current_year = date::current_year();
     static const auto current_year_2 = current_year % 100;
 #include "acmacs-base/diagnostics-pop.hh"
 
