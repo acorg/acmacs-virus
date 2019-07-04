@@ -329,7 +329,7 @@ std::string fix_year(std::string source, std::vector<acmacs::virus::v2::parse_re
     static const auto current_year_2 = current_year % 100;
 #include "acmacs-base/diagnostics-pop.hh"
 
-    if (const auto year = std::stoul(source); year < 10) {
+    if (const auto year = string::from_chars<size_t>(source); year < 10) {
         return "200" + std::to_string(year);
     }
     else if (year < 18) {
