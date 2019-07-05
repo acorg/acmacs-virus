@@ -91,8 +91,8 @@ static inline source_iter_t push_lab_separator(processing_data_t& data, char ori
 // MDCK C
 static const std::regex re_c_c_x("^[X\\?]", std::regex::icase);
 static const std::regex re_c_c_n("^[\\s\\-]*(\\d+)(?![\\.])", std::regex::icase); // no . afterwards to support C1.3 annotation (CDC)
-static const std::regex re_m_mdck_x("^(?:DCK|CDK)[\\s\\-]*[X\\?`]?", std::regex::icase);
-static const std::regex re_m_mdck_n("^(?:DCK|CDK)[\\s\\-/]*(\\d+)", std::regex::icase);
+static const std::regex re_m_mdck_x("^(?:DCK|CDK|DKC)[\\s\\-]*[X\\?`]?", std::regex::icase);
+static const std::regex re_m_mdck_n("^(?:DCK|CDK|DKC)[\\s\\-/]*(\\d+)", std::regex::icase);
 static const std::regex re_m_mdck_siat_x("^DCKX?-SIAT[\\s\\-]*[X\\?]?", std::regex::icase);
 static const std::regex re_m_mdck_siat_n("^DCKX?-SIAT[\\s\\-]*(\\d+)", std::regex::icase);
 static const std::regex re_m_mdck_siat1_n("^DCK-SIAT1[\\s\\-](\\d+)", std::regex::icase);
