@@ -42,6 +42,7 @@ namespace acmacs::virus
             constexpr const std::string& operator*() const { return value_; }
             constexpr const std::string* operator->() const { return &value_; }
             constexpr const std::string& get() const { return value_; }
+            constexpr std::string& get() { return value_; }
 
             bool operator==(const type_subtype_t& rhs) const { return value_ == rhs.value_; }
             bool operator!=(const type_subtype_t& rhs) const { return !operator==(rhs); }
