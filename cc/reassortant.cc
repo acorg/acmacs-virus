@@ -20,7 +20,8 @@ std::tuple<acmacs::virus::Reassortant, std::string> acmacs::virus::parse_reassor
         ReassortantNormalize{std::regex("\\b(?:CBER|BVR)[\\-\\s]?(\\d+[A-Z]*)\\b", std::regex::icase), "CBER-$1"},
         ReassortantNormalize{std::regex("\\b(CDC)-?(LV\\d+[AB]?)\\b", std::regex::icase), "$1-$2"},
         ReassortantNormalize{std::regex("\\b(?:PR8[\\- ]*IDCDC[\\- ]*)?RG[\\- ]*([\\dA-Z]+)", std::regex::icase), "RG-$1"},
-        ReassortantNormalize{std::regex("\\bX[\\s\\-]+PR8", std::regex::icase), "X-PR8"},
+        ReassortantNormalize{std::regex("\\bX[\\s\\-]+PR8", std::regex::icase), "REASSORTANT-PR8"},
+        ReassortantNormalize{std::regex("\\bREASSORTANT-([A-Z0-9\\-]+)", std::regex::icase), "REASSORTANT-$1"}, // manually fixed gisaid stuff
 
         ReassortantNormalize{std::regex("\\b(IVR)[\\-\\s]?(\\d+[A-Z]*)\\b", std::regex::icase), "$1-$2"},
     };
