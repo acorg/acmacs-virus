@@ -130,7 +130,7 @@ acmacs::virus::v2::parse_result_t acmacs::virus::v2::parse_name(std::string_view
             extra = make_extra(match_general_AB_isolation_with_location);
         }
         else if (std::smatch match_general_AB_1; std::regex_search(source_u, match_general_AB_1, re_flu_name_general_AB_1)) {
-            // std::cerr << "genAB1: " << source_u << ' ' << match_general_AB_1.format("[1: $1] [host: $2] [loc: $3] [iso: $4], [y: $5]") << '\n';
+            //std::cerr << "genAB1: " << source_u << ' ' << match_general_AB_1.format("[1: $1] [host: $2] [loc: $3] [iso: $4], [y: $5]") << '\n';
             name_data = general(match_general_AB_1, flags, messages);
             extra = make_extra(match_general_AB_1);
         }
@@ -300,6 +300,7 @@ location_t fix_location(std::string source, acmacs::virus::v2::parse_name_f flag
     try {
         const auto& locdb = get_locdb();
         const auto loc = locdb.find(::string::strip(source));
+        // fmt::print(stderr, "DEBUG: fix_location {} -> {} -- {} -- {}\n", source, loc.name, loc.replacement, loc.location_name);
         return {loc.name, std::string(loc.country()), std::string(locdb.continent_of_country(loc.country()))};
     }
     catch (LocationNotFound& /*err*/) {
