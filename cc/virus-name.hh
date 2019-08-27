@@ -111,6 +111,7 @@ namespace acmacs::virus
                 constexpr static inline const char* location_not_found = "location-not-found";
                 constexpr static inline const char* invalid_year = "invalid-year";
                 bool operator==(const char* a_key) const { return std::string_view(key) == a_key; }
+                bool operator==(const message_t& rhs) const { return std::string_view(key) == rhs.key && value == rhs.value; }
                 friend inline std::ostream& operator<<(std::ostream& out, const message_t& msg) { return out << msg.key << ": \"" << msg.value << '"'; }
             };
 

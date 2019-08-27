@@ -260,12 +260,9 @@ name_data_t general(const std::smatch& match, acmacs::virus::v2::parse_name_f fl
                 location = fix_location(host, flags & parse_name_f::lookup_location, nullptr);
                 if (location.name.empty()) {
                     location.name = match[3].str();
-                    if (location.name.size() < 3) {
-                        messages.emplace_back(parse_result_t::message_t::unrecognized, "not a location: " + location.name);
+                    messages.emplace_back(parse_result_t::message_t::location_not_found, location.name);
+                    if (location.name.size() < 3)
                         throw parse_name_error{};
-                    }
-                    else
-                        messages.emplace_back(parse_result_t::message_t::location_not_found, location.name);
                 }
                 else {
                     host.clear();
@@ -290,7 +287,7 @@ location_t fix_location(std::string source, acmacs::virus::v2::parse_name_f flag
         return {source, "", ""};
     if (source.size() < 3) {
         if (messages) {
-            messages->emplace_back(acmacs::virus::v2::parse_result_t::message_t::unrecognized, "not a location: " + source);
+            messages->emplace_back(acmacs::virus::v2::parse_result_t::message_t::location_not_found, source);
             throw parse_name_error{};
         }
         else
@@ -306,14 +303,10 @@ location_t fix_location(std::string source, acmacs::virus::v2::parse_name_f flag
     catch (LocationNotFound& /*err*/) {
         // std::cerr << "LocationNotFound: \"" << source << "\"\n";
         if (messages) {
-            if (std::regex_search(source, re_location_stop_list)) {
-                messages->emplace_back(acmacs::virus::v2::parse_result_t::message_t::unrecognized, "not a location: " + source);
+            messages->emplace_back(acmacs::virus::v2::parse_result_t::message_t::location_not_found, source);
+            if (std::regex_search(source, re_location_stop_list))
                 throw parse_name_error{};
-            }
-            else {
-                messages->emplace_back(acmacs::virus::v2::parse_result_t::message_t::location_not_found, source);
-                return {source, "", ""};
-            }
+            return {source, "", ""};
         }
         else
             return {};
