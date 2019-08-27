@@ -193,6 +193,8 @@ acmacs::virus::v2::parse_result_t acmacs::virus::v2::parse_name(std::string_view
         if (!extra.empty() && std::regex_match(extra, re_extra_symbols))
             extra.clear();
 
+        if (name_data.host.size() >= 4 && name_data.host->substr(0, 4) == "TEST")
+            messages.emplace_back(acmacs::virus::v2::parse_result_t::message_t::invalid_host, *name_data.host);
         return {name_data.name, name_data.host, reassortant, passage, extra, name_data.country, name_data.continent, messages};
     }
     catch (parse_name_error&) {
@@ -234,6 +236,7 @@ name_data_t isolation_with_location(const std::smatch& match, acmacs::virus::v2:
         }
         else if (match[2].length() == 0) {                  // isolation absent?: A/host/location/year
             location = fix_location(::string::concat(match[4].str(), match[5].str()), flags & parse_name_f::lookup_location, &messages);
+            messages.emplace_back(acmacs::virus::v2::parse_result_t::message_t::isolation_absent);
             return {virus_name_t(::string::join("/", {match[1].str(), match[3].str(), location.name, std::string{"UNKNOWN"}, year})), host_t{match[3].str()}, location.country, location.continent};
         }
         else
