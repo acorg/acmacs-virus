@@ -1,5 +1,6 @@
 #include <regex>
 #include <array>
+#include <cctype>
 
 #include "acmacs-base/string-split.hh"
 #include "acmacs-base/date.hh"
@@ -61,6 +62,18 @@ constexpr const char* sre_flu_name_general_AB_no_isolation = // or no slash afte
         SRE_LOOKAHEAD_EXCEPT            // neither digit nor letter nor / nor - nor _ nor .
         ;
 
+// A/Tambov/CRIE/309/2019
+constexpr const char* sre_flu_name_general_AB_noisy_infix = // or no slash after location
+        "\\b"
+        SRE_AB "/"                      // type \1
+        "()"                            // NO host \2
+        SRE_LOC_NO_DIGITS "/"           // location \3
+        "(?:CRIE)" "/"                  // infix to remove
+        SRE_ISOLATION "/"               // isolation \4
+        "\\s*(\\d+)"                    // year \5 - any number of digits
+        SRE_LOOKAHEAD_EXCEPT            // neither digit nor letter nor / nor - nor _ nor .
+        ;
+
 constexpr const char* sre_flu_name_general_A_subtype =
         "\\b(A\\(H[1-9][0-9]?(?:N[1-9][0-9]?)?\\))/" // A(H3N2) \1
         SRE_HOST                                     // host \2
@@ -102,6 +115,7 @@ static const std::regex re_flu_name_general_AB_1{sre_flu_name_general_AB_1};
 static const std::regex re_flu_name_general_AB_2{sre_flu_name_general_AB_2};
 static const std::regex re_flu_name_general_AB_no_isolation{sre_flu_name_general_AB_no_isolation};
 static const std::regex re_flu_name_general_A_subtype{sre_flu_name_general_A_subtype};
+static const std::regex re_flu_name_general_AB_noisy_infix{sre_flu_name_general_AB_noisy_infix};
 static const std::regex re_extra_remove{"\\b(?:NEW)\\b"}; // NEW
 static const std::regex re_extra_remove_when_reassortant{"\\b(?:HY)\\b"}; // HY
 static const std::regex re_extra_symbols{"^[\\(\\)_\\-\\s,\\.]+$"};
@@ -124,7 +138,12 @@ acmacs::virus::v2::parse_result_t acmacs::virus::v2::parse_name(std::string_view
     const std::string source_u = ::string::upper(source);
 
     try {
-        if (std::smatch match_general_AB_isolation_with_location; std::regex_search(source_u, match_general_AB_isolation_with_location, re_flu_name_general_AB_isolation_with_location)) {
+        if (std::smatch match_general_AB_noisy_infix; std::regex_search(source_u, match_general_AB_noisy_infix, re_flu_name_general_AB_noisy_infix)) {
+            // fmt::print(stderr, "genAB-noisy-infix: {} {}\n", source_u, match_general_AB_noisy_infix.format("[1: $1] [host: $2] [loc: $3] [iso1: $4], [iso2: $5], [y: $6]"));
+            name_data = general(match_general_AB_noisy_infix, flags, messages);
+            extra = make_extra(match_general_AB_noisy_infix);
+        }
+        else if (std::smatch match_general_AB_isolation_with_location; std::regex_search(source_u, match_general_AB_isolation_with_location, re_flu_name_general_AB_isolation_with_location)) {
             // fmt::print(stderr, "isoloc: {} {}\n", source_u, match_general_AB_isolation_with_location.format("[1: $1] [host: $2] [loc: $3] [iso1: $4], [iso2: $5], [y: $6]"));
             name_data = isolation_with_location(match_general_AB_isolation_with_location, flags, messages);
             extra = make_extra(match_general_AB_isolation_with_location);
@@ -234,9 +253,14 @@ name_data_t isolation_with_location(const std::smatch& match, acmacs::virus::v2:
         if (!location.name.empty()) {
             return {virus_name_t(::string::join("/", {match[1].str(), match[2].str(), location.name, ::string::concat(match[4].str(), match[5].str()), year})), host_t{match[2].str()}, location.country, location.continent};
         }
+        else if (match[2].length() == 0 && std::any_of(std::begin(match.str(5)), std::end(match.str(5)), &isdigit)) { // location match.str(3) not found in locdb
+            messages.emplace_back(acmacs::virus::v2::parse_result_t::message_t::location_not_found, match.str(3));
+            return {virus_name_t{fmt::format("{}/{}/{}{}/{}", match.str(1), match.str(3), match.str(4), match.str(5), year)}, host_t{match.str(2)}, "", ""};
+        }
         else if (match[2].length() == 0) {                  // isolation absent?: A/host/location/year
+            // fmt::print(stderr, "DEBUG: isolation_with_location {} -> 1:{} 2:{} 3:{} 4:{} 5:{} 6:{}:\n", match.str(0), match.str(1), match.str(2), match.str(3), match.str(4), match.str(5), match.str(6));
             location = fix_location(::string::concat(match[4].str(), match[5].str()), flags & parse_name_f::lookup_location, &messages);
-            messages.emplace_back(acmacs::virus::v2::parse_result_t::message_t::isolation_absent);
+            messages.emplace_back(acmacs::virus::v2::parse_result_t::message_t::isolation_absent, match[0].str());
             return {virus_name_t(::string::join("/", {match[1].str(), match[3].str(), location.name, std::string{"UNKNOWN"}, year})), host_t{match[3].str()}, location.country, location.continent};
         }
         else
