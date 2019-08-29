@@ -72,6 +72,7 @@ void test_builtin()
 
         TestData{"OR",                    parse_passage_result_t{Passage{"OR"}, ""}},
         TestData{"ORIGINAL",              parse_passage_result_t{Passage{"OR"}, ""}},
+        TestData{"ORIGINAL; HOSPITALIZED", parse_passage_result_t{Passage{"OR"}, ""}},
         TestData{"CS",                    parse_passage_result_t{Passage{"OR"}, ""}},
         TestData{"CS-ORI",                parse_passage_result_t{Passage{"OR"}, ""}},
         TestData{"ORIGINAL SAMPLE",       parse_passage_result_t{Passage{"OR"}, ""}},

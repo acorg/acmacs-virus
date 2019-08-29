@@ -124,7 +124,7 @@ static const std::regex re_m_mek_n("^EK?[\\s\\-]*(\\d+)", std::regex::icase);
 
 // OR CS CLINICAL ORIGINAL SPECIMEN/SAMPLE
 static const std::regex re_c_clinical("^(?:S(?:-ORI|\\(ORIGINAL\\))?|LINI?CAL[\\sA-Z]*)", std::regex::icase);
-static const std::regex re_o_original("^(?:R|O?[RT]IGINAL)[\\s\\-_\\(\\)A-Z]*", std::regex::icase);
+static const std::regex re_o_original("^(?:R|O?[RT]IGINAL)[;\\s\\-_\\(\\)A-Z]*", std::regex::icase);
 static const std::regex re_o_opnp("^P&NP\\s*$", std::regex::icase); // CDC:Congo/2015
 static const std::regex re_l_lung("^(?:UNG|AB)[\\s\\-\\w]*", std::regex::icase);             // NIMR
 static const std::regex re_n_nose("^(?:OSE|ASO|ASA)[\\s\\-_A-Z]*", std::regex::icase); // NIMR
