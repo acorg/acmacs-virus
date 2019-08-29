@@ -12,7 +12,7 @@
 // ----------------------------------------------------------------------
 
 constexpr const char* re_egg = R"#(((E|D|SPF(CE)?|SPE)(\?|[0-9][0-9]?)|EGG))#";
-constexpr const char* re_cell = R"#((MDCK|SIAT|QMC|MK|CKC|CEK|CACO|LLC|LLK|PRMK|MEK|C|SPFCK)(\?|[0-9][0-9]?))#";
+constexpr const char* re_cell = R"#((MDCK|SIAT|QMC|MK|MEK|CKC|CEK|CACO|LLC|LLK|PRMK|MEK|C|SPFCK|R|RII)(\?|[0-9][0-9]?))#";
 constexpr const char* re_nimr_isolate = R"#(( (ISOLATE|CLONE) [0-9\-]+)*)#"; // NIMR isolate and/or clone, NIMR H1pdm has CLONE 38-32
 constexpr const char* re_niid_plus_number = R"#(( *\+[1-9])?)#"; // NIID has +1 at the end of passage
 constexpr const char* re_passage_date = R"#(( \([12][0129][0-9][0-9]-[01][0-9]-[0-3][0-9]\))?)#"; // passage date
@@ -109,7 +109,7 @@ static const std::regex re_q_qmc_n("^MC[\\s\\-]*(\\d+)", std::regex::icase);
 static const std::regex re_n_nc_n("^C[\\s\\-]*(\\d+)", std::regex::icase);
 
 // E EGG
-static const std::regex re_e_e_x("^[\\s\\-]*[X\\?](?!\\w)", std::regex::icase);
+static const std::regex re_e_e_x("^[\\s\\-]*[X\\?]", std::regex::icase); // may followed by letters, e.g. EXMDCKX (MELB)
 static const std::regex re_e_egg_x("^GG[\\s\\-]*[X\\?]?(?!\\w)", std::regex::icase);
 static const std::regex re_e_egg_n("^(?:GG(?:\\s+PASSAGE)?)?[\\s\\-]*(\\d+)", std::regex::icase);
 static const std::regex re_s_spfe_n("^PFE[\\s\\-]*(\\d+)", std::regex::icase);
@@ -117,6 +117,10 @@ static const std::regex re_s_spfe_n("^PFE[\\s\\-]*(\\d+)", std::regex::icase);
 // MK M - Monkey Kidney Cell line
 static const std::regex re_m_mk_x("^K?[\\s\\-]*[X\\?]", std::regex::icase);
 static const std::regex re_m_mk_n("^K?[\\s\\-]*(\\d+)", std::regex::icase);
+
+// MEK - Monkey Epithelial Kidney Cell line
+static const std::regex re_m_mek_x("^EK?[\\s\\-]*[X\\?]", std::regex::icase);
+static const std::regex re_m_mek_n("^EK?[\\s\\-]*(\\d+)", std::regex::icase);
 
 // OR CS CLINICAL ORIGINAL SPECIMEN/SAMPLE
 static const std::regex re_c_clinical("^(?:S(?:-ORI|\\(ORIGINAL\\))?|LINI?CAL[\\sA-Z]*)", std::regex::icase);
@@ -258,10 +262,14 @@ static const std::map<char, callback_t> normalize_data{
              parts_push_i(data, "MDCK-MIX", match[1].str());
          else if (std::regex_search(first, last, match, re_m_mk_n))
              parts_push_i(data, "MK", match[1].str());
+         else if (std::regex_search(first, last, match, re_m_mek_n))
+             parts_push_i(data, "MEK", match[1].str());
          else if (std::regex_search(first, last, match, re_m_mdck_x))
              parts_push_i(data, "MDCK", "?");
          else if (std::regex_search(first, last, match, re_m_mk_x))
              parts_push_i(data, "MK", "?");
+         else if (std::regex_search(first, last, match, re_m_mek_x))
+             parts_push_i(data, "MEK", "?");
          else
              throw parsing_failed{};
          return match[0].second;

@@ -64,6 +64,7 @@ void test_builtin()
         TestData{"EX",                    parse_passage_result_t{Passage{"E?"}, ""}},
         TestData{"E?",                    parse_passage_result_t{Passage{"E?"}, ""}},
         TestData{"E",                     parse_passage_result_t{Passage{"E?"}, ""}},
+        TestData{"EXMDCKX",               parse_passage_result_t{Passage{"E?MDCK?"}, ""}},
 
         TestData{"X",                     parse_passage_result_t{Passage{"X?"}, ""}},
         TestData{"X?",                    parse_passage_result_t{Passage{"X?"}, ""}},
@@ -85,6 +86,9 @@ void test_builtin()
         TestData{"MK?",                   parse_passage_result_t{Passage{"MK?"}, ""}},
         TestData{"MK3",                   parse_passage_result_t{Passage{"MK3"}, ""}},
         TestData{"MKX",                   parse_passage_result_t{Passage{"MK?"}, ""}},
+        TestData{"MEK3",                  parse_passage_result_t{Passage{"MEK3"}, ""}},
+        TestData{"MEKX",                  parse_passage_result_t{Passage{"MEK?"}, ""}},
+        TestData{"MEK?",                  parse_passage_result_t{Passage{"MEK?"}, ""}},
 
         TestData{"C1/C1",                 parse_passage_result_t{Passage{"MDCK1/MDCK1"}, ""}},
         TestData{"C1,C1",                 parse_passage_result_t{Passage{"MDCK1/MDCK1"}, ""}},
