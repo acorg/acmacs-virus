@@ -241,6 +241,8 @@ name_data_t isolation_with_location(const std::smatch& match, acmacs::virus::v2:
 
     const auto year = fix_year(match[6].str(), &messages);
 
+    const auto any_digit = [](const auto& src) -> bool { return std::any_of(std::begin(src), std::end(src), &isdigit); };
+
     if (auto location = fix_location(::string::concat(match[3].str(), ' ', match[4].str()), flags & parse_name_f::lookup_location, nullptr); !location.name.empty()) {
         const auto isolation = match[5].str();
         if (isolation[0] == '-' || isolation[0] == '_' || isolation[0] == ' ')
@@ -250,10 +252,11 @@ name_data_t isolation_with_location(const std::smatch& match, acmacs::virus::v2:
     }
     else {
         location = fix_location(match[3].str(), flags & parse_name_f::lookup_location, nullptr);
+        // fmt::print(stderr, "DEBUG: isolation_with_location {} -> 1:{} 2:{} 3:{} 4:{} 5:{} 6:{}: location: \"{}\" -> \"{}\"\n", match.str(0), match.str(1), match.str(2), match.str(3), match.str(4), match.str(5), match.str(6), match.str(3), location.name);
         if (!location.name.empty()) {
             return {virus_name_t(::string::join("/", {match[1].str(), match[2].str(), location.name, ::string::concat(match[4].str(), match[5].str()), year})), host_t{match[2].str()}, location.country, location.continent};
         }
-        else if (match[2].length() == 0 && std::any_of(std::begin(match.str(5)), std::end(match.str(5)), &isdigit)) { // location match.str(3) not found in locdb
+        else if (match.length(2) == 0 && any_digit(match.str(5))) { // location match.str(3) not found in locdb
             messages.emplace_back(acmacs::virus::v2::parse_result_t::message_t::location_not_found, match.str(3));
             return {virus_name_t{fmt::format("{}/{}/{}{}/{}", match.str(1), match.str(3), match.str(4), match.str(5), year)}, host_t{match.str(2)}, "", ""};
         }
