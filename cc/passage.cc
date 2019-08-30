@@ -112,7 +112,9 @@ static const std::regex re_n_nc_n("^C[\\s\\-]*(\\d+)", std::regex::icase);
 static const std::regex re_e_e_x("^[\\s\\-]*[X\\?]", std::regex::icase); // may followed by letters, e.g. EXMDCKX (MELB)
 static const std::regex re_e_egg_x("^GG[\\s\\-]*[X\\?]?(?!\\w)", std::regex::icase);
 static const std::regex re_e_egg_n("^(?:GG(?:\\s+PASSAGE)?)?[\\s\\-]*(\\d+)", std::regex::icase);
-static const std::regex re_s_spfe_n("^PFE[\\s\\-]*(\\d+)", std::regex::icase);
+static const std::regex re_s_spfe_n("^PFC?E[\\s\\-]*(\\d+)", std::regex::icase);
+static const std::regex re_s_spfe_x("^PFC?E[X\\?]", std::regex::icase);
+static const std::regex re_s_spfe("^PFC?E$", std::regex::icase);
 
 // MK M - Monkey Kidney Cell line
 static const std::regex re_m_mk_x("^K?[\\s\\-]*[X\\?]", std::regex::icase);
@@ -341,6 +343,8 @@ static const std::map<char, callback_t> normalize_data{
              parts_push_i(data, "SIAT", match[1].str());
          else if (std::regex_search(first, last, match, re_s_spfe_n))
              parts_push_i(data, "SPFE", match[1].str());
+         else if (std::regex_search(first, last, match, re_s_spfe_x) || std::regex_search(first, last, match, re_s_spfe))
+             parts_push_i(data, "SPFE", "?");
          else if (std::regex_search(first, last, match, re_s_spf_n))
              parts_push_i(data, "SPF", match[1].str());
          else if (std::regex_search(first, last, match, re_s_spfck_n))
