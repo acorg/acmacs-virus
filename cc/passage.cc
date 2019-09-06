@@ -12,7 +12,7 @@
 // ----------------------------------------------------------------------
 
 constexpr const char* re_egg = R"#(((E|D|SPF(CE)?|SPE)(\?|[0-9][0-9]?)|EGG))#";
-constexpr const char* re_cell = R"#((MDCK|SIAT|QMC|MK|MEK|CKC|CEK|CACO|LLC|LLK|PRMK|MEK|C|SPFCK|R|RII)(\?|[0-9][0-9]?))#";
+constexpr const char* re_cell = R"#((MDCK|SIAT|QMC|HCK|MK|MEK|CKC|CEK|CACO|LLC|LLK|PRMK|MEK|C|SPFCK|R|RII)(\?|[0-9][0-9]?))#";
 constexpr const char* re_nimr_isolate = R"#(( (ISOLATE|CLONE) [0-9\-]+)*)#"; // NIMR isolate and/or clone, NIMR H1pdm has CLONE 38-32
 constexpr const char* re_niid_plus_number = R"#(( *\+[1-9])?)#"; // NIID has +1 at the end of passage
 constexpr const char* re_passage_date = R"#(( \([12][0129][0-9][0-9]-[01][0-9]-[0-3][0-9]\))?)#"; // passage date
@@ -116,6 +116,10 @@ static const std::regex re_s_spfe_n("^PFC?E[\\s\\-]*(\\d+)", std::regex::icase);
 static const std::regex re_s_spfe_x("^PFC?E[X\\?]", std::regex::icase);
 static const std::regex re_s_spfe("^PFC?E$", std::regex::icase);
 
+// HCK - humanized MDCK cell line for the efficient isolation and propagation of human influenza viruses https://www.researchgate.net/publication/332744615_A_humanized_MDCK_cell_line_for_the_efficient_isolation_and_propagation_of_human_influenza_viruses
+static const std::regex re_h_hck_n("^CK?[\\s\\-]*(\\d+)", std::regex::icase);
+static const std::regex re_h_hck_x("^CK?[\\s\\-]*[X\\?]", std::regex::icase);
+
 // MK M - Monkey Kidney Cell line
 static const std::regex re_m_mk_x("^K?[\\s\\-]*[X\\?]", std::regex::icase);
 static const std::regex re_m_mk_n("^K?[\\s\\-]*(\\d+)", std::regex::icase);
@@ -126,7 +130,7 @@ static const std::regex re_m_mek_n("^EK?[\\s\\-]*(\\d+)", std::regex::icase);
 
 // OR CS CLINICAL ORIGINAL SPECIMEN/SAMPLE
 static const std::regex re_c_clinical("^(?:S(?:-ORI|\\(ORIGINAL\\))?|LINI?CAL[\\sA-Z]*)", std::regex::icase);
-static const std::regex re_o_original("^(?:R|O?[RT]IGINAL)[;\\s\\-_\\(\\)A-Z]*", std::regex::icase);
+static const std::regex re_o_original("^(?:R|O?[RT]IGINAL)[;\\s\\-_\\(\\)A-Z0]*", std::regex::icase);
 static const std::regex re_o_opnp("^P&NP\\s*$", std::regex::icase); // CDC:Congo/2015
 static const std::regex re_l_lung("^(?:UNG|AB)[\\s\\-\\w]*", std::regex::icase);             // NIMR
 static const std::regex re_n_nose("^(?:OSE|ASO|ASA)[\\s\\-_A-Z]*", std::regex::icase); // NIMR
@@ -231,6 +235,17 @@ static const std::map<char, callback_t> normalize_data{
              parts_push_i(data, "E", match[1].str());
          else if (std::regex_search(first, last, match, re_e_egg_x) || std::regex_search(first, last, match, re_e_e_x))
              parts_push_i(data, "E", "?");
+         else
+             throw parsing_failed{};
+         return match[0].second;
+     }},
+    {'H',
+     [](processing_data_t& data, source_iter_t first, source_iter_t last) -> source_iter_t {
+         std::cmatch match;
+         if (std::regex_search(first, last, match, re_h_hck_n))
+             parts_push_i(data, "HCK", match[1].str());
+         else if (std::regex_search(first, last, match, re_h_hck_x))
+             parts_push_i(data, "HCK", "?");
          else
              throw parsing_failed{};
          return match[0].second;
