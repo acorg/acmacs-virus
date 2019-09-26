@@ -3,40 +3,21 @@
 #include <iostream>
 #include <regex>
 
-#include "acmacs-base/string.hh"
+#include "acmacs-base/named-type.hh"
 
 // ----------------------------------------------------------------------
 
 namespace acmacs::virus
 {
-    class Passage
+    class Passage : public named_string_t<struct virus_passage_tag_t>
     {
       public:
-        Passage() = default;
-        template <typename T> explicit constexpr Passage(T&& value) : value_(std::forward<T>(value)) {}
-
-        constexpr operator const std::string&() const { return value_; }
-        // operator std::string() const { return value_; }
-        constexpr const std::string& operator*() const { return value_; }
-        constexpr const std::string& get() const { return value_; }
-
-        bool operator==(const Passage& rhs) const { return value_ == rhs.value_; }
-        bool operator!=(const Passage& rhs) const { return !operator==(rhs); }
-        bool operator<(const Passage& rhs) const { return value_ < rhs.value_; }
-        bool empty() const { return value_.empty(); }
-        size_t size() const { return value_.size(); }
+        using acmacs::named_string_t<struct virus_passage_tag_t>::named_string_t;
 
         bool is_egg() const;
         bool is_cell() const;
         std::string without_date() const;
         const char* passage_type() const { return is_egg() ? "egg" : "cell"; }
-
-        int compare(const Passage& rhs) const { return ::string::compare(value_, rhs.value_); }
-
-      private:
-        std::string value_;
-
-        friend inline std::ostream& operator<<(std::ostream& out, const Passage& passage) { return out << passage.value_; }
 
     }; // class Passage
 
@@ -53,6 +34,10 @@ namespace acmacs::virus
 } // namespace acmacs::virus
 
 // ----------------------------------------------------------------------
+
+template<> struct fmt::formatter<acmacs::virus::Passage> : fmt::formatter<std::string> {
+    template <typename FormatCtx> auto format(const acmacs::virus::Passage& passage, FormatCtx& ctx) { return fmt::formatter<std::string>::format(passage.get(), ctx); }
+};
 
 namespace acmacs
 {

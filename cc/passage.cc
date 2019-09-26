@@ -24,7 +24,7 @@ bool acmacs::virus::Passage::is_egg() const
 #include "acmacs-base/global-constructors-push.hh"
         static std::regex egg_passage{std::string(re_egg) + re_nimr_isolate +  re_niid_plus_number + re_passage_date}; // NIMR has "EGG 10-6" in h3-neut
 #include "acmacs-base/diagnostics-pop.hh"
-        return std::regex_search(value_, egg_passage);
+        return std::regex_search(get(), egg_passage);
 
 } // acmacs::virus::Passage::is_egg
 
@@ -35,7 +35,7 @@ bool acmacs::virus::Passage::is_cell() const
 #include "acmacs-base/global-constructors-push.hh"
         static std::regex cell_passage{std::string(re_cell) + re_nimr_isolate +  re_niid_plus_number + re_passage_date};
 #include "acmacs-base/diagnostics-pop.hh"
-        return std::regex_search(value_, cell_passage);
+        return std::regex_search(get(), cell_passage);
 
 } // acmacs::virus::Passage::is_cell
 
@@ -43,11 +43,11 @@ bool acmacs::virus::Passage::is_cell() const
 
 std::string acmacs::virus::Passage::without_date() const
 {
-    if (value_.size() > 13 && value_[value_.size() - 1] == ')' && value_[value_.size() - 12] == '(' && value_[value_.size() - 13] == ' ' && value_[value_.size() - 4] == '-' &&
-        value_[value_.size() - 7] == '-')
-        return std::string(value_, 0, value_.size() - 13);
+    if (size() > 13 && get()[size() - 1] == ')' && get()[size() - 12] == '(' && get()[size() - 13] == ' ' && get()[size() - 4] == '-' &&
+        get()[size() - 7] == '-')
+        return std::string(get(), 0, size() - 13);
     else
-        return value_;
+        return get();
 
 } // acmacs::virus::Passage::without_date
 

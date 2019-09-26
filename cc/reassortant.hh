@@ -15,8 +15,7 @@ namespace acmacs::virus
         Reassortant() = default;
         template <typename T> explicit constexpr Reassortant(T&& value) : value_(std::forward<T>(value)) {}
 
-        constexpr operator const std::string&() const { return value_; }
-        // operator std::string() const { return value_; }
+        constexpr operator std::string_view() const { return value_; }
         constexpr const std::string& operator*() const { return value_; }
         constexpr const std::string& get() const { return value_; }
 

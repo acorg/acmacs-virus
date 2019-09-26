@@ -4,6 +4,7 @@
 #include <tuple>
 #include <regex>
 
+#include "acmacs-base/fmt.hh"
 #include "locationdb/locdb.hh"
 #include "acmacs-virus/virus-name-v1.hh"
 
@@ -24,7 +25,7 @@ static const std::array sReReassortant = {
 
 namespace virus_name
 {
-    static void split_and_strip(std::string name, std::string& virus_type, std::string& host, std::string& location, std::string& isolation, std::string& year, std::string& extra);
+    static void split_and_strip(std::string_view name, std::string& virus_type, std::string& host, std::string& location, std::string& isolation, std::string& year, std::string& extra);
 
     // // Extracts virus name without passage, reassortant, extra,
     // // etc. and calculates match threshold (to use with
@@ -70,7 +71,7 @@ namespace virus_name
 
 #pragma GCC diagnostic pop
 
-        inline std::string make_year(const std::smatch& m)
+        inline std::string make_year(const std::cmatch& m)
         {
             std::string year;
             if (m[5].length())
@@ -109,17 +110,17 @@ namespace virus_name
 
     // ----------------------------------------------------------------------
 
-    std::string location_for_cdc_name(std::string name)
+    std::string location_for_cdc_name(std::string_view name)
     {
-        std::smatch m;
-        if (std::regex_search(name, m, _internal::cdc_name))
+        std::cmatch m;
+        if (std::regex_search(std::begin(name), std::end(name), m, _internal::cdc_name))
             return "#" + m[1].str();
-        throw Unrecognized{"No cdc abbreviation in " + name};
+        throw Unrecognized{fmt::format("No cdc abbreviation in {}", name)};
     }
 
     // ----------------------------------------------------------------------
 
-    std::string location(std::string name, prioritize_cdc_name check_cdc_first)
+    std::string location(std::string_view name, prioritize_cdc_name check_cdc_first)
     {
         try {
             if (check_cdc_first == prioritize_cdc_name::yes)
@@ -128,8 +129,8 @@ namespace virus_name
         catch (Unrecognized&) {
         }
 
-        std::smatch m;
-        if (std::regex_search(name, m, _internal::international_name)) // international name with possible "garbage" after year, e.g. A/TOKYO/UT-IMS2-1/2014_HY-PR8-HA-N121K
+        std::cmatch m;
+        if (std::regex_search(std::begin(name), std::end(name), m, _internal::international_name)) // international name with possible "garbage" after year, e.g. A/TOKYO/UT-IMS2-1/2014_HY-PR8-HA-N121K
             return m[3].str();
 
         try {
@@ -139,7 +140,7 @@ namespace virus_name
         catch (Unrecognized&) {
         }
 
-        throw Unrecognized{"No location in " + name};
+        throw Unrecognized{fmt::format("No location in {}", name)};
     }
 
     // // Faster version of location() for A(H3N2)/ and A(H1N1)/ names without host field
@@ -184,21 +185,21 @@ namespace virus_name
 
     // ----------------------------------------------------------------------
 
-    std::string_view virus_type(const std::string& name) // pass by reference! because we return string_view to it
+    std::string_view virus_type(std::string_view name) // pass by reference! because we return string_view to it
     {
-        std::smatch m;
-        if (std::regex_search(name, m, _internal::international_name))
+        std::cmatch m;
+        if (std::regex_search(std::begin(name), std::end(name), m, _internal::international_name))
             return {name.data() + m.position(1), static_cast<size_t>(m.length(1))};
-        throw Unrecognized("No virus_type in " + name);
+        throw Unrecognized(fmt::format("No virus_type in {}", name));
 
-    } // AntigenSerum::virus_type
+    }
 
     // ----------------------------------------------------------------------
 
-    void split(std::string name, std::string& virus_type, std::string& host, std::string& location, std::string& isolation, std::string& year, std::string& passage)
+    void split(std::string_view name, std::string& virus_type, std::string& host, std::string& location, std::string& isolation, std::string& year, std::string& passage)
     {
-        std::smatch m;
-        if (std::regex_match(name, m, _internal::international)) {
+        std::cmatch m;
+        if (std::regex_match(std::begin(name), std::end(name), m, _internal::international)) {
             virus_type = m[1].str();
             host = m[2].str();
             location = m[3].str();
@@ -207,13 +208,13 @@ namespace virus_name
             passage = m[7].str();
         }
         else
-            throw Unrecognized("Cannot split " + name);
+            throw Unrecognized(fmt::format("Cannot split {}", name));
     }
 
-    void split_and_strip(std::string name, std::string& virus_type, std::string& host, std::string& location, std::string& isolation, std::string& year, std::string& extra)
+    void split_and_strip(std::string_view name, std::string& virus_type, std::string& host, std::string& location, std::string& isolation, std::string& year, std::string& extra)
     {
-        std::smatch m;
-        if (std::regex_search(name, m, _internal::international_name_with_extra)) {
+        std::cmatch m;
+        if (std::regex_search(std::begin(name), std::end(name), m, _internal::international_name_with_extra)) {
             virus_type = string::strip(m[1].str());
             host = string::strip(m[2].str());
             location = string::strip(m[3].str());
@@ -222,18 +223,18 @@ namespace virus_name
             extra = string::join(" ", {string::strip(m.prefix().str()), string::strip(m[7].str())});
         }
         else
-            throw Unrecognized("Cannot split " + name);
+            throw Unrecognized(fmt::format("Cannot split {}", name));
     }
 
     // split for names looking like international but with unrecognized "garbage" (extra) at the end
-    void split_with_extra(std::string name, std::string& virus_type, std::string& host, std::string& location, std::string& isolation, std::string& year, std::string& passage, std::string& extra)
+    void split_with_extra(std::string_view name, std::string& virus_type, std::string& host, std::string& location, std::string& isolation, std::string& year, std::string& passage, std::string& extra)
     {
         try {
             split(name, virus_type, host, location, isolation, year, passage);
         }
         catch (Unrecognized&) {
-            std::smatch m;
-            if (std::regex_search(name, m, _internal::international_name_with_extra)) {
+            std::cmatch m;
+            if (std::regex_search(std::begin(name), std::end(name), m, _internal::international_name_with_extra)) {
                 virus_type = m[1].str();
                 host = m[2].str();
                 location = m[3].str();
@@ -242,11 +243,11 @@ namespace virus_name
                 extra = string::join(" ", {m.prefix().str(), m[7].str()});
             }
             else
-                throw Unrecognized("Cannot split " + name);
+                throw Unrecognized(fmt::format("Cannot split {}", name));
         }
     }
 
-    Name::Name(std::string source)
+    Name::Name(std::string_view source)
     {
         try {
             split_and_strip(source, virus_type, host, location, isolation, year, extra);
@@ -257,8 +258,9 @@ namespace virus_name
                 if (const auto num_start = std::find_if(std::begin(source), std::end(source), [](char cc) { return std::isdigit(cc); });
                     num_start != std::begin(source) && num_start != std::end(source) && *(num_start - 1) != '/') {
                     // A/PTO MONTT75856/2015
-                    source.insert(num_start, '/');
-                    split_and_strip(source, virus_type, host, location, isolation, year, extra);
+                    std::string new_source{source};
+                    new_source.insert(static_cast<size_t>(num_start - std::begin(source)), 1, '/');
+                    split_and_strip(new_source, virus_type, host, location, isolation, year, extra);
                     re_throw = false;
                 }
             }
