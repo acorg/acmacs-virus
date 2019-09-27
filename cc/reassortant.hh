@@ -3,33 +3,17 @@
 #include <iostream>
 #include <string>
 
-#include "acmacs-base/string.hh"
+#include "acmacs-base/named-type.hh"
 
 // ----------------------------------------------------------------------
 
 namespace acmacs::virus
 {
-    class Reassortant
+    class Reassortant : public named_string_t<struct virus_reassortant_tag_t>
     {
      public:
-        Reassortant() = default;
-        template <typename T> explicit constexpr Reassortant(T&& value) : value_(std::forward<T>(value)) {}
+        using acmacs::named_string_t<struct virus_reassortant_tag_t>::named_string_t;
 
-        constexpr operator std::string_view() const { return value_; }
-        constexpr const std::string& operator*() const { return value_; }
-        constexpr const std::string& get() const { return value_; }
-
-        bool operator==(const Reassortant& rhs) const { return value_ == rhs.value_; }
-        bool operator!=(const Reassortant& rhs) const { return !operator==(rhs); }
-        bool operator<(const Reassortant& rhs) const { return value_ < rhs.value_; }
-        int compare(const Reassortant& rhs) const { return ::string::compare(value_, rhs.value_); }
-        bool empty() const { return value_.empty(); }
-        size_t size() const { return value_.size(); }
-
-      private:
-        std::string value_;
-
-        friend inline std::ostream& operator<<(std::ostream& out, const Reassortant& reassortant) { return out << reassortant.value_; }
 
     }; // class Reassortant
 
@@ -38,6 +22,10 @@ namespace acmacs::virus
 } // namespace acmacs::virus
 
 // ----------------------------------------------------------------------
+
+template<> struct fmt::formatter<acmacs::virus::Reassortant> : fmt::formatter<std::string> {
+    template <typename FormatCtx> auto format(const acmacs::virus::Reassortant& reassortant, FormatCtx& ctx) { return fmt::formatter<std::string>::format(reassortant.get(), ctx); }
+};
 
 namespace acmacs
 {
