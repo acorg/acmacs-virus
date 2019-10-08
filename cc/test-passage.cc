@@ -164,7 +164,7 @@ void test_from_command_line(int argc, const char* const* argv)
 
     for (int arg = 1; arg < argc; ++arg) {
         const auto result = parse_passage(argv[arg], passage_only::no);
-        fmt::print(stderr, "SRC: \"{}\"\nPAS: \"{}\"\nEXT: \"{}\"\n", argv[arg], std::get<Passage>(result), std::get<std::string>(result));
+        fmt::print(stderr, "SRC: \"{}\"\nPAS: \"{}\"\nEXT: \"{}\"\n", argv[arg], *std::get<Passage>(result), std::get<std::string>(result));
     }
 
 } // test_from_command_line
