@@ -35,10 +35,6 @@ namespace acmacs::virus
 
 // ----------------------------------------------------------------------
 
-template<> struct fmt::formatter<acmacs::virus::Passage> : fmt::formatter<std::string> {
-    template <typename FormatCtx> auto format(const acmacs::virus::Passage& passage, FormatCtx& ctx) { return fmt::formatter<std::string>::format(passage.get(), ctx); }
-};
-
 namespace acmacs
 {
     inline std::string to_string(const acmacs::virus::Passage& passage) { return *passage; }

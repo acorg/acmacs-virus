@@ -23,10 +23,6 @@ namespace acmacs::virus
 
 // ----------------------------------------------------------------------
 
-template<> struct fmt::formatter<acmacs::virus::Reassortant> : fmt::formatter<std::string> {
-    template <typename FormatCtx> auto format(const acmacs::virus::Reassortant& reassortant, FormatCtx& ctx) { return fmt::formatter<std::string>::format(reassortant.get(), ctx); }
-};
-
 namespace acmacs
 {
     inline std::string to_string(const acmacs::virus::Reassortant& reassortant) { return *reassortant; }
