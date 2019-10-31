@@ -18,16 +18,16 @@ namespace acmacs::virus
     inline namespace v2
     {
         // normalized or user approved virus name
-        using virus_name_t = acmacs::uppercased<struct virus_name_tag>;
+        using name_t = acmacs::uppercased<struct virus_name_tag>;
         using host_t = acmacs::uppercased<struct host_t_tag>;
         using lineage_t = acmacs::uppercased<struct lineage_tag>;
 
         // ----------------------------------------------------------------------
 
-        std::string_view host(const virus_name_t& name);
-        std::string_view location(const virus_name_t& name);
-        std::string_view isolation(const virus_name_t& name);
-        std::optional<size_t> year(const virus_name_t& name);
+        std::string_view host(const name_t& name);
+        std::string_view location(const name_t& name);
+        std::string_view isolation(const name_t& name);
+        std::optional<size_t> year(const name_t& name);
 
         // ----------------------------------------------------------------------
 
@@ -118,7 +118,7 @@ namespace acmacs::virus
                 friend inline std::ostream& operator<<(std::ostream& out, const message_t& msg) { return out << msg.key << ": \"" << msg.value << '"'; }
             };
 
-            virus_name_t name;
+            name_t name;
             host_t host;
             acmacs::virus::Reassortant reassortant;
             acmacs::virus::Passage passage;
@@ -129,7 +129,7 @@ namespace acmacs::virus
         };
 
         parse_result_t parse_name(std::string_view source, parse_name_f flags = parse_name_f::lookup_location | parse_name_f::remove_extra_subtype);
-        void set_type_subtype(virus_name_t& name, const type_subtype_t& type_subtype);
+        void set_type_subtype(name_t& name, const type_subtype_t& type_subtype);
 
     } // namespace v2
 } // namespace acmacs::virus

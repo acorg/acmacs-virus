@@ -95,7 +95,7 @@ struct location_t
 
 struct name_data_t
 {
-    acmacs::virus::v2::virus_name_t name;
+    acmacs::virus::v2::name_t name;
     acmacs::virus::v2::host_t host;
     std::string country;
     std::string continent;
@@ -131,7 +131,7 @@ acmacs::virus::v2::parse_result_t acmacs::virus::v2::parse_name(std::string_view
 
     const auto make_extra = [](const std::smatch& match) { return ::string::join(" ", {::string::strip(match.prefix().str()), ::string::strip(match.suffix().str())}); };
 
-    name_data_t name_data{virus_name_t{}, host_t{}, std::string{}, std::string{}};
+    name_data_t name_data{name_t{}, host_t{}, std::string{}, std::string{}};
     std::string extra;
     std::vector<acmacs::virus::v2::parse_result_t::message_t> messages;
 
@@ -164,7 +164,7 @@ acmacs::virus::v2::parse_result_t acmacs::virus::v2::parse_name(std::string_view
             const std::array fields{match_general_AB_no_isolation[1].str(), match_general_AB_no_isolation[2].str(),
                                     loc.name, match_general_AB_no_isolation[4].str(),
                                     fix_year(match_general_AB_no_isolation[5].str(), &messages)};
-            name_data = name_data_t{virus_name_t(::string::join("/", fields)), host_t{fields[1]}, loc.country, loc.continent};
+            name_data = name_data_t{name_t(::string::join("/", fields)), host_t{fields[1]}, loc.country, loc.continent};
             extra = make_extra(match_general_AB_no_isolation);
         }
         else if (std::smatch match_general_A_subtype; std::regex_search(source_u, match_general_A_subtype, re_flu_name_general_A_subtype)) {
@@ -172,7 +172,7 @@ acmacs::virus::v2::parse_result_t acmacs::virus::v2::parse_name(std::string_view
             const std::array fields{match_general_A_subtype[1].str(), match_general_A_subtype[2].str(),
                                     loc.name, match_general_A_subtype[4].str(),
                                     fix_year(match_general_A_subtype[5].str(), &messages)};
-            name_data = name_data_t{virus_name_t(::string::join("/", fields)), host_t{fields[1]}, loc.country, loc.continent};
+            name_data = name_data_t{name_t(::string::join("/", fields)), host_t{fields[1]}, loc.country, loc.continent};
             extra = make_extra(match_general_A_subtype);
         }
         else {
@@ -217,14 +217,14 @@ acmacs::virus::v2::parse_result_t acmacs::virus::v2::parse_name(std::string_view
         return {name_data.name, name_data.host, reassortant, passage, extra, name_data.country, name_data.continent, messages};
     }
     catch (parse_name_error&) {
-        return {virus_name_t{source}, host_t{}, Reassortant{}, Passage{}, {}, {}, {}, messages};
+        return {name_t{source}, host_t{}, Reassortant{}, Passage{}, {}, {}, {}, messages};
     }
 
 } // acmacs::virus::v2::parse_name
 
 // ----------------------------------------------------------------------
 
-void acmacs::virus::v2::set_type_subtype(virus_name_t& name, const type_subtype_t& type_subtype)
+void acmacs::virus::v2::set_type_subtype(name_t& name, const type_subtype_t& type_subtype)
 {
     const std::string_view ts = type_subtype;
     std::string& nam = name.get();
@@ -246,25 +246,25 @@ name_data_t isolation_with_location(const std::smatch& match, acmacs::virus::v2:
     if (auto location = fix_location(::string::concat(match[3].str(), ' ', match[4].str()), flags & parse_name_f::lookup_location, nullptr); !location.name.empty()) {
         const auto isolation = match[5].str();
         if (isolation[0] == '-' || isolation[0] == '_' || isolation[0] == ' ')
-            return {virus_name_t(::string::join("/", {match[1].str(), match[2].str(), location.name, isolation.substr(1), year})), host_t{match[2].str()}, location.country, location.continent};
+            return {name_t(::string::join("/", {match[1].str(), match[2].str(), location.name, isolation.substr(1), year})), host_t{match[2].str()}, location.country, location.continent};
         else
-            return {virus_name_t(::string::join("/", {match[1].str(), match[2].str(), location.name, isolation, year})), host_t{match[2].str()}, location.country, location.continent};
+            return {name_t(::string::join("/", {match[1].str(), match[2].str(), location.name, isolation, year})), host_t{match[2].str()}, location.country, location.continent};
     }
     else {
         location = fix_location(match[3].str(), flags & parse_name_f::lookup_location, nullptr);
         // fmt::print(stderr, "DEBUG: isolation_with_location {} -> 1:{} 2:{} 3:{} 4:{} 5:{} 6:{}: location: \"{}\" -> \"{}\"\n", match.str(0), match.str(1), match.str(2), match.str(3), match.str(4), match.str(5), match.str(6), match.str(3), location.name);
         if (!location.name.empty()) {
-            return {virus_name_t(::string::join("/", {match[1].str(), match[2].str(), location.name, ::string::concat(match[4].str(), match[5].str()), year})), host_t{match[2].str()}, location.country, location.continent};
+            return {name_t(::string::join("/", {match[1].str(), match[2].str(), location.name, ::string::concat(match[4].str(), match[5].str()), year})), host_t{match[2].str()}, location.country, location.continent};
         }
         else if (match.length(2) == 0 && any_digit(match.str(5))) { // location match.str(3) not found in locdb
             messages.emplace_back(acmacs::virus::v2::parse_result_t::message_t::location_not_found, match.str(3));
-            return {virus_name_t{fmt::format("{}/{}/{}{}/{}", match.str(1), match.str(3), match.str(4), match.str(5), year)}, host_t{match.str(2)}, "", ""};
+            return {name_t{fmt::format("{}/{}/{}{}/{}", match.str(1), match.str(3), match.str(4), match.str(5), year)}, host_t{match.str(2)}, "", ""};
         }
         else if (match[2].length() == 0) {                  // isolation absent?: A/host/location/year
             // fmt::print(stderr, "DEBUG: isolation_with_location {} -> 1:{} 2:{} 3:{} 4:{} 5:{} 6:{}:\n", match.str(0), match.str(1), match.str(2), match.str(3), match.str(4), match.str(5), match.str(6));
             location = fix_location(::string::concat(match[4].str(), match[5].str()), flags & parse_name_f::lookup_location, &messages);
             messages.emplace_back(acmacs::virus::v2::parse_result_t::message_t::isolation_absent, match[0].str());
-            return {virus_name_t(::string::join("/", {match[1].str(), match[3].str(), location.name, std::string{"UNKNOWN"}, year})), host_t{match[3].str()}, location.country, location.continent};
+            return {name_t(::string::join("/", {match[1].str(), match[3].str(), location.name, std::string{"UNKNOWN"}, year})), host_t{match[3].str()}, location.country, location.continent};
         }
         else
             throw parse_name_error{};
@@ -300,11 +300,11 @@ name_data_t general(const std::smatch& match, acmacs::virus::v2::parse_name_f fl
                 }
             }
         }
-        return {virus_name_t(::string::join("/", {match[1].str(), host, location.name, isolation, fix_year(match[5].str(), &messages)})), host_t{host}, location.country, location.continent};
+        return {name_t(::string::join("/", {match[1].str(), host, location.name, isolation, fix_year(match[5].str(), &messages)})), host_t{host}, location.country, location.continent};
     }
     else { //
         const auto location = fix_location(match[3].str(), flags & parse_name_f::lookup_location, &messages);
-        return {virus_name_t(::string::join("/", {match[1].str(), host, location.name, match[4].str(), fix_year(match[5].str(), &messages)})), host_t{host}, location.country, location.continent};
+        return {name_t(::string::join("/", {match[1].str(), host, location.name, match[4].str(), fix_year(match[5].str(), &messages)})), host_t{host}, location.country, location.continent};
     }
 
 } // general
@@ -379,7 +379,7 @@ std::string fix_year(std::string source, std::vector<acmacs::virus::v2::parse_re
 
 // ----------------------------------------------------------------------
 
-std::optional<size_t> acmacs::virus::v2::year(const virus_name_t& name)
+std::optional<size_t> acmacs::virus::v2::year(const name_t& name)
 {
     if (name->size() > 4) {
         std::array<char, 5> data{0, 0, 0, 0, 0}; // avoid acceing beyond the name by strtoul
@@ -395,7 +395,7 @@ std::optional<size_t> acmacs::virus::v2::year(const virus_name_t& name)
 
 // ----------------------------------------------------------------------
 
-std::string_view acmacs::virus::v2::host(const virus_name_t& name)
+std::string_view acmacs::virus::v2::host(const name_t& name)
 {
     if (const auto fields = acmacs::string::split(*name, "/"); fields.size() == 5)
         return fields[1];
@@ -406,7 +406,7 @@ std::string_view acmacs::virus::v2::host(const virus_name_t& name)
 
 // ----------------------------------------------------------------------
 
-std::string_view acmacs::virus::v2::location(const virus_name_t& name)
+std::string_view acmacs::virus::v2::location(const name_t& name)
 {
     const auto fields = acmacs::string::split(*name, "/");
     return fields[fields.size() - 3];
@@ -415,7 +415,7 @@ std::string_view acmacs::virus::v2::location(const virus_name_t& name)
 
 // ----------------------------------------------------------------------
 
-std::string_view acmacs::virus::v2::isolation(const virus_name_t& name)
+std::string_view acmacs::virus::v2::isolation(const name_t& name)
 {
     const auto fields = acmacs::string::split(*name, "/");
     return fields[fields.size() - 2];
