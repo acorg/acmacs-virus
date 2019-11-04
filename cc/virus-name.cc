@@ -189,9 +189,11 @@ acmacs::virus::v2::parse_result_t acmacs::virus::v2::parse_name(std::string_view
         else if (std::smatch match_seq_id; std::regex_search(source_u, match_seq_id, re_seq_id)) {
             // fmt::print(stderr, "DEBUG: seq_id matched \"{}\"\n", match_seq_id[0].str());
             const auto loc = fix_location(match_seq_id[3].str(), flags & parse_name_f::lookup_location, &messages);
-            const std::array fields{match_seq_id[1].str(), match_seq_id[2].str(),
+            std::array fields{match_seq_id[1].str(), match_seq_id[2].str(),
                                     loc.name, match_seq_id[4].str(),
                                     fix_year(match_seq_id[5].str(), &messages)};
+            if (fields[0].size() >= 5 && fields[0].front() == 'A')
+                fields[0] = fmt::format("{}({})", fields[0].front(), fields[0].substr(1));
             name_data = name_data_t{name_t(::string::join("/", fields)), host_t{fields[1]}, loc.country, loc.continent};
             extra = ::string::replace(make_extra(match_seq_id), '_', ' ');
         }
