@@ -84,7 +84,7 @@ namespace acmacs::virus
           private:
             std::string value_;
 
-            friend inline std::ostream& operator<<(std::ostream& out, const type_subtype_t& ts) { return out << ts.value_; }
+            // friend inline std::ostream& operator<<(std::ostream& out, const type_subtype_t& ts) { return out << ts.value_; }
         };
 
         // ----------------------------------------------------------------------
@@ -115,7 +115,7 @@ namespace acmacs::virus
                 constexpr static inline const char* invalid_host = "invalid-host";
                 bool operator==(const char* a_key) const { return std::string_view(key) == a_key; }
                 bool operator==(const message_t& rhs) const { return std::string_view(key) == rhs.key && value == rhs.value; }
-                friend inline std::ostream& operator<<(std::ostream& out, const message_t& msg) { return out << msg.key << ": \"" << msg.value << '"'; }
+                // friend inline std::ostream& operator<<(std::ostream& out, const message_t& msg) { return out << msg.key << ": \"" << msg.value << '"'; }
             };
 
             name_t name;
@@ -136,10 +136,36 @@ namespace acmacs::virus
 
 // ----------------------------------------------------------------------
 
+template <> struct fmt::formatter<acmacs::virus::type_subtype_t>
+{
+    template <typename ParseContext> constexpr auto parse(ParseContext& ctx) { return ctx.begin(); }
+    template <typename FormatContext> auto format(const acmacs::virus::type_subtype_t& ts, FormatContext& ctx) { return format_to(ctx.out(), "{}", static_cast<std::string_view>(ts)); }
+};
+
 template <> struct fmt::formatter<acmacs::virus::parse_result_t::message_t>
 {
-  template <typename ParseContext> constexpr auto parse(ParseContext &ctx) { return ctx.begin(); }
-  template <typename FormatContext> auto format(const acmacs::virus::parse_result_t::message_t& msg, FormatContext& ctx) { return format_to(ctx.out(), "{}: \"{}\"", msg.key, msg.value); }
+    template <typename ParseContext> constexpr auto parse(ParseContext& ctx) { return ctx.begin(); }
+    template <typename FormatContext> auto format(const acmacs::virus::parse_result_t::message_t& msg, FormatContext& ctx) { return format_to(ctx.out(), "{}: \"{}\"", msg.key, msg.value); }
+};
+
+template <> struct fmt::formatter<acmacs::virus::parse_result_t>
+{
+    template <typename ParseContext> constexpr auto parse(ParseContext& ctx) { return ctx.begin(); }
+    template <typename FormatContext> auto format(const acmacs::virus::parse_result_t& res, FormatContext& ctx)
+    {
+        format_to(ctx.out(), "{}", res.name);
+        if (!res.reassortant.empty())
+            format_to(ctx.out(), " R:\"{}\"", res.reassortant);
+        if (!res.extra.empty())
+            format_to(ctx.out(), " E:\"{}\"", res.extra);
+        if (!res.passage.empty())
+            format_to(ctx.out(), " P:\"{}\"", res.passage);
+        if (!res.host.empty())
+            format_to(ctx.out(), " H:\"{}\"", res.host);
+        if (!res.messages.empty())
+            format_to(ctx.out(), " msg:{}", res.messages);
+        return ctx.out();
+    }
 };
 
 // ----------------------------------------------------------------------
