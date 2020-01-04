@@ -1,4 +1,3 @@
-#include <iostream>
 #include <array>
 
 #include "acmacs-virus/virus-name.hh"
@@ -18,7 +17,7 @@ int main(int argc, const char* const* argv)
             test_builtin();
     }
     catch (std::exception& err) {
-        std::cerr << "ERROR: " << err.what() << '\n';
+        fmt::print(stderr, "ERROR: {}\n", err);
         exit_code = 1;
     }
     return exit_code;
@@ -92,24 +91,15 @@ void test_builtin()
         try {
             const auto result = parse_name(entry.raw_name);
             if (result != entry.expected) {
-                std::cerr << "SRC: " << entry.raw_name << '\n'
-                          << "NAM: " << field_mistmatch_output(result.name, entry.expected.name) << '\n'
-                          << "HOS: " << field_mistmatch_output(result.host, entry.expected.host) << '\n'
-                          << "REA: " << field_mistmatch_output(result.reassortant, entry.expected.reassortant) << '\n'
-                          << "PAS: " << field_mistmatch_output(result.passage, entry.expected.passage) << '\n'
-                          << "EXT: " << field_mistmatch_output(result.extra, entry.expected.extra) << '\n';
-                for (const auto& msg : result.messages)
-                    std::cerr << "MSG: " << msg << '\n';
-                std::cerr << '\n';
+                fmt::print("{}\n", result);
                 ++errors;
             }
-            else {
-                for (const auto& msg : result.messages)
-                    std::cerr << "MSG: " << msg << '\n';
+            else if (!result.messages.empty()) {
+                fmt::print("{}\n", result);
             }
         }
         catch (std::exception& err) {
-            std::cout << "SRC: " << entry.raw_name << '\n' << "ERR: " << err.what() << '\n';
+            fmt::print(stderr, "ERROR: SRC: {}: {}\n", entry.raw_name, err);
             throw;
         }
     }
