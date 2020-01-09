@@ -136,21 +136,18 @@ namespace acmacs::virus
 
 // ----------------------------------------------------------------------
 
-template <> struct fmt::formatter<acmacs::virus::type_subtype_t>
+template <> struct fmt::formatter<acmacs::virus::type_subtype_t> : public fmt::formatter<acmacs::fmt_default_formatter>
 {
-    template <typename ParseContext> constexpr auto parse(ParseContext& ctx) { return ctx.begin(); }
     template <typename FormatContext> auto format(const acmacs::virus::type_subtype_t& ts, FormatContext& ctx) { return format_to(ctx.out(), "{}", static_cast<std::string_view>(ts)); }
 };
 
-template <> struct fmt::formatter<acmacs::virus::parse_result_t::message_t>
+template <> struct fmt::formatter<acmacs::virus::parse_result_t::message_t> : public fmt::formatter<acmacs::fmt_default_formatter>
 {
-    template <typename ParseContext> constexpr auto parse(ParseContext& ctx) { return ctx.begin(); }
     template <typename FormatContext> auto format(const acmacs::virus::parse_result_t::message_t& msg, FormatContext& ctx) { return format_to(ctx.out(), "{}: \"{}\"", msg.key, msg.value); }
 };
 
-template <> struct fmt::formatter<acmacs::virus::parse_result_t>
+template <> struct fmt::formatter<acmacs::virus::parse_result_t> : public fmt::formatter<acmacs::fmt_default_formatter>
 {
-    template <typename ParseContext> constexpr auto parse(ParseContext& ctx) { return ctx.begin(); }
     template <typename FormatContext> auto format(const acmacs::virus::parse_result_t& res, FormatContext& ctx)
     {
         format_to(ctx.out(), "{}", res.name);
