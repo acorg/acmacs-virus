@@ -140,7 +140,7 @@ namespace virus_name
         catch (Unrecognized&) {
         }
 
-        throw Unrecognized{fmt::format("No location in {}", name)};
+        throw Unrecognized{fmt::format("No location in \"{}\"", name)};
     }
 
     // // Faster version of location() for A(H3N2)/ and A(H1N1)/ names without host field
