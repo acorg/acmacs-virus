@@ -79,12 +79,12 @@ void test_builtin()
         // TestData{"A-Rostov-CRIE-1-2018",                            parse_name_result_t{name_t{"A/ROSTOV/CRIE-1/2018"}, Reassortant{}, Passage{}, ""}}, // CRIE (Russia)
     };
 
-    const auto field_mistmatch_output = [](auto&& res, auto&& exp) {
-        if (res == exp)
-            return ::string::concat('"', acmacs::to_string(res), '"');
-        else
-            return ::string::concat("! \"", acmacs::to_string(res), "\"  vs. expected \"", acmacs::to_string(exp), '"');
-    };
+    // const auto field_mistmatch_output = [](auto&& res, auto&& exp) {
+    //     if (res == exp)
+    //         return ::string::concat('"', acmacs::to_string(res), '"');
+    //     else
+    //         return ::string::concat("! \"", acmacs::to_string(res), "\"  vs. expected \"", acmacs::to_string(exp), '"');
+    // };
 
     size_t errors = 0;
     for (const auto& entry : data) {
