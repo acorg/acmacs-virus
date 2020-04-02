@@ -101,18 +101,19 @@ namespace acmacs::virus
         {
             struct message_t
             {
-                const char* key;
-                std::string value;
-
-                message_t(const char* a_key, std::string a_value) : key(a_key), value(a_value) {}
-                message_t(const char* a_key, std::string_view a_value) : key(a_key), value(a_value) {}
-                message_t(const char* a_key) : key(a_key) {}
                 constexpr static inline const char* unrecognized = "unrecognized";
                 constexpr static inline const char* unrecognized_passage = "unrecognized-passage";
                 constexpr static inline const char* location_not_found = "location-not-found";
                 constexpr static inline const char* invalid_year = "invalid-year";
                 constexpr static inline const char* isolation_absent = "isolation-absent";
                 constexpr static inline const char* invalid_host = "invalid-host";
+
+                const char* key;
+                std::string value;
+
+                message_t(const char* a_key, std::string a_value) : key(a_key), value(a_value) {}
+                message_t(const char* a_key, std::string_view a_value) : key(a_key), value(a_value) {}
+                message_t(const char* a_key = unrecognized) : key(a_key) {}
                 bool operator==(const char* a_key) const { return std::string_view(key) == a_key; }
                 bool operator==(const message_t& rhs) const { return std::string_view(key) == rhs.key && value == rhs.value; }
                 // friend inline std::ostream& operator<<(std::ostream& out, const message_t& msg) { return out << msg.key << ": \"" << msg.value << '"'; }
