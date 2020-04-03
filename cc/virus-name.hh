@@ -110,9 +110,12 @@ namespace acmacs::virus
 
                 const char* key;
                 std::string value;
+                std::string suppliment;
 
-                message_t(const char* a_key, std::string a_value) : key(a_key), value(a_value) {}
-                message_t(const char* a_key, std::string_view a_value) : key(a_key), value(a_value) {}
+                // message_t(const char* a_key, std::string a_value) : key(a_key), value(a_value) {}
+                message_t(const message_t&) = default;
+                message_t(const char* a_key, std::string_view a_value) : key{a_key}, value{a_value} {}
+                message_t(const char* a_key, std::string_view a_value, std::string_view a_suppliment) : key{a_key}, value{a_value}, suppliment{a_suppliment} {}
                 message_t(const char* a_key = unrecognized) : key(a_key) {}
                 bool operator==(const char* a_key) const { return std::string_view(key) == a_key; }
                 bool operator==(const message_t& rhs) const { return std::string_view(key) == rhs.key && value == rhs.value; }
