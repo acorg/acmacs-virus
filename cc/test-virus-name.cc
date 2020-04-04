@@ -73,8 +73,9 @@ void test_builtin()
 
         // nbci -- genbank
         TestData{"A/Anas platyrhynchos/Belgium/17330 2/2013",       parse_name_result_t{name_t{"A/ANAS PLATYRHYNCHOS/BELGIUM/17330 2/2013"}, host_t{"ANAS PLATYRHYNCHOS"}, Reassortant{}, Passage{}, "", {}, {}}},
-        TestData{"A/mallard/Balkhash/6304_HA/2014",                 parse_name_result_t{name_t{"A/MALLARD/BALKHASH/6304/2014"}, host_t{"MALLARD"}, Reassortant{}, Passage{}, "", {}, {}}},
-        // TestData{"",       parse_name_result_t{name_t{""}, host_t{""}, Reassortant{}, Passage{}, "", {}, {}}},
+        // TestData{"A/mallard/Balkhash/6304_HA/2014",                 parse_name_result_t{name_t{"A/MALLARD/BALKHASH/6304/2014"}, host_t{"MALLARD"}, Reassortant{}, Passage{}, "", {}, {}}},
+        TestData{"A/mallard/Balkhas/6304_HA/2014",                  parse_name_result_t{name_t{"A/MALLARD/BALKHAS/6304/2014"}, host_t{"MALLARD"}, Reassortant{}, Passage{}, "", {}, {}}},
+        TestData{"A/SWINE/NE/55024/2018",       parse_name_result_t{name_t{"A/SWINE/NE/55024/2018"}, host_t{"SWINE"}, Reassortant{}, Passage{}, "", {}, {}}},
         // TestData{"",       parse_name_result_t{name_t{""}, host_t{""}, Reassortant{}, Passage{}, "", {}, {}}},
         // TestData{"",       parse_name_result_t{name_t{""}, host_t{""}, Reassortant{}, Passage{}, "", {}, {}}},
 
@@ -121,18 +122,25 @@ void test_builtin()
 
 void test_from_command_line(int argc, const char* const* argv)
 {
-        for (int arg = 1; arg < argc; ++arg) {
-            virus_name::Name fields(argv[arg]);
-            std::cout << "SRC: " << argv[arg] << '\n'
-                      << "VT:  " << fields.virus_type << '\n'
-                      << "HST: " << fields.host << '\n'
-                      << "LOC: " << fields.location << '\n'
-                      << "ISO: " << fields.isolation << '\n'
-                      << "YEA: " << fields.year << '\n'
-                      << "REA: " << fields.reassortant << '\n'
-                      << "EXT: " << fields.extra << '\n'
-                      << '\n';
+    for (int arg = 1; arg < argc; ++arg) {
+        try {
+            const auto result = acmacs::virus::parse_name(argv[arg], acmacs::virus::parse_name_f::lookup_location, acmacs::debug::yes);
+            fmt::print("{}\n", result);
+            // virus_name::Name fields(argv[arg]);
+            // std::cout << "SRC: " << argv[arg] << '\n'
+            //           << "VT:  " << fields.virus_type << '\n'
+            //           << "HST: " << fields.host << '\n'
+            //           << "LOC: " << fields.location << '\n'
+            //           << "ISO: " << fields.isolation << '\n'
+            //           << "YEA: " << fields.year << '\n'
+            //           << "REA: " << fields.reassortant << '\n'
+            //           << "EXT: " << fields.extra << '\n'
+            //           << '\n';
         }
+        catch (std::exception& err) {
+            AD_ERROR("{}", err);
+        }
+    }
 
 } // test_from_command_line
 

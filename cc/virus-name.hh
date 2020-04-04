@@ -3,6 +3,7 @@
 #include <vector>
 #include <optional>
 
+#include "acmacs-base/debug.hh"
 #include "acmacs-base/uppercase.hh"
 #include "acmacs-base/fmt.hh"
 #include "acmacs-virus/virus.hh"
@@ -132,7 +133,7 @@ namespace acmacs::virus
             std::vector<message_t> messages{};
         };
 
-        parse_result_t parse_name(std::string_view source, parse_name_f flags = parse_name_f::lookup_location | parse_name_f::remove_extra_subtype);
+        parse_result_t parse_name(std::string_view source, parse_name_f flags = parse_name_f::lookup_location | parse_name_f::remove_extra_subtype, acmacs::debug dbg = acmacs::debug::no);
         void set_type_subtype(name_t& name, const type_subtype_t& type_subtype);
 
     } // namespace v2
@@ -147,7 +148,12 @@ template <> struct fmt::formatter<acmacs::virus::type_subtype_t> : public fmt::f
 
 template <> struct fmt::formatter<acmacs::virus::parse_result_t::message_t> : public fmt::formatter<acmacs::fmt_default_formatter>
 {
-    template <typename FormatContext> auto format(const acmacs::virus::parse_result_t::message_t& msg, FormatContext& ctx) { return format_to(ctx.out(), "{}: \"{}\"", msg.key, msg.value); }
+    template <typename FormatContext> auto format(const acmacs::virus::parse_result_t::message_t& msg, FormatContext& ctx) {
+        format_to(ctx.out(), "{}: \"{}\"", msg.key, msg.value);
+        if (!msg.suppliment.empty())
+            format_to(ctx.out(), " ({})", msg.suppliment);
+        return ctx.out();
+    }
 };
 
 template <> struct fmt::formatter<acmacs::virus::parse_result_t> : public fmt::formatter<acmacs::fmt_default_formatter>
