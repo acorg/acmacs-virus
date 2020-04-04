@@ -1,5 +1,6 @@
 #include <array>
 
+#include "acmacs-base/debug.hh"
 #include "acmacs-virus/virus-name.hh"
 
 static void test_from_command_line(int argc, const char* const* argv);
@@ -70,6 +71,13 @@ void test_builtin()
         TestData{"A/duck/Guangdong/02.11 DGQTXC195-P/2015(Mixed)",  parse_name_result_t{name_t{"A/DUCK/GUANGDONG/2.11 DGQTXC195-P/2015"}, host_t{"DUCK"}, Reassortant{}, Passage{}, "(MIXED)", {}, {}}},
         TestData{"A/swine/Chachoengsao/2003",                       parse_name_result_t{name_t{"A/SWINE/CHACHOENGSAO/UNKNOWN/2003"}, host_t{"SWINE"}, Reassortant{}, Passage{}, "", {}, {}}},
 
+        // nbci -- genbank
+        TestData{"A/Anas platyrhynchos/Belgium/17330 2/2013",       parse_name_result_t{name_t{"A/ANAS PLATYRHYNCHOS/BELGIUM/17330-2/2013"}, host_t{"ANAS PLATYRHYNCHOS"}, Reassortant{}, Passage{}, "", {}, {}}},
+        TestData{"A/mallard/Balkhash/6304_HA/2014",                 parse_name_result_t{name_t{"A/MALLARD/BALKHASH/6304/2014"}, host_t{"MALLARD"}, Reassortant{}, Passage{}, "", {}, {}}},
+        // TestData{"",       parse_name_result_t{name_t{""}, host_t{""}, Reassortant{}, Passage{}, "", {}, {}}},
+        // TestData{"",       parse_name_result_t{name_t{""}, host_t{""}, Reassortant{}, Passage{}, "", {}, {}}},
+        // TestData{"",       parse_name_result_t{name_t{""}, host_t{""}, Reassortant{}, Passage{}, "", {}, {}}},
+
         //TestData{"",          parse_name_result_t{name_t{""}, Reassortant{}, Passage{}, ""}},
 
         // TestData{"A/H3N2/SINGAPORE/INFIMH-16-0019/2016",            parse_name_result_t{name_t{"A(H3N2)/SINGAPORE/INFIMH-16-0019/2016"}, Reassortant{}, Passage{}, ""}},
@@ -91,15 +99,15 @@ void test_builtin()
         try {
             const auto result = parse_name(entry.raw_name);
             if (result != entry.expected) {
-                fmt::print("{}\n", result);
+                AD_ERROR("{}", result);
                 ++errors;
             }
             else if (!result.messages.empty()) {
-                fmt::print("{}\n", result);
+                AD_INFO("{}", result);
             }
         }
         catch (std::exception& err) {
-            fmt::print(stderr, "ERROR: SRC: {}: {}\n", entry.raw_name, err);
+            AD_ERROR("SRC: {}: {}", entry.raw_name, err);
             throw;
         }
     }
