@@ -12,7 +12,7 @@
 // ----------------------------------------------------------------------
 
 #define SRE_AB "([AB])"
-#define SRE_HOST "(?:\\s*([A-Z \\-_]+)\\s*/)?"
+#define SRE_HOST "(?:\\s*([A-Z0-9 \\-_]+)\\s*/)?" // digits in HOST: A/CLOACAL SWAB_ECE1/BELGIUM/17330-45/2013
 // #define SRE_LOC "([A-Z \\-\\.,'&_]{2,})"  // no digits!, otherwise possibility to omit / after LOC does not work
 #define SRE_LOC "([A-Z0-9 \\-\\.,'&_\\?]{2,})"
 #define SRE_LOC_NO_DIGITS "([A-Z \\-\\.,'&_]{2,})"
