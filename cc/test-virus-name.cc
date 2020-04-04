@@ -72,7 +72,7 @@ void test_builtin()
         TestData{"A/swine/Chachoengsao/2003",                       parse_name_result_t{name_t{"A/SWINE/CHACHOENGSAO/UNKNOWN/2003"}, host_t{"SWINE"}, Reassortant{}, Passage{}, "", {}, {}}},
 
         // nbci -- genbank
-        TestData{"A/Anas platyrhynchos/Belgium/17330 2/2013",       parse_name_result_t{name_t{"A/ANAS PLATYRHYNCHOS/BELGIUM/17330-2/2013"}, host_t{"ANAS PLATYRHYNCHOS"}, Reassortant{}, Passage{}, "", {}, {}}},
+        TestData{"A/Anas platyrhynchos/Belgium/17330 2/2013",       parse_name_result_t{name_t{"A/ANAS PLATYRHYNCHOS/BELGIUM/17330 2/2013"}, host_t{"ANAS PLATYRHYNCHOS"}, Reassortant{}, Passage{}, "", {}, {}}},
         TestData{"A/mallard/Balkhash/6304_HA/2014",                 parse_name_result_t{name_t{"A/MALLARD/BALKHASH/6304/2014"}, host_t{"MALLARD"}, Reassortant{}, Passage{}, "", {}, {}}},
         // TestData{"",       parse_name_result_t{name_t{""}, host_t{""}, Reassortant{}, Passage{}, "", {}, {}}},
         // TestData{"",       parse_name_result_t{name_t{""}, host_t{""}, Reassortant{}, Passage{}, "", {}, {}}},

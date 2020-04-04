@@ -125,6 +125,7 @@ struct name_data_t
 
 static bool check_location(std::string_view source, acmacs::virus::v2::parse_name_f flags);
 static location_t fix_location(std::string_view source, acmacs::virus::v2::parse_name_f flags, std::vector<acmacs::virus::v2::parse_result_t::message_t>* messages);
+static std::string fix_isolation(std::string_view source);
 static std::string fix_year(std::string_view source, std::string_view name, std::vector<acmacs::virus::v2::parse_result_t::message_t>* messages);
 static name_data_t isolation_with_location(const std::smatch& match, acmacs::virus::v2::parse_name_f flags, std::string_view name, std::vector<acmacs::virus::v2::parse_result_t::message_t>& messages);
 static name_data_t general(const std::smatch& match, acmacs::virus::v2::parse_name_f flags, std::string_view name, std::vector<acmacs::virus::v2::parse_result_t::message_t>& messages);
@@ -329,7 +330,7 @@ name_data_t general(const std::smatch& match, acmacs::virus::v2::parse_name_f fl
 
     if (auto host = match[2].str(); !host.empty()) {
         auto location = fix_location(::string::concat(host, ' ', match[3].str()), flags & parse_name_f::lookup_location, nullptr);
-        auto isolation = match[4].str();
+        auto isolation = fix_isolation(match[4].str());
         if (!location.name.empty()) { // Lyon/CHU -> Lyon CHU
             host.clear();
         }
@@ -401,6 +402,18 @@ location_t fix_location(std::string_view source, acmacs::virus::v2::parse_name_f
     }
 
 } // fix_location
+
+// ----------------------------------------------------------------------
+
+std::string fix_isolation(std::string_view source)
+{
+    using namespace ::string;
+    auto result = collapse_spaces(source); // perhaps replacing space with - is not a good idea -- replace_spaces(collapse_spaces(source), '-');
+    if (result.size() > 3 && result.substr(result.size() - 3) == "_HA") // isolation ending with _HA means HA segment in sequences from ncbi
+        result.erase(result.size() - 3);
+    return result;
+
+} // fix_isolation
 
 // ----------------------------------------------------------------------
 
