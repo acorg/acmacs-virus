@@ -160,7 +160,7 @@ template <> struct fmt::formatter<acmacs::virus::parse_result_t> : public fmt::f
 {
     template <typename FormatContext> auto format(const acmacs::virus::parse_result_t& res, FormatContext& ctx)
     {
-        format_to(ctx.out(), "{}", res.name);
+        format_to(ctx.out(), "\"{}\"", res.name);
         if (!res.reassortant.empty())
             format_to(ctx.out(), " R:\"{}\"", res.reassortant);
         if (!res.extra.empty())

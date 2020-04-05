@@ -68,7 +68,7 @@ void test_builtin()
         TestData{"A/Brisbane/01/2018  NYMC-X-311 (18/160)",         parse_name_result_t{name_t{"A/BRISBANE/1/2018"}, host_t{}, Reassortant{"NYMC-311"}, Passage{}, "(18/160)", {}, {}}}, // NIBSC
         TestData{"A/Antananarivo/1067/2016 CBER-11B C1.3",          parse_name_result_t{name_t{"A/ANTANANARIVO/1067/2016"}, host_t{}, Reassortant{"CBER-11B"}, Passage{}, "C1.3", {}, {}}}, // CDC
         TestData{"A/Montana/50/2016 CBER-07 D2.3",                  parse_name_result_t{name_t{"A/MONTANA/50/2016"}, host_t{}, Reassortant{"CBER-07"}, Passage{}, "D2.3", {}, {}}}, // CDC
-        TestData{"A/duck/Guangdong/02.11 DGQTXC195-P/2015(Mixed)",  parse_name_result_t{name_t{"A/DUCK/GUANGDONG/2.11 DGQTXC195-P/2015"}, host_t{"DUCK"}, Reassortant{}, Passage{}, "(MIXED)", {}, {}}},
+        TestData{"A/duck/Guangdong/02.11 DGQTXC195-P/2015(Mixed)",  parse_name_result_t{name_t{"A/DUCK/GUANGDONG/2.11 DGQTXC195-P/2015"}, host_t{"DUCK"}, Reassortant{}, Passage{}, "", {}, {}}}, // (MIXED) removed
         TestData{"A/swine/Chachoengsao/2003",                       parse_name_result_t{name_t{"A/SWINE/CHACHOENGSAO/UNKNOWN/2003"}, host_t{"SWINE"}, Reassortant{}, Passage{}, "", {}, {}}},
 
         // nbci -- genbank
@@ -100,7 +100,8 @@ void test_builtin()
         try {
             const auto result = parse_name(entry.raw_name);
             if (result != entry.expected) {
-                AD_ERROR("{}", result);
+                parse_name(entry.raw_name, parse_name_f::lookup_location, acmacs::debug::yes);
+                AD_ERROR("{} <-- \"{}\"  expected: \"{}\"", result, entry.raw_name, entry.expected);
                 ++errors;
             }
             else if (!result.messages.empty()) {
@@ -125,17 +126,7 @@ void test_from_command_line(int argc, const char* const* argv)
     for (int arg = 1; arg < argc; ++arg) {
         try {
             const auto result = acmacs::virus::parse_name(argv[arg], acmacs::virus::parse_name_f::lookup_location, acmacs::debug::yes);
-            fmt::print("{}\n", result);
-            // virus_name::Name fields(argv[arg]);
-            // std::cout << "SRC: " << argv[arg] << '\n'
-            //           << "VT:  " << fields.virus_type << '\n'
-            //           << "HST: " << fields.host << '\n'
-            //           << "LOC: " << fields.location << '\n'
-            //           << "ISO: " << fields.isolation << '\n'
-            //           << "YEA: " << fields.year << '\n'
-            //           << "REA: " << fields.reassortant << '\n'
-            //           << "EXT: " << fields.extra << '\n'
-            //           << '\n';
+            fmt::print("\"{}\" --> {}\n", argv[arg], result);
         }
         catch (std::exception& err) {
             AD_ERROR("{}", err);
