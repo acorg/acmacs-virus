@@ -14,7 +14,7 @@
 #define SRE_AB "([AB])"
 #define SRE_HOST "(?:\\s*([A-Z0-9 \\-_]+)\\s*/)?" // digits in HOST: A/CLOACAL SWAB_ECE1/BELGIUM/17330-45/2013
 // #define SRE_LOC "([A-Z \\-\\.,'&_]{2,})"  // no digits!, otherwise possibility to omit / after LOC does not work
-#define SRE_LOC "([A-Z0-9 \\-\\.,'&_\\?]{2,})"
+#define SRE_LOC "([A-Z0-9 \\-\\.,;'&_\\?]{2,})" // nbci has ; in location name: "A/MEXICAN DUCK/ESTADODEMEXICO; LERMA/HA_UIFMVZ377/2016"
 #define SRE_LOC_NO_DIGITS "([A-Z \\-\\.,'&_]{2,})"
 #define SRE_ISOLATION "\\s*0*([^/]+)\\s*"
 #define SRE_ISOLATION_WITH_LOC "\\s*([A-Z]{3,})([^A-Z/][^/]*)\\s*" // isolation without leading / cannot start with a letter
