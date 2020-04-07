@@ -30,7 +30,14 @@ namespace acmacs::virus::inline v2::name
 
     using parsing_messages_t = std::vector<name::parsing_message_t>;
 
-}
+    inline void merge(parsing_messages_t& target, parsing_messages_t&& new_messages)
+    {
+        const auto pos_target = static_cast<ssize_t>(target.size());
+        target.resize(target.size() + new_messages.size());
+        std::move(std::begin(new_messages), std::end(new_messages), std::next(std::begin(target), pos_target));
+    }
+
+} // namespace acmacs::virus::inline v2::name
 
 // ----------------------------------------------------------------------
 
@@ -49,8 +56,14 @@ template <> struct fmt::formatter<acmacs::virus::name::parsing_messages_t> : pub
 {
     template <typename FormatContext> auto format(const acmacs::virus::name::parsing_messages_t& messages, FormatContext& ctx)
     {
-        for (const auto& msg : messages)
-            format_to(ctx.out(), "{}\n", msg);
+        bool first = true;
+        for (const auto& msg : messages) {
+            if (first)
+                first = false;
+            else
+                format_to(ctx.out(), "\n");
+            format_to(ctx.out(), "{}", msg);
+        }
         return ctx.out();
     }
 };

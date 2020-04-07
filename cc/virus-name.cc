@@ -1,20 +1,43 @@
+#include "acmacs-base/argv.hh"
+#include "acmacs-base/read-file.hh"
+#include "acmacs-base/string-split.hh"
 #include "acmacs-virus/virus-name-normalize.hh"
 
 // ----------------------------------------------------------------------
+
+using namespace acmacs::argv;
+struct Options : public argv
+{
+    Options(int a_argc, const char* const a_argv[], on_error on_err = on_error::exit) : argv() { parse(a_argc, a_argv, on_err); }
+
+    option<str> from_file{*this, 'f', "from", desc{"read names from file (one per line)"}};
+    argument<str_array> names{*this, arg_name{"name"}};
+};
 
 int main(int argc, const char* const* argv)
 {
     int exit_code = 0;
     try {
-        if (argc > 1) {
-            for (int arg = 1; arg < argc; ++arg) {
-                const auto [fields, messages] = acmacs::virus::name::parse(argv[arg]);
-                fmt::print(stderr, " {}", messages);
-                fmt::print("{}\n", fields);
+        Options opt(argc, argv);
+        if (opt.from_file) {
+            const std::string lines = acmacs::file::read(opt.from_file);
+            for (const auto& line : acmacs::string::split(lines, "\n")) {
+                const auto [fields, messages] = acmacs::virus::name::parse(line);
+                if (!messages.empty())
+                    AD_WARNING("{}", messages);
+                fmt::print("{} -> {}\n", line, fields);
+            }
+        }
+        else if (!opt.names.empty()) {
+            for (const auto& src : opt.names) {
+                const auto [fields, messages] = acmacs::virus::name::parse(src);
+                if (!messages.empty())
+                    AD_WARNING("{}", messages);
+                fmt::print("{} -> {}\n", src, fields);
             }
         }
         else
-            throw std::runtime_error{fmt::format("Usage: {} <name> ...", argv[0])};
+            throw std::runtime_error{fmt::format("Usage: {} [-h] [-f <filename>] [<name> ...]", argv[0])};
     }
     catch (std::exception& err) {
         fmt::print(stderr, "ERROR: {}\n", err);

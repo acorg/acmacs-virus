@@ -17,9 +17,11 @@ namespace acmacs::virus::inline v2::name
         Reassortant reassortant;
         Passage passage;
         // aa_substitutions
-        std::string extra;
+        std::vector<std::string> extra;
         std::string country;
         std::string continent;
+
+        bool empty() const noexcept { return location.empty(); }
     };
 
     std::pair<fields_t, parsing_messages_t> parse(std::string_view source);
@@ -34,13 +36,13 @@ template <> struct fmt::formatter<acmacs::virus::name::fields_t> : public fmt::f
     {
         format_to(ctx.out(), "{{\"{}\" \"{}\" \"{}\" \"{}\" \"{}\"", fields.subtype, fields.host, fields.location, fields.isolation, fields.year);
         if (!fields.extra.empty())
-            format_to(ctx.out(), "{{\"{}\"}}", fields.extra);
+            format_to(ctx.out(), " {}", fields.extra);
         if (!fields.reassortant.empty())
-            format_to(ctx.out(), "\"{}\"", fields.reassortant);
+            format_to(ctx.out(), " \"{}\"", fields.reassortant);
         if (!fields.passage.empty())
-            format_to(ctx.out(), "\"{}\"", fields.passage);
+            format_to(ctx.out(), " \"{}\"", fields.passage);
         if (!fields.country.empty())
-            format_to(ctx.out(), "{{\"{}\" {}}}", fields.country, fields.continent);
+            format_to(ctx.out(), " {{\"{}\" {}}}", fields.country, fields.continent);
         return format_to(ctx.out(), "}}");
     }
 };

@@ -408,6 +408,9 @@ bool check_host(std::string_view host)
         "GOOSE"sv,
         "PEACOCK"sv,
         "CAT"sv,
+        "DOMESTIC"sv,
+        "EQUINE"sv,
+        "SWINE"sv,
     };
 
     return std::find(std::begin(hosts), std::end(hosts), host) != std::end(hosts);
