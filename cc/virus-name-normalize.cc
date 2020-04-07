@@ -1,5 +1,6 @@
 #include "acmacs-base/string-split.hh"
 #include "acmacs-base/date.hh"
+#include "acmacs-base/regex.hh"
 #include "locationdb/locdb.hh"
 #include "acmacs-virus/virus-name-normalize.hh"
 
@@ -16,7 +17,8 @@ namespace acmacs::virus::inline v2::name
         std::string_view year_rest{};
     };
 
-    static bool check(const try_fields_t& input, fields_t& output, parsing_messages_t& messages);
+    static bool check(try_fields_t&& input, fields_t& output, parsing_messages_t& messages);
+    static bool check_subtype(std::string_view source, fields_t& output, parsing_messages_t& messages);
     static bool check_location(std::string_view source, fields_t& output, parsing_messages_t& messages);
     static bool check_year(std::string_view source, fields_t& output, parsing_messages_t& messages);
 
@@ -40,6 +42,7 @@ std::pair<acmacs::virus::name::fields_t, acmacs::virus::name::parsing_messages_t
           check(try_fields_t{.location=parts[0], .isolation=parts[1], .year_rest=parts[2]}, fields, messages);
           break;
       case 4:
+          check(try_fields_t{.subtype=parts[0], .location=parts[1], .isolation=parts[2], .year_rest=parts[3]}, fields, messages);
           break;
       case 5:
           break;
@@ -54,9 +57,11 @@ std::pair<acmacs::virus::name::fields_t, acmacs::virus::name::parsing_messages_t
 
 // ----------------------------------------------------------------------
 
-bool acmacs::virus::name::check(const try_fields_t& input, fields_t& output, parsing_messages_t& messages)
+bool acmacs::virus::name::check(try_fields_t&& input, fields_t& output, parsing_messages_t& messages)
 {
-    if (check_location(input.location, output, messages) && check_year(input.year_rest, output, messages)) {
+    output = fields_t{};
+    messages.clear();
+    if (check_location(input.location, output, messages) && check_year(input.year_rest, output, messages) && check_subtype(input.subtype, output, messages)) {
         output.isolation = input.isolation;
         return true;
     }
@@ -64,6 +69,54 @@ bool acmacs::virus::name::check(const try_fields_t& input, fields_t& output, par
     return false;
 
 } // acmacs::virus::name::check
+
+// ----------------------------------------------------------------------
+
+bool acmacs::virus::name::check_subtype(std::string_view source, fields_t& output, parsing_messages_t& messages)
+{
+#include "acmacs-base/global-constructors-push.hh"
+    static const std::regex re_a{"^A(?:"
+                                 "\\((H\\d{1,2}(?:N\\d{1,2})?)\\)" // $1
+                                 "|"
+                                 "(H\\d{1,2}(?:N\\d{1,2})?)" // $2
+                                 ")$"};
+#include "acmacs-base/diagnostics-pop.hh"
+
+    try {
+        switch (source.size()) {
+            case 0:
+                break;
+            case 1:
+                switch (source.front()) {
+                    case 'A':
+                    case 'B':
+                        output.subtype = type_subtype_t{source};
+                        break;
+                    default:
+                        throw std::exception{};
+                }
+                break;
+            default:
+                if (std::cmatch mch; std::regex_match(std::begin(source), std::end(source), mch, re_a)) {
+                    if (mch.length(1))
+                        output.subtype = type_subtype_t{fmt::format("A({})", mch.str(1))};
+                    else if (mch.length(2))
+                        output.subtype = type_subtype_t{fmt::format("A({})", mch.str(2))};
+                    else
+                        throw std::exception{};
+                }
+                else
+                    throw std::exception{};
+                break;
+        }
+        return true;
+    }
+    catch (std::exception&) {
+        messages.emplace_back(parsing_message_t::invalid_subtype, source);
+        return false;
+    }
+
+} // acmacs::virus::name::check_subtype
 
 // ----------------------------------------------------------------------
 
