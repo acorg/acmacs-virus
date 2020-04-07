@@ -21,12 +21,19 @@ int main(int argc, const char* const* argv)
         Options opt(argc, argv);
         if (opt.from_file) {
             const std::string lines = acmacs::file::read(opt.from_file);
+            size_t lines_read{0}, succeeded{0}, failed{0};
             for (const auto& line : acmacs::string::split(lines, "\n")) {
+                ++lines_read;
                 const auto [fields, messages] = acmacs::virus::name::parse(line);
-                if (!messages.empty())
-                    AD_WARNING("{}", messages);
-                fmt::print("{} -> {}\n", line, fields);
+                if (!messages.empty()) {
+                    ++failed;
+                    // AD_WARNING("{}", messages);
+                }
+                else
+                    ++succeeded;
+                // fmt::print("{} -> {}\n", line, fields);
             }
+            fmt::print("Lines: {:6d}\nGood:  {:6d}\nBad:   {:6d}\n", lines_read, succeeded, failed);
         }
         else if (!opt.names.empty()) {
             for (const auto& src : opt.names) {
