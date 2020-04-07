@@ -51,6 +51,8 @@ namespace acmacs::virus::inline v2
             return value_;
         }
 
+        bool contains(std::string_view sub) const { return value_.find(sub) != std::string::npos; }
+
         constexpr char type() const
         {
             if (value_.empty())
