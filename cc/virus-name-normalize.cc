@@ -19,6 +19,7 @@ namespace acmacs::virus::inline v2::name
 
     static bool check(try_fields_t&& input, fields_t& output, parsing_messages_t& messages);
     static bool check_subtype(std::string_view source, fields_t& output, parsing_messages_t& messages);
+    static bool check_host(std::string_view source, fields_t& output, parsing_messages_t& messages);
     static bool check_location(std::string_view source, fields_t& output, parsing_messages_t& messages);
     static bool check_isolation(std::string_view source, fields_t& output, parsing_messages_t& messages);
     static bool check_year(std::string_view source, fields_t& output, parsing_messages_t& messages);
@@ -33,7 +34,9 @@ std::pair<acmacs::virus::name::fields_t, acmacs::virus::name::parsing_messages_t
     parsing_messages_t messages;
 
     const std::string upcased = ::string::upper(source);
-    const auto parts = acmacs::string::split(upcased, "/");
+    auto parts = acmacs::string::split(upcased, "/");
+    for (auto& part : parts)
+        part = ::string::strip(part);
     switch (parts.size()) {
       case 1:
           break;
@@ -46,6 +49,7 @@ std::pair<acmacs::virus::name::fields_t, acmacs::virus::name::parsing_messages_t
           check(try_fields_t{.subtype=parts[0], .location=parts[1], .isolation=parts[2], .year_rest=parts[3]}, fields, messages);
           break;
       case 5:
+          check(try_fields_t{.subtype=parts[0], .host=parts[1], .location=parts[2], .isolation=parts[3], .year_rest=parts[4]}, fields, messages);
           break;
     }
 
@@ -62,7 +66,7 @@ bool acmacs::virus::name::check(try_fields_t&& input, fields_t& output, parsing_
 {
     output = fields_t{};
     messages.clear();
-    if (check_location(input.location, output, messages) && check_year(input.year_rest, output, messages) && check_subtype(input.subtype, output, messages) && check_isolation(input.isolation, output, messages))
+    if (check_location(input.location, output, messages) && check_year(input.year_rest, output, messages) && check_subtype(input.subtype, output, messages) && check_host(input.host, output, messages) && check_isolation(input.isolation, output, messages))
         return true;
 
     return false;
@@ -116,6 +120,15 @@ bool acmacs::virus::name::check_subtype(std::string_view source, fields_t& outpu
     }
 
 } // acmacs::virus::name::check_subtype
+
+// ----------------------------------------------------------------------
+
+bool acmacs::virus::name::check_host(std::string_view source, fields_t& output, parsing_messages_t& messages)
+{
+    output.host = host_t{source};
+    return true;
+
+} // acmacs::virus::name::check_host
 
 // ----------------------------------------------------------------------
 

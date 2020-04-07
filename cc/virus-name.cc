@@ -30,7 +30,7 @@ int main(int argc, const char* const* argv)
                 if (!messages.empty()) {
                     ++failed;
                     if (opt.print_messages)
-                        fmt::print("{} @@ {}:{}\n", messages, opt.from_file, lines_read);
+                        fmt::print("{}\n{} @@ {}:{}\n", line, messages, opt.from_file, lines_read);
                 }
                 else
                     ++succeeded;
