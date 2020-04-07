@@ -20,6 +20,7 @@ namespace acmacs::virus::inline v2::name
     static bool check(try_fields_t&& input, fields_t& output, parsing_messages_t& messages);
     static bool check_subtype(std::string_view source, fields_t& output, parsing_messages_t& messages);
     static bool check_location(std::string_view source, fields_t& output, parsing_messages_t& messages);
+    static bool check_isolation(std::string_view source, fields_t& output, parsing_messages_t& messages);
     static bool check_year(std::string_view source, fields_t& output, parsing_messages_t& messages);
 
 } // namespace acmacs::virus::inline v2::name
@@ -61,10 +62,8 @@ bool acmacs::virus::name::check(try_fields_t&& input, fields_t& output, parsing_
 {
     output = fields_t{};
     messages.clear();
-    if (check_location(input.location, output, messages) && check_year(input.year_rest, output, messages) && check_subtype(input.subtype, output, messages)) {
-        output.isolation = input.isolation;
+    if (check_location(input.location, output, messages) && check_year(input.year_rest, output, messages) && check_subtype(input.subtype, output, messages) && check_isolation(input.isolation, output, messages))
         return true;
-    }
 
     return false;
 
@@ -142,6 +141,24 @@ bool acmacs::virus::name::check_location(std::string_view source, fields_t& outp
     }
 
 } // acmacs::virus::name::check_location
+
+// ----------------------------------------------------------------------
+
+bool acmacs::virus::name::check_isolation(std::string_view source, fields_t& output, parsing_messages_t& messages)
+{
+    if (const auto skip_zeros = source.find_first_not_of('0'); skip_zeros != std::string_view::npos)
+        output.isolation = source.substr(skip_zeros);
+    if (output.isolation.empty()) {
+        if (!source.empty()) {
+            output.isolation = source;
+            messages.emplace_back(parsing_message_t::invalid_isolation, source);
+        }
+        else
+            messages.emplace_back(parsing_message_t::isolation_absent, source);
+    }
+    return true;
+
+} // acmacs::virus::name::check_isolation
 
 // ----------------------------------------------------------------------
 

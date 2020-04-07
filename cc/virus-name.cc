@@ -11,6 +11,8 @@ struct Options : public argv
     Options(int a_argc, const char* const a_argv[], on_error on_err = on_error::exit) : argv() { parse(a_argc, a_argv, on_err); }
 
     option<str> from_file{*this, 'f', "from", desc{"read names from file (one per line)"}};
+    option<bool> print_messages{*this, 'm', desc{"print messages when read names from file"}};
+
     argument<str_array> names{*this, arg_name{"name"}};
 };
 
@@ -27,7 +29,8 @@ int main(int argc, const char* const* argv)
                 const auto [fields, messages] = acmacs::virus::name::parse(line);
                 if (!messages.empty()) {
                     ++failed;
-                    // AD_WARNING("{}", messages);
+                    if (opt.print_messages)
+                        fmt::print("{} @@ {}:{}\n", messages, opt.from_file, lines_read);
                 }
                 else
                     ++succeeded;

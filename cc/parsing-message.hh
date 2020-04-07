@@ -13,6 +13,7 @@ namespace acmacs::virus::inline v2::name
         constexpr static inline const char* invalid_host = "invalid-host";
         constexpr static inline const char* location_not_found = "location-not-found";
         constexpr static inline const char* isolation_absent = "isolation-absent";
+        constexpr static inline const char* invalid_isolation = "invalid-isolation";
         constexpr static inline const char* invalid_year = "invalid-year";
         constexpr static inline const char* unrecognized_passage = "unrecognized-passage";
 
