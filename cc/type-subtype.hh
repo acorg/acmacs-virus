@@ -14,8 +14,8 @@ namespace acmacs::virus::inline v2
         // template <typename T> explicit constexpr type_subtype_t(T&& value) : value_(std::forward<T>(value)) {}
 
         // constexpr operator const std::string &() const { return value_; }
-        constexpr operator std::string_view() const { return value_; }
-        constexpr std::string_view operator*() const { return value_; }
+        operator std::string_view() const { return value_; }
+        std::string_view operator*() const { return value_; }
         // constexpr const std::string& operator*() const { return value_; }
         // constexpr const std::string* operator->() const { return &value_; }
         // constexpr const std::string& get() const { return value_; }
@@ -53,7 +53,7 @@ namespace acmacs::virus::inline v2
 
         bool contains(std::string_view sub) const { return value_.find(sub) != std::string::npos; }
 
-        constexpr char type() const
+        char type() const
         {
             if (value_.empty())
                 return '?';
