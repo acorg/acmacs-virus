@@ -1,7 +1,7 @@
 #include <array>
 
 #include "acmacs-base/debug.hh"
-#include "acmacs-virus/virus-name.hh"
+#include "acmacs-virus/virus-name-parse.hh"
 
 static void test_from_command_line(int argc, const char* const* argv);
 static void test_builtin();
