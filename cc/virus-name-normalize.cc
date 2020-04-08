@@ -24,7 +24,7 @@ namespace acmacs::virus::inline v2::name
     static bool check_isolation(std::string_view source, fields_t* output = nullptr, parsing_messages_t* messages = nullptr, std::string_view name={});
     static bool check_year(std::string_view source, fields_t* output = nullptr, parsing_messages_t* messages = nullptr, std::string_view name={});
     static bool host_confusing_with_location(std::string_view source);
-    static void host_location_fix(try_fields_t& input, fields_t& output);
+    static void host_location_fix(try_fields_t& input, fields_t& output, std::string_view name);
     static std::string check_reassortant_in_front(std::string_view source, fields_t& output, parsing_messages_t& messages);
 
     inline void add_message(parsing_messages_t* messages, const char* key, std::string_view value, std::string_view source)
@@ -88,7 +88,7 @@ bool acmacs::virus::name::check(try_fields_t&& input, fields_t& output, parsing_
     output = fields_t{};
     // messages.clear();
     if (check_location(input.location, &output, &messages, name)) {
-        host_location_fix(input, output);
+        host_location_fix(input, output, name);
         if (check_year(input.year_rest, &output, &messages, name) && check_subtype(input.subtype, &output, &messages, name) && check_host(input.host, &output, &messages, name) &&
             check_isolation(input.isolation, &output, &messages, name))
             return true;
@@ -160,15 +160,36 @@ bool acmacs::virus::name::check_host(std::string_view source, fields_t* output, 
 
 std::optional<acmacs::virus::name::location_data_t> acmacs::virus::name::location_lookup(std::string_view source)
 {
-    try {
+    const auto look = [](std::string_view look_for) {
         const auto& locdb = get_locdb();
-        const auto loc = locdb.find(source);
+        const auto loc = locdb.find(look_for);
         const auto country = loc.country();
         return location_data_t{.name = loc.name, .country = std::string{country}, .continent = std::string{locdb.continent_of_country(country)}};
+    };
+
+    try {
+        return look(source);
     }
     catch (LocationNotFound& /*err*/) {
-        return std::nullopt;
     }
+
+    using namespace std::string_view_literals;
+    using pp = std::pair<std::string_view, std::string_view>;
+    static std::array common_abbreviations{
+        pp{"UK"sv, "UNITED KINGDOM"sv},
+        pp{"NY"sv, "NEW YORK"sv},
+    };
+
+    try {
+        for (const auto& [e1, e2] : common_abbreviations) {
+            if (e1 == source)
+                return look(e2);
+        }
+    }
+    catch (LocationNotFound& /*err*/) {
+    }
+
+    return std::nullopt;
 
 } // acmacs::virus::name::location_lookup
 
@@ -176,11 +197,6 @@ std::optional<acmacs::virus::name::location_data_t> acmacs::virus::name::locatio
 
 bool acmacs::virus::name::check_location(std::string_view source, fields_t* output, parsing_messages_t* messages, std::string_view name)
 {
-    if (source.size() < 3) {
-        add_message(messages, parsing_message_t::location_not_found, source, name);
-        return false;
-    }
-
     if (const auto loc = location_lookup(source); loc.has_value()) {
         if (output) {
             output->location = loc->name;
@@ -295,8 +311,16 @@ bool acmacs::virus::name::host_confusing_with_location(std::string_view source)
 
 // ----------------------------------------------------------------------
 
-void acmacs::virus::name::host_location_fix(try_fields_t& input, fields_t& output)
+void acmacs::virus::name::host_location_fix(try_fields_t& input, fields_t& output, std::string_view name)
 {
+    const auto use_loc_empty_host = [&](const location_data_t& loc) {
+        input.host = std::string_view{};
+        output.host = host_t{};
+        output.location = loc.name;
+        output.country = loc.country;
+        output.continent = loc.continent;
+    };
+
     // Location data is in output, location is valid, country in the output present
     if (const auto host_loc = location_lookup(input.host); host_loc.has_value()) {
         if (host_loc->name == output.country) { // A/India/Delhi/DB106/2009 -> A/Delhi/DB106/2009
@@ -304,14 +328,18 @@ void acmacs::virus::name::host_location_fix(try_fields_t& input, fields_t& outpu
             output.host = host_t{};
         }
         else if (host_loc->country == output.location) { // A/Cologne/Germany/01/2009 -> A/Cologne/01/2009
-            input.host = std::string_view{};
-            output.host = host_t{};
-            output.location = host_loc->name;
-            output.country = host_loc->country;
-            output.continent = host_loc->continent;
+            use_loc_empty_host(*host_loc);
+        }
+        else if (host_loc->country == output.country && host_loc->name != output.location) { // "B/Mount_Lebanon/Ain_W_zein/3/2019" -> "B/Mount Lebanon Ain W zein/3/2019"
+            if (const auto loc2 = location_lookup(fmt::format("{} {}", host_loc->name, output.location)); loc2.has_value()) {
+                use_loc_empty_host(*loc2);
+            }
+            else if (!host_confusing_with_location(input.host)) {
+                AD_WARNING("location and host are separate locations: loc:\"{}\" host:\"{}\" <-- \"{}\"", input.location, input.host, name);
+            }
         }
         else if (!host_confusing_with_location(input.host)) {
-            AD_WARNING("location and host are separate locations: loc:\"{}\" host:\"{}\"", input.location, input.host);
+            AD_WARNING("location and host are separate locations: loc:\"{}\" host:\"{}\" <-- \"{}\"", input.location, input.host, name);
         }
     }
 

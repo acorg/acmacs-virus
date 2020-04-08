@@ -33,7 +33,7 @@ void acmacs::virus::name::report_by_key(parsing_messages_t& messages)
             if (std::string_view{message.key} == parsing_message_t::location_not_found)
                 unrecognized_locations.count(message.value);
         }
-        AD_INFO("unrecognized locations {}", unrecognized_locations.report_sorted_max_first("    {first:30s} {second}\n"));
+        AD_INFO("unrecognized locations ({})\n{}", unrecognized_locations.size(), unrecognized_locations.report_sorted_max_first("    {first:40s} {second:4d}\n"));
     }
 
 } // acmacs::virus::name::report_by_key
