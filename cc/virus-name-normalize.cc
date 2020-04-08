@@ -17,20 +17,20 @@ namespace acmacs::virus::inline v2::name
         std::string_view year_rest{};
     };
 
-    static bool check(try_fields_t&& input, fields_t& output, parsing_messages_t& messages);
-    static bool check_subtype(std::string_view source, fields_t* output = nullptr, parsing_messages_t* messages = nullptr);
-    static bool check_host(std::string_view source, fields_t* output = nullptr, parsing_messages_t* messages = nullptr);
-    static bool check_location(std::string_view source, fields_t* output = nullptr, parsing_messages_t* messages = nullptr);
-    static bool check_isolation(std::string_view source, fields_t* output = nullptr, parsing_messages_t* messages = nullptr);
-    static bool check_year(std::string_view source, fields_t* output = nullptr, parsing_messages_t* messages = nullptr);
+    static bool check(try_fields_t&& input, fields_t& output, parsing_messages_t& messages, std::string_view name);
+    static bool check_subtype(std::string_view source, fields_t* output = nullptr, parsing_messages_t* messages = nullptr, std::string_view name={});
+    static bool check_host(std::string_view source, fields_t* output = nullptr, parsing_messages_t* messages = nullptr, std::string_view name={});
+    static bool check_location(std::string_view source, fields_t* output = nullptr, parsing_messages_t* messages = nullptr, std::string_view name={});
+    static bool check_isolation(std::string_view source, fields_t* output = nullptr, parsing_messages_t* messages = nullptr, std::string_view name={});
+    static bool check_year(std::string_view source, fields_t* output = nullptr, parsing_messages_t* messages = nullptr, std::string_view name={});
     static bool host_confusing_with_location(std::string_view source);
     static void host_location_fix(try_fields_t& input, fields_t& output);
     static std::string check_reassortant_in_front(std::string_view source, fields_t& output, parsing_messages_t& messages);
 
-    inline void add_message(parsing_messages_t* messages, const char* key, std::string_view value)
+    inline void add_message(parsing_messages_t* messages, const char* key, std::string_view value, std::string_view source)
     {
         if (messages)
-            messages->emplace_back(key, value);
+            messages->emplace_back(key, value, source);
     }
 
     // ----------------------------------------------------------------------
@@ -48,50 +48,49 @@ namespace acmacs::virus::inline v2::name
 
 // ----------------------------------------------------------------------
 
-std::pair<acmacs::virus::name::fields_t, acmacs::virus::name::parsing_messages_t> acmacs::virus::name::parse(std::string_view source)
+acmacs::virus::name::fields_t acmacs::virus::name::parse(std::string_view source, parsing_messages_t& messages)
 {
     fields_t output;
-    parsing_messages_t messages;
 
     std::string upcased = ::string::upper(source);
     upcased = check_reassortant_in_front(upcased, output, messages);
 
-    auto parts = acmacs::string::split(upcased, "/");
-    for (auto& part : parts)
-        part = ::string::strip(part);
+    const auto parts = acmacs::string::split(upcased, "/", acmacs::string::Split::StripKeepEmpty);
+    // for (auto& part : parts)
+    //     part = ::string::strip(part);
     switch (parts.size()) {
       case 1:
           break;
       case 2:
           break;
       case 3:
-          check(try_fields_t{.location=parts[0], .isolation=parts[1], .year_rest=parts[2]}, output, messages);
+          check(try_fields_t{.location=parts[0], .isolation=parts[1], .year_rest=parts[2]}, output, messages, source);
           break;
       case 4:
-          check(try_fields_t{.subtype=parts[0], .location=parts[1], .isolation=parts[2], .year_rest=parts[3]}, output, messages);
+          check(try_fields_t{.subtype=parts[0], .location=parts[1], .isolation=parts[2], .year_rest=parts[3]}, output, messages, source);
           break;
       case 5:
-          check(try_fields_t{.subtype=parts[0], .host=parts[1], .location=parts[2], .isolation=parts[3], .year_rest=parts[4]}, output, messages);
+          check(try_fields_t{.subtype=parts[0], .host=parts[1], .location=parts[2], .isolation=parts[3], .year_rest=parts[4]}, output, messages, source);
           break;
     }
 
-    if (!output.empty() || !messages.empty())
-        return {output, messages};
-    else
-        return {fields_t{}, parsing_messages_t{{parsing_message_t::unrecognized, source}}};
+    if (output.empty() && messages.empty())
+        messages.emplace_back(parsing_message_t::unrecognized, source);
+
+    return output;
 
 } // acmacs::virus::name::parse
 
 // ----------------------------------------------------------------------
 
-bool acmacs::virus::name::check(try_fields_t&& input, fields_t& output, parsing_messages_t& messages)
+bool acmacs::virus::name::check(try_fields_t&& input, fields_t& output, parsing_messages_t& messages, std::string_view name)
 {
     output = fields_t{};
-    messages.clear();
-    if (check_location(input.location, &output, &messages)) {
+    // messages.clear();
+    if (check_location(input.location, &output, &messages, name)) {
         host_location_fix(input, output);
-        if (check_year(input.year_rest, &output, &messages) && check_subtype(input.subtype, &output, &messages) && check_host(input.host, &output, &messages) &&
-            check_isolation(input.isolation, &output, &messages))
+        if (check_year(input.year_rest, &output, &messages, name) && check_subtype(input.subtype, &output, &messages, name) && check_host(input.host, &output, &messages, name) &&
+            check_isolation(input.isolation, &output, &messages, name))
             return true;
     }
     return false;
@@ -100,7 +99,7 @@ bool acmacs::virus::name::check(try_fields_t&& input, fields_t& output, parsing_
 
 // ----------------------------------------------------------------------
 
-bool acmacs::virus::name::check_subtype(std::string_view source, fields_t* output, parsing_messages_t* messages)
+bool acmacs::virus::name::check_subtype(std::string_view source, fields_t* output, parsing_messages_t* messages, std::string_view name)
 {
 #include "acmacs-base/global-constructors-push.hh"
     static const std::regex re_a{"^A(?:"
@@ -141,7 +140,7 @@ bool acmacs::virus::name::check_subtype(std::string_view source, fields_t* outpu
         return true;
     }
     catch (std::exception&) {
-        add_message(messages, parsing_message_t::invalid_subtype, source);
+        add_message(messages, parsing_message_t::invalid_subtype, source, name);
         return false;
     }
 
@@ -149,7 +148,7 @@ bool acmacs::virus::name::check_subtype(std::string_view source, fields_t* outpu
 
 // ----------------------------------------------------------------------
 
-bool acmacs::virus::name::check_host(std::string_view source, fields_t* output, parsing_messages_t* messages)
+bool acmacs::virus::name::check_host(std::string_view source, fields_t* output, parsing_messages_t* /*messages*/, std::string_view /*name*/)
 {
     if (output)
         output->host = host_t{source};
@@ -175,10 +174,10 @@ std::optional<acmacs::virus::name::location_data_t> acmacs::virus::name::locatio
 
 // ----------------------------------------------------------------------
 
-bool acmacs::virus::name::check_location(std::string_view source, fields_t* output, parsing_messages_t* messages)
+bool acmacs::virus::name::check_location(std::string_view source, fields_t* output, parsing_messages_t* messages, std::string_view name)
 {
     if (source.size() < 3) {
-        add_message(messages, parsing_message_t::location_not_found, source);
+        add_message(messages, parsing_message_t::location_not_found, source, name);
         return false;
     }
 
@@ -191,7 +190,7 @@ bool acmacs::virus::name::check_location(std::string_view source, fields_t* outp
         return true;
     }
     else {
-        add_message(messages, parsing_message_t::location_not_found, source);
+        add_message(messages, parsing_message_t::location_not_found, source, name);
         return false;
     }
 
@@ -199,17 +198,17 @@ bool acmacs::virus::name::check_location(std::string_view source, fields_t* outp
 
 // ----------------------------------------------------------------------
 
-bool acmacs::virus::name::check_isolation(std::string_view source, fields_t* output, parsing_messages_t* messages)
+bool acmacs::virus::name::check_isolation(std::string_view source, fields_t* output, parsing_messages_t* messages, std::string_view name)
 {
     if (const auto skip_zeros = source.find_first_not_of('0'); skip_zeros != std::string_view::npos)
         output->isolation = source.substr(skip_zeros);
     if (output && output->isolation.empty()) {
         if (!source.empty()) {
             output->isolation = source;
-            add_message(messages, parsing_message_t::invalid_isolation, source);
+            add_message(messages, parsing_message_t::invalid_isolation, source, name);
         }
         else
-            add_message(messages, parsing_message_t::isolation_absent, source);
+            add_message(messages, parsing_message_t::isolation_absent, source, name);
     }
     return true;
 
@@ -217,7 +216,7 @@ bool acmacs::virus::name::check_isolation(std::string_view source, fields_t* out
 
 // ----------------------------------------------------------------------
 
-bool acmacs::virus::name::check_year(std::string_view source, fields_t* output, parsing_messages_t* messages)
+bool acmacs::virus::name::check_year(std::string_view source, fields_t* output, parsing_messages_t* messages, std::string_view name)
 {
 #include "acmacs-base/global-constructors-push.hh"
     static const auto current_year = date::current_year();
@@ -251,7 +250,7 @@ bool acmacs::virus::name::check_year(std::string_view source, fields_t* output, 
         return true;
     }
     catch (std::exception&) {
-        add_message(messages, parsing_message_t::invalid_year, source);
+        add_message(messages, parsing_message_t::invalid_year, source, name);
         return false;
     }
 
@@ -320,7 +319,7 @@ void acmacs::virus::name::host_location_fix(try_fields_t& input, fields_t& outpu
 
 // ----------------------------------------------------------------------
 
-std::string acmacs::virus::name::check_reassortant_in_front(std::string_view source, fields_t& output, parsing_messages_t& /*messages*/)
+std::string acmacs::virus::name::check_reassortant_in_front(std::string_view source, fields_t& output, parsing_messages_t& messages)
 {
     if (source.empty()) {
         AD_WARNING("check_reassortant_in_front: empty source");
@@ -346,6 +345,9 @@ std::string acmacs::virus::name::check_reassortant_in_front(std::string_view sou
     }
     if (result.size() > 3 && !output.reassortant.empty() && result[0] == 'H' && result[1] == 'Y' && result[2] == ' ')
         result.erase(result.begin(), std::next(result.begin(), 3));
+
+    if (result.empty() && !output.reassortant.empty())
+        messages.emplace_back(parsing_message_t::empty_name, "", source);
 
     // AD_DEBUG("check_reassortant_in_front \"{}\" -> \"{}\" R:\"{}\"", source, result, *output.reassortant);
 

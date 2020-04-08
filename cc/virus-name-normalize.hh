@@ -24,7 +24,7 @@ namespace acmacs::virus::inline v2::name
         bool empty() const noexcept { return location.empty(); }
     };
 
-    std::pair<fields_t, parsing_messages_t> parse(std::string_view source);
+    fields_t parse(std::string_view source, parsing_messages_t& messages);
 
 } // namespace acmacs::virus::inline v2
 

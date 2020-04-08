@@ -5,7 +5,6 @@
 #include <cctype>
 
 #include "acmacs-base/fmt.hh"
-#include "acmacs-base/string-split.hh"
 #include "acmacs-base/date.hh"
 #include "acmacs-virus/passage.hh"
 

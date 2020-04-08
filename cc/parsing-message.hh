@@ -9,6 +9,7 @@ namespace acmacs::virus::inline v2::name
     struct parsing_message_t
     {
         constexpr static inline const char* unrecognized = "unrecognized";
+        constexpr static inline const char* empty_name = "empty-name";
         constexpr static inline const char* invalid_subtype = "invalid-subtype";
         constexpr static inline const char* invalid_host = "invalid-host";
         constexpr static inline const char* location_not_found = "location-not-found";
@@ -32,12 +33,8 @@ namespace acmacs::virus::inline v2::name
 
     using parsing_messages_t = std::vector<name::parsing_message_t>;
 
-    inline void merge(parsing_messages_t& target, parsing_messages_t&& new_messages)
-    {
-        const auto pos_target = static_cast<ssize_t>(target.size());
-        target.resize(target.size() + new_messages.size());
-        std::move(std::begin(new_messages), std::end(new_messages), std::next(std::begin(target), pos_target));
-    }
+    void merge(parsing_messages_t& target, parsing_messages_t&& new_messages);
+    void report_by_key(parsing_messages_t& messages);
 
 } // namespace acmacs::virus::inline v2::name
 
