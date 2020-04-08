@@ -1,4 +1,5 @@
 #include "acmacs-base/argv.hh"
+#include "acmacs-base/counter.hh"
 #include "acmacs-base/read-file.hh"
 #include "acmacs-base/string-split.hh"
 #include "acmacs-virus/virus-name-normalize.hh"
@@ -11,10 +12,15 @@ struct Options : public argv
     Options(int a_argc, const char* const a_argv[], on_error on_err = on_error::exit) : argv() { parse(a_argc, a_argv, on_err); }
 
     option<str> from_file{*this, 'f', "from", desc{"read names from file (one per line)"}};
-    option<bool> print_messages{*this, 'm', desc{"print messages when read names from file"}};
+    option<bool> print_messages{*this, 'm', desc{"print messages (when reading from file)"}};
+    option<bool> print_hosts{*this, "hosts", desc{"print all hosts found (when reading from file)"}};
 
     argument<str_array> names{*this, arg_name{"name"}};
 };
+
+static void names_from_file(const Options& opt);
+
+// ----------------------------------------------------------------------
 
 int main(int argc, const char* const* argv)
 {
@@ -22,21 +28,7 @@ int main(int argc, const char* const* argv)
     try {
         Options opt(argc, argv);
         if (opt.from_file) {
-            const std::string lines = acmacs::file::read(opt.from_file);
-            size_t lines_read{0}, succeeded{0}, failed{0};
-            for (const auto& line : acmacs::string::split(lines, "\n")) {
-                ++lines_read;
-                const auto [fields, messages] = acmacs::virus::name::parse(line);
-                if (!messages.empty()) {
-                    ++failed;
-                    if (opt.print_messages)
-                        fmt::print("{}\n{} @@ {}:{}\n", line, messages, opt.from_file, lines_read);
-                }
-                else
-                    ++succeeded;
-                // fmt::print("{} -> {}\n", line, fields);
-            }
-            fmt::print("Lines: {:6d}\nGood:  {:6d}\nBad:   {:6d}\n", lines_read, succeeded, failed);
+            names_from_file(opt);
         }
         else if (!opt.names.empty()) {
             for (const auto& src : opt.names) {
@@ -55,6 +47,37 @@ int main(int argc, const char* const* argv)
     }
     return exit_code;
 }
+
+// ----------------------------------------------------------------------
+
+void names_from_file(const Options& opt)
+{
+    acmacs::Counter<acmacs::virus::host_t> hosts;
+
+    const std::string lines = acmacs::file::read(opt.from_file);
+    size_t lines_read{0}, succeeded{0}, failed{0};
+    for (const auto& line : acmacs::string::split(lines, "\n")) {
+        ++lines_read;
+        const auto [fields, messages] = acmacs::virus::name::parse(line);
+        if (!messages.empty()) {
+            ++failed;
+            if (opt.print_messages)
+                fmt::print("{}\n{} @@ {}:{}\n", line, messages, opt.from_file, lines_read);
+        }
+        else
+            ++succeeded;
+        if (!fields.host.empty())
+            hosts.count(fields.host);
+        // fmt::print("{} -> {}\n", line, fields);
+    }
+    fmt::print("Lines: {:6d}\nGood:  {:6d}\nBad:   {:6d}\n", lines_read, succeeded, failed);
+    if (opt.print_hosts)
+        fmt::print("\nHosts ({})\n{}\n", hosts.size(), hosts.report_sorted_max_first("    {first:40s} {second}\n"));
+
+} // names_from_file
+
+// ----------------------------------------------------------------------
+
 
 // ----------------------------------------------------------------------
 /// Local Variables:
