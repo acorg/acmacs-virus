@@ -4,7 +4,7 @@
 #include <functional>
 #include <cctype>
 
-#include "acmacs-base/fmt.hh"
+#include "acmacs-base/string-join.hh"
 #include "acmacs-base/date.hh"
 #include "acmacs-virus/passage.hh"
 
@@ -492,7 +492,7 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
         }
     }
     // fmt::print(stderr, "parse_passage \"{}\" --> \"{}\"\n", source, data.parts);
-    return {Passage{::string::join("", data.parts)}, data.extra};
+    return {Passage{string::join("", data.parts)}, data.extra};
 
 } // acmacs::virus::parse_passage
 

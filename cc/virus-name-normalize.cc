@@ -1,8 +1,20 @@
 #include "acmacs-base/string-split.hh"
+#include "acmacs-base/string-join.hh"
 #include "acmacs-base/date.hh"
 #include "acmacs-base/regex.hh"
 #include "locationdb/locdb.hh"
 #include "acmacs-virus/virus-name-normalize.hh"
+
+// ----------------------------------------------------------------------
+
+std::string acmacs::virus::name::parsed_fields_t::name() const
+{
+    if (good())
+        return string::join("/", subtype, host, location, isolation, year);
+    else
+        return raw;
+
+} // acmacs::virus::name::parsed_fields_t::name
 
 // ----------------------------------------------------------------------
 
@@ -32,19 +44,19 @@ namespace acmacs::virus::inline v2::name
 
     using location_parts_t = std::vector<location_part_t>;
 
-    static bool check(try_fields_t&& input, fields_t& output, parsing_messages_t& messages, std::string_view name);
-    static bool check_subtype(std::string_view source, fields_t* output = nullptr, parsing_messages_t* messages = nullptr, std::string_view name={});
-    static bool check_host(std::string_view source, fields_t* output = nullptr, parsing_messages_t* messages = nullptr, std::string_view name={});
-    static bool check_location(std::string_view source, fields_t* output = nullptr, parsing_messages_t* messages = nullptr, std::string_view name={});
-    static bool check_isolation(std::string_view source, fields_t* output = nullptr, parsing_messages_t* messages = nullptr, std::string_view name={});
-    static bool check_year(std::string_view source, fields_t* output = nullptr, parsing_messages_t* messages = nullptr, std::string_view name={});
+    static bool check(try_fields_t&& input, parsed_fields_t& output, parsing_messages_t& messages, std::string_view name);
+    static bool check_subtype(std::string_view source, parsed_fields_t* output = nullptr, parsing_messages_t* messages = nullptr, std::string_view name={});
+    static bool check_host(std::string_view source, parsed_fields_t* output = nullptr, parsing_messages_t* messages = nullptr, std::string_view name={});
+    static bool check_location(std::string_view source, parsed_fields_t* output = nullptr, parsing_messages_t* messages = nullptr, std::string_view name={});
+    static bool check_isolation(std::string_view source, parsed_fields_t* output = nullptr, parsing_messages_t* messages = nullptr, std::string_view name={});
+    static bool check_year(std::string_view source, parsed_fields_t* output = nullptr, parsing_messages_t* messages = nullptr, std::string_view name={});
     static bool host_confusing_with_location(std::string_view source);
-    // static void host_location_fix(try_fields_t& input, fields_t& output, std::string_view name);
-    static void no_location_parts(std::string_view name, const std::vector<std::string_view>& parts, fields_t& output, parsing_messages_t& messages);
-    static void one_location_part(std::string_view name, const std::vector<std::string_view>& parts, const location_part_t& location_part, fields_t& output, parsing_messages_t& messages);
-    static void two_location_parts(std::string_view name, std::vector<std::string_view>& parts, const location_parts_t& location_parts, fields_t& output, parsing_messages_t& messages);
-    static location_parts_t find_location_parts(const std::vector<std::string_view>& parts, fields_t& output);
-    static std::string check_reassortant_in_front(std::string_view source, fields_t& output, parsing_messages_t& messages);
+    // static void host_location_fix(try_fields_t& input, parsed_fields_t& output, std::string_view name);
+    static void no_location_parts(std::string_view name, const std::vector<std::string_view>& parts, parsed_fields_t& output, parsing_messages_t& messages);
+    static void one_location_part(std::string_view name, const std::vector<std::string_view>& parts, const location_part_t& location_part, parsed_fields_t& output, parsing_messages_t& messages);
+    static void two_location_parts(std::string_view name, std::vector<std::string_view>& parts, const location_parts_t& location_parts, parsed_fields_t& output, parsing_messages_t& messages);
+    static location_parts_t find_location_parts(const std::vector<std::string_view>& parts, parsed_fields_t& output);
+    static std::string check_reassortant_in_front(std::string_view source, parsed_fields_t& output, parsing_messages_t& messages);
 
     static std::optional<location_data_t> location_lookup(std::string_view source);
 
@@ -71,9 +83,9 @@ template <> struct fmt::formatter<acmacs::virus::name::location_parts_t> : publi
 
 // ----------------------------------------------------------------------
 
-acmacs::virus::name::fields_t acmacs::virus::name::parse(std::string_view source, parsing_messages_t& messages)
+acmacs::virus::name::parsed_fields_t acmacs::virus::name::parse(std::string_view source, parsing_messages_t& messages)
 {
-    fields_t output;
+    parsed_fields_t output;
     const auto initial_number_of_messages = messages.size();
 
     std::string upcased = ::string::upper(source);
@@ -95,7 +107,7 @@ acmacs::virus::name::fields_t acmacs::virus::name::parse(std::string_view source
           break;
     }
 
-    if (output.empty() && initial_number_of_messages == messages.size())
+    if (!output.good() && initial_number_of_messages == messages.size())
         messages.emplace_back(parsing_message_t::unrecognized, source);
 
     return output;
@@ -104,7 +116,15 @@ acmacs::virus::name::fields_t acmacs::virus::name::parse(std::string_view source
 
 // ----------------------------------------------------------------------
 
-void acmacs::virus::name::one_location_part(std::string_view name, const std::vector<std::string_view>& parts, const location_part_t& location_part, fields_t& output, parsing_messages_t& messages)
+void acmacs::virus::name::no_location_parts(std::string_view name, const std::vector<std::string_view>& parts, parsed_fields_t& output, parsing_messages_t& messages)
+{
+    messages.emplace_back(parsing_message_t::location_field_not_found, name);
+
+} // acmacs::virus::name::no_location_parts
+
+// ----------------------------------------------------------------------
+
+void acmacs::virus::name::one_location_part(std::string_view name, const std::vector<std::string_view>& parts, const location_part_t& location_part, parsed_fields_t& output, parsing_messages_t& messages)
 {
     switch (location_part.part_no) {
         case 0:
@@ -128,7 +148,7 @@ void acmacs::virus::name::one_location_part(std::string_view name, const std::ve
 
 // ----------------------------------------------------------------------
 
-void acmacs::virus::name::two_location_parts(std::string_view name, std::vector<std::string_view>& parts, const location_parts_t& location_parts, fields_t& output, parsing_messages_t& messages)
+void acmacs::virus::name::two_location_parts(std::string_view name, std::vector<std::string_view>& parts, const location_parts_t& location_parts, parsed_fields_t& output, parsing_messages_t& messages)
 {
     if (host_confusing_with_location(parts[location_parts.front().part_no])) {
         one_location_part(name, parts, location_parts[1], output, messages);
@@ -156,17 +176,9 @@ void acmacs::virus::name::two_location_parts(std::string_view name, std::vector<
 
 // ----------------------------------------------------------------------
 
-void acmacs::virus::name::no_location_parts(std::string_view name, const std::vector<std::string_view>& parts, fields_t& output, parsing_messages_t& messages)
+bool acmacs::virus::name::check(try_fields_t&& input, parsed_fields_t& output, parsing_messages_t& messages, std::string_view name)
 {
-    messages.emplace_back(parsing_message_t::location_field_not_found, name);
-
-} // acmacs::virus::name::no_location_parts
-
-// ----------------------------------------------------------------------
-
-bool acmacs::virus::name::check(try_fields_t&& input, fields_t& output, parsing_messages_t& messages, std::string_view name)
-{
-    output = fields_t{};
+    output = parsed_fields_t{};
     // messages.clear();
     if (check_location(input.location, &output, &messages, name)) {
         if (check_year(input.year_rest, &output, &messages, name) && check_subtype(input.subtype, &output, &messages, name) && check_host(input.host, &output, &messages, name) &&
@@ -179,9 +191,9 @@ bool acmacs::virus::name::check(try_fields_t&& input, fields_t& output, parsing_
 
 // ----------------------------------------------------------------------
 
-// bool acmacs::virus::name::check(try_fields_t&& input, fields_t& output, parsing_messages_t& messages, std::string_view name)
+// bool acmacs::virus::name::check(try_fields_t&& input, parsed_fields_t& output, parsing_messages_t& messages, std::string_view name)
 // {
-//     output = fields_t{};
+//     output = parsed_fields_t{};
 //     // messages.clear();
 //     if (check_location(input.location, &output, &messages, name)) {
 //         host_location_fix(input, output, name);
@@ -195,7 +207,7 @@ bool acmacs::virus::name::check(try_fields_t&& input, fields_t& output, parsing_
 
 // ----------------------------------------------------------------------
 
-bool acmacs::virus::name::check_subtype(std::string_view source, fields_t* output, parsing_messages_t* messages, std::string_view name)
+bool acmacs::virus::name::check_subtype(std::string_view source, parsed_fields_t* output, parsing_messages_t* messages, std::string_view name)
 {
 #include "acmacs-base/global-constructors-push.hh"
     static const std::regex re_a{"^A(?:"
@@ -244,7 +256,7 @@ bool acmacs::virus::name::check_subtype(std::string_view source, fields_t* outpu
 
 // ----------------------------------------------------------------------
 
-bool acmacs::virus::name::check_host(std::string_view source, fields_t* output, parsing_messages_t* /*messages*/, std::string_view /*name*/)
+bool acmacs::virus::name::check_host(std::string_view source, parsed_fields_t* output, parsing_messages_t* /*messages*/, std::string_view /*name*/)
 {
     if (output)
         output->host = host_t{source};
@@ -295,7 +307,7 @@ std::optional<acmacs::virus::name::location_data_t> acmacs::virus::name::locatio
 
 // ----------------------------------------------------------------------
 
-bool acmacs::virus::name::check_location(std::string_view source, fields_t* output, parsing_messages_t* messages, std::string_view name)
+bool acmacs::virus::name::check_location(std::string_view source, parsed_fields_t* output, parsing_messages_t* messages, std::string_view name)
 {
     if (const auto loc = location_lookup(source); loc.has_value()) {
         if (output) {
@@ -314,7 +326,7 @@ bool acmacs::virus::name::check_location(std::string_view source, fields_t* outp
 
 // ----------------------------------------------------------------------
 
-acmacs::virus::name::location_parts_t acmacs::virus::name::find_location_parts(const std::vector<std::string_view>& parts, fields_t& output)
+acmacs::virus::name::location_parts_t acmacs::virus::name::find_location_parts(const std::vector<std::string_view>& parts, parsed_fields_t& output)
 {
     location_parts_t location_parts;
     for (size_t part_no = 0; part_no < parts.size(); ++part_no) {
@@ -327,7 +339,7 @@ acmacs::virus::name::location_parts_t acmacs::virus::name::find_location_parts(c
 
 // ----------------------------------------------------------------------
 
-bool acmacs::virus::name::check_isolation(std::string_view source, fields_t* output, parsing_messages_t* messages, std::string_view name)
+bool acmacs::virus::name::check_isolation(std::string_view source, parsed_fields_t* output, parsing_messages_t* messages, std::string_view name)
 {
     if (const auto skip_zeros = source.find_first_not_of('0'); skip_zeros != std::string_view::npos)
         output->isolation = source.substr(skip_zeros);
@@ -345,7 +357,7 @@ bool acmacs::virus::name::check_isolation(std::string_view source, fields_t* out
 
 // ----------------------------------------------------------------------
 
-bool acmacs::virus::name::check_year(std::string_view source, fields_t* output, parsing_messages_t* messages, std::string_view name)
+bool acmacs::virus::name::check_year(std::string_view source, parsed_fields_t* output, parsing_messages_t* messages, std::string_view name)
 {
 #include "acmacs-base/global-constructors-push.hh"
     static const auto current_year = date::current_year();
@@ -424,7 +436,7 @@ bool acmacs::virus::name::host_confusing_with_location(std::string_view source)
 
 // ----------------------------------------------------------------------
 
-// void acmacs::virus::name::host_location_fix(try_fields_t& input, fields_t& output, std::string_view name)
+// void acmacs::virus::name::host_location_fix(try_fields_t& input, parsed_fields_t& output, std::string_view name)
 // {
 //     const auto use_loc_empty_host = [&](const location_data_t& loc) {
 //         input.host = std::string_view{};
@@ -460,7 +472,7 @@ bool acmacs::virus::name::host_confusing_with_location(std::string_view source)
 
 // ----------------------------------------------------------------------
 
-std::string acmacs::virus::name::check_reassortant_in_front(std::string_view source, fields_t& output, parsing_messages_t& messages)
+std::string acmacs::virus::name::check_reassortant_in_front(std::string_view source, parsed_fields_t& output, parsing_messages_t& messages)
 {
     if (source.empty()) {
         AD_WARNING("check_reassortant_in_front: empty source");

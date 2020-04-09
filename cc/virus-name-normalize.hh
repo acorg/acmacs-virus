@@ -7,8 +7,9 @@
 
 namespace acmacs::virus::inline v2::name
 {
-    struct fields_t
+    struct parsed_fields_t
     {
+        std::string raw;
         type_subtype_t subtype;
         host_t host;
         std::string location;
@@ -20,19 +21,21 @@ namespace acmacs::virus::inline v2::name
         std::vector<std::string> extra;
         std::string country;
         std::string continent;
+        parsing_messages_t messages;
 
-        bool empty() const noexcept { return location.empty(); }
+        bool good() const { return !location.empty() && !isolation.empty() && year.size() == 4; }
+        std::string name() const;
     };
 
-    fields_t parse(std::string_view source, parsing_messages_t& messages);
+    parsed_fields_t parse(std::string_view source, parsing_messages_t& messages);
 
 } // namespace acmacs::virus::inline v2
 
 // ----------------------------------------------------------------------
 
-template <> struct fmt::formatter<acmacs::virus::name::fields_t> : public fmt::formatter<acmacs::fmt_default_formatter>
+template <> struct fmt::formatter<acmacs::virus::name::parsed_fields_t> : public fmt::formatter<acmacs::fmt_default_formatter>
 {
-    template <typename FormatContext> auto format(const acmacs::virus::name::fields_t& fields, FormatContext& ctx)
+    template <typename FormatContext> auto format(const acmacs::virus::name::parsed_fields_t& fields, FormatContext& ctx)
     {
         format_to(ctx.out(), "{{\"{}\" \"{}\" \"{}\" \"{}\" \"{}\"", fields.subtype, fields.host, fields.location, fields.isolation, fields.year);
         if (!fields.extra.empty())

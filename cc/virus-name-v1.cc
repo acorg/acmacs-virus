@@ -220,7 +220,7 @@ namespace virus_name
             location = string::strip(m[3].str());
             isolation = string::strip(m[4].str());
             year = _internal::make_year(m);
-            extra = string::join(" ", {string::strip(m.prefix().str()), string::strip(m[7].str())});
+            extra = acmacs::string::join(" ", string::strip(m.prefix().str()), string::strip(m[7].str()));
         }
         else
             throw Unrecognized(fmt::format("Cannot split {}", name));
@@ -240,7 +240,7 @@ namespace virus_name
                 location = m[3].str();
                 isolation = m[4].str();
                 year = _internal::make_year(m);
-                extra = string::join(" ", {m.prefix().str(), m[7].str()});
+                extra = acmacs::string::join(" ", m.prefix().str(), m[7].str());
             }
             else
                 throw Unrecognized(fmt::format("Cannot split {}", name));
@@ -277,7 +277,7 @@ namespace virus_name
             std::smatch mat;
             if (std::regex_search(extra, mat, std::get<std::regex>(re_entry))) {
                 reassortant = mat.format(std::get<const char*>(re_entry));
-                extra = string::join(" ", {string::strip(mat.format("$`")), string::strip(mat.format("$'"))});
+                extra = acmacs::string::join(" ", string::strip(mat.format("$`")), string::strip(mat.format("$'")));
             }
         }
         if (!extra.empty() && rep == report_extra::yes)
@@ -301,9 +301,9 @@ namespace virus_name
     //         year = string::strip(year);
     //         passage = string::strip(passage);
     //         if (host.empty())
-    //             result = string::join("/", {virus_type, location, isolation, year});
+    //             result = acmacs::string::join("/", virus_type, location, isolation, year);
     //         else
-    //             result = string::join("/", {virus_type, host, location, isolation, year});
+    //             result = acmacs::string::join("/", virus_type, host, location, isolation, year);
     //         if (!passage.empty()) {
     //             std::cerr << "WARNING: name contains extra: \"" << name << '"' << std::endl;
     //             result.append(1, ' ');
