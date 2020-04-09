@@ -15,12 +15,13 @@ void acmacs::virus::name::merge(parsing_messages_by_key_t& target, parsing_messa
 
 // ----------------------------------------------------------------------
 
-void acmacs::virus::name::report(const parsing_messages_by_key_t& messages)
+void acmacs::virus::name::report(parsing_messages_by_key_t& messages)
 {
     AD_INFO("Total messages: {}", std::accumulate(std::begin(messages), std::end(messages), 0ul, [](auto sum, const auto& msgs) { return sum + msgs.second.size(); }));
-    for (const auto& [key, msgs] : messages) {
+    for (auto& [key, msgs] : messages) {
         fmt::print(stderr, "\n");
         AD_INFO("{} ({})", key, msgs.size());
+        std::sort(std::begin(msgs), std::end(msgs), [](const auto& e1, const auto& e2) { return e1.first < e2.first; });
         for (const auto& [msg, source] : msgs)
            fmt::print("    \"{}\"     \"{}\"\n", msg, source);
     }

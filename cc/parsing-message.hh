@@ -38,7 +38,7 @@ namespace acmacs::virus::inline v2::name
     using parsing_messages_by_key_t = std::map<std::string_view, std::vector<std::pair<std::string, std::string>>>;
 
     void merge(parsing_messages_by_key_t& target, parsing_messages_t&& new_messages, std::string_view source);
-    void report(const parsing_messages_by_key_t& messages);
+    void report(parsing_messages_by_key_t& messages);
 
 } // namespace acmacs::virus::inline v2::name
 
