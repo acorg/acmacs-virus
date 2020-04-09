@@ -26,6 +26,12 @@ void acmacs::virus::name::report(parsing_messages_by_key_t& messages)
            fmt::print("    \"{}\"     \"{}\"\n", msg, source);
     }
 
+    // if (const auto found = messages.find(parsing_message_t::location_field_not_found); found != std::end(messages)) {
+    //     AD_INFO("LFNF ({})", found->second.size());
+    //     for (const auto& mm : found->second)
+    //        fmt::print("{}\n", mm.second);
+    // }
+
 } // acmacs::virus::name::report
 
 // ----------------------------------------------------------------------

@@ -18,6 +18,30 @@ std::string acmacs::virus::name::parsed_fields_t::name() const
 
 // ----------------------------------------------------------------------
 
+namespace acmacs
+{
+    namespace detail
+    {
+        template <typename Pred> inline std::string_view prefix(std::string_view source, Pred pred)
+        {
+            return std::string_view{source.data(), static_cast<size_t>(std::find_if(std::begin(source), std::end(source), pred) - std::begin(source))};
+        }
+    } // namespace detail
+
+    inline std::string_view digit_prefix(std::string_view source)
+    {
+        return detail::prefix(source, [](char cc) { return !std::isdigit(cc); });
+    }
+
+    inline std::string_view non_digit_prefix(std::string_view source)
+    {
+        return detail::prefix(source, [](char cc) { return std::isdigit(cc); });
+    }
+
+} // namespace acmacs
+
+// ----------------------------------------------------------------------
+
 namespace acmacs::virus::inline v2::name
 {
     constexpr const std::string_view unknown_isolation{"UNKNWON"};
@@ -66,7 +90,7 @@ namespace acmacs::virus::inline v2::name
 
     // ----------------------------------------------------------------------
 
-    static void no_location_parts(std::string_view name, const std::vector<std::string_view>& parts, parsed_fields_t& output);
+    static void no_location_parts(std::vector<std::string_view>& parts, parsed_fields_t& output);
     static void one_location_part(std::vector<std::string_view>& parts, location_part_t&& location_part, parsed_fields_t& output);
     static void one_location_part_at_1(std::vector<std::string_view>& parts, parsed_fields_t& output);
     static void one_location_part_at_2(std::vector<std::string_view>& parts, parsed_fields_t& output);
@@ -74,7 +98,7 @@ namespace acmacs::virus::inline v2::name
 
     enum class make_message { no, yes };
 
-    static bool check_subtype(std::string_view source, parsed_fields_t& output);
+    static bool check_subtype(std::string_view source, parsed_fields_t& output, make_message report = make_message::yes);
     static bool check_host(std::string_view source, parsed_fields_t& output);
     static bool check_location(std::string_view source, parsed_fields_t& output);
     static bool check_isolation(std::string_view source, parsed_fields_t& output);
@@ -84,6 +108,7 @@ namespace acmacs::virus::inline v2::name
     static location_parts_t find_location_parts(const std::vector<std::string_view>& parts);
     static std::string check_reassortant_in_front(std::string_view source, parsed_fields_t& output);
     static bool check_nibsc_extra(std::vector<std::string_view>& parts);
+    static bool location_as_prefix(std::vector<std::string_view>& parts, size_t part_to_check, parsed_fields_t& output);
 
     static std::optional<location_data_t> location_lookup(std::string_view source);
 
@@ -177,7 +202,7 @@ acmacs::virus::name::parsed_fields_t acmacs::virus::name::parse(std::string_view
     auto location_parts = find_location_parts(parts);
     switch (location_parts.size()) {
       case 0:
-          no_location_parts(source, parts, output);
+          no_location_parts(parts, output);
           break;
       case 1:
           one_location_part(parts, std::move(location_parts.front()), output);
@@ -199,11 +224,52 @@ acmacs::virus::name::parsed_fields_t acmacs::virus::name::parse(std::string_view
 
 // ----------------------------------------------------------------------
 
-void acmacs::virus::name::no_location_parts(std::string_view name, const std::vector<std::string_view>& /*parts*/, parsed_fields_t& output)
+void acmacs::virus::name::no_location_parts(std::vector<std::string_view>& parts, parsed_fields_t& output)
 {
-    output.messages.emplace_back(parsing_message_t::location_field_not_found, name);
+    try {
+        switch (parts.size()) {
+            case 3: // A/Baylor1A/81
+                if (std::isdigit(parts[1][0]) || !check_subtype(parts[0], output, make_message::no) || !check_year(parts[2], output, make_message::no) || !location_as_prefix(parts, 1, output))
+                    throw std::exception{};
+                break;
+            case 4: // A/BiliranTB5/0423/2015
+                if (std::isdigit(parts[1][0]) || !std::isdigit(parts[2][0]) || !location_as_prefix(parts, 1, output))
+                    throw std::exception{};
+                break;
+            default:
+                throw std::exception{};
+        }
+    }
+    catch (std::exception&) {
+        output.messages.emplace_back(parsing_message_t::location_field_not_found);
+    }
 
 } // acmacs::virus::name::no_location_parts
+
+// ----------------------------------------------------------------------
+
+bool acmacs::virus::name::location_as_prefix(std::vector<std::string_view>& parts, size_t part_to_check, parsed_fields_t& output)
+{
+    const auto check_prefix = [&](std::string_view prefix) -> bool {
+        if (auto location_data = location_lookup(prefix); location_data.has_value()) { // A/Baylor1A/81
+            parts.insert(std::next(std::begin(parts), static_cast<ssize_t>(part_to_check)), prefix);
+            parts[part_to_check + 1].remove_prefix(prefix.size());
+            one_location_part(parts, location_part_t{.part_no = part_to_check, .location = *location_data}, output);
+            return true;
+        }
+        else
+            return false;
+    };
+
+    // A/Baylor1A/81 A/BiliranTB5/0423/2015
+    // find longest prefix that can be found in the location database
+    for (auto prefix = acmacs::non_digit_prefix(parts[part_to_check]); prefix.size() > 2 && prefix.size() < parts[part_to_check].size(); prefix.remove_suffix(1)) {
+        if (check_prefix(prefix))
+            return true;
+    }
+    return false;
+
+} // acmacs::virus::name::location_as_prefix
 
 // ----------------------------------------------------------------------
 
@@ -342,7 +408,7 @@ void acmacs::virus::name::two_location_parts(std::vector<std::string_view>& part
 
 // ----------------------------------------------------------------------
 
-bool acmacs::virus::name::check_subtype(std::string_view source, parsed_fields_t& output)
+bool acmacs::virus::name::check_subtype(std::string_view source, parsed_fields_t& output, make_message report)
 {
 #include "acmacs-base/global-constructors-push.hh"
     static const std::regex re_a{"^A(?:"
@@ -382,7 +448,8 @@ bool acmacs::virus::name::check_subtype(std::string_view source, parsed_fields_t
         return true;
     }
     catch (std::exception&) {
-        output.messages.emplace_back(parsing_message_t::invalid_subtype, source);
+        if (report == make_message::yes)
+            output.messages.emplace_back(parsing_message_t::invalid_subtype, source);
         return false;
     }
 
@@ -495,7 +562,7 @@ bool acmacs::virus::name::check_year(std::string_view source, parsed_fields_t& o
     static const auto current_year_2 = current_year % 100;
 #include "acmacs-base/diagnostics-pop.hh"
 
-    const std::string_view digits{source.data(), static_cast<size_t>(std::find_if(std::begin(source), std::end(source), [](char cc) { return !std::isdigit(cc); }) - std::begin(source))};
+    const auto digits = acmacs::digit_prefix(source);
 
     try {
         if (paren_match(source) != 0) // e.g. last part in "A/Beijing/2019-15554/2018  CNIC-1902  (19/148)"
