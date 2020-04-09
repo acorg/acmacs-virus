@@ -292,7 +292,7 @@ acmacs::virus::v2::parse_result_t acmacs::virus::v2::parse_name(std::string_view
             extra.clear();
 
         if (name_data.host.size() >= 4 && name_data.host->substr(0, 4) == "TEST")
-            messages.emplace_back(acmacs::virus::v2::name::parsing_message_t::invalid_host, *name_data.host, source);
+            messages.emplace_back(acmacs::virus::v2::name::parsing_message_t::invalid_host, *name_data.host);
         return {name_data.name, name_data.host, reassortant, passage, extra, name_data.country, name_data.continent, messages};
     }
     catch (parse_name_error&) {
@@ -512,7 +512,7 @@ std::string fix_year(std::string_view source, std::string_view name, std::vector
     }
     else if (year < 1900 || year > current_year) {
         if (messages)
-            messages->emplace_back(acmacs::virus::v2::name::parsing_message_t::invalid_year, source, name);
+            messages->emplace_back(acmacs::virus::v2::name::parsing_message_t::invalid_year, source);
         throw parse_name_error{};
         // return source;
     }
