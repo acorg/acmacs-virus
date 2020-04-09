@@ -296,10 +296,9 @@ void acmacs::virus::name::one_location_part_at_2(std::vector<std::string_view>& 
                              !check_isolation(string::join("-", parts[3], parts[4]), output)) // A/chicken/CentralJava/Solo/VSN331/2013
                         throw std::exception{};
                 }
-                // else if (check_nibsc_extra(parts) && parts.size() == 4 /* check_nibsc_extra removed last part */) { // "A/Beijing/2019-15554/2018  CNIC-1902  (19/148)"
-                //     // AD_DEBUG("nisbc extra {}", parts);
-                //     one_location_part_at_1(parts, output);
-                // }
+                else if (check_nibsc_extra(parts) && parts.size() == 5 /* check_nibsc_extra removed last part */) { // A/duck/Vietnam/NCVD1584/2012 NIBRG-301 (18/134)
+                    one_location_part_at_2(parts, output);
+                }
                 else
                     throw std::exception{};
                 break;
