@@ -129,7 +129,7 @@ struct name_data_t
 };
 
 static bool check_location(std::string_view source, acmacs::virus::v2::parse_name_f flags);
-static bool check_host(std::string_view host);
+// static bool check_host(std::string_view host);
 // static int find_location(std::string_view field0, std::string_view field1, std::string_view field2, acmacs::virus::v2::parse_name_f flags);
 static location_t fix_location(std::string_view source, acmacs::virus::v2::parse_name_f flags, std::vector<acmacs::virus::v2::name::parsing_message_t>* messages);
 static std::string fix_isolation(std::string_view source);
@@ -396,26 +396,26 @@ name_data_t location_not_found(const std::smatch& match, std::string_view name, 
 
 // ----------------------------------------------------------------------
 
-bool check_host(std::string_view host)
-{
-    using namespace std::string_view_literals;
+// bool check_host(std::string_view host)
+// {
+//     using namespace std::string_view_literals;
 
-    static std::array hosts{
-        "TURKEY"sv,
-        "DUCK"sv,
-        "MALLARD"sv,
-        "CHICKEN"sv,
-        "GOOSE"sv,
-        "PEACOCK"sv,
-        "CAT"sv,
-        "DOMESTIC"sv,
-        "EQUINE"sv,
-        "SWINE"sv,
-    };
+//     static std::array hosts{
+//         "TURKEY"sv,
+//         "DUCK"sv,
+//         "MALLARD"sv,
+//         "CHICKEN"sv,
+//         "GOOSE"sv,
+//         "PEACOCK"sv,
+//         "CAT"sv,
+//         "DOMESTIC"sv,
+//         "EQUINE"sv,
+//         "SWINE"sv,
+//     };
 
-    return std::find(std::begin(hosts), std::end(hosts), host) != std::end(hosts);
+//     return std::find(std::begin(hosts), std::end(hosts), host) != std::end(hosts);
 
-} // check_host
+// } // check_host
 
 // ----------------------------------------------------------------------
 
@@ -490,7 +490,7 @@ std::string fix_isolation(std::string_view source)
 
 // ----------------------------------------------------------------------
 
-std::string fix_year(std::string_view source, std::string_view name, std::vector<acmacs::virus::v2::name::parsing_message_t>* messages)
+std::string fix_year(std::string_view source, std::string_view /*name*/, std::vector<acmacs::virus::v2::name::parsing_message_t>* messages)
 {
 #include "acmacs-base/global-constructors-push.hh"
     static const auto current_year = date::current_year();

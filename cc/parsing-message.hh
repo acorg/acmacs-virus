@@ -9,7 +9,7 @@ namespace acmacs::virus::inline v2::name
     struct parsing_message_t
     {
         constexpr static inline std::string_view unrecognized{"unrecognized"};
-        constexpr static inline std::string_view empty_name{"empty-name"};
+        constexpr static inline std::string_view empty_name{"~~empty-name"};
         constexpr static inline std::string_view invalid_subtype{"invalid-subtype"};
         constexpr static inline std::string_view invalid_host{"invalid-host"};
         constexpr static inline std::string_view location_not_found{"location-not-found"};
