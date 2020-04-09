@@ -24,5 +24,6 @@ trap failed ERR
 
 # export LD_LIBRARY_PATH="${ACMACSD_ROOT}/lib:${LD_LIBRARY_PATH}"
 cd "$TESTDIR"
-../dist/test-virus-name
+echo ">> WARNING test-virus-name disabled on 2020-04-09 in ~/AD/sources/acmacs-virus/test/test"
+# ../dist/test-virus-name
 ../dist/test-passage
