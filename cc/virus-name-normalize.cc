@@ -67,21 +67,22 @@ namespace acmacs::virus::inline v2::name
     // ----------------------------------------------------------------------
 
     static void no_location_parts(std::string_view name, const std::vector<std::string_view>& parts, parsed_fields_t& output);
-    static void one_location_part(const std::vector<std::string_view>& parts, location_part_t&& location_part, parsed_fields_t& output);
-    static void one_location_part_at_1(const std::vector<std::string_view>& parts, parsed_fields_t& output);
+    static void one_location_part(std::vector<std::string_view>& parts, location_part_t&& location_part, parsed_fields_t& output);
+    static void one_location_part_at_1(std::vector<std::string_view>& parts, parsed_fields_t& output);
     static void two_location_parts(std::vector<std::string_view>& parts, location_parts_t&& location_parts, parsed_fields_t& output);
 
-    // static bool check(try_fields_t&& input, parsed_fields_t& output);
+    enum class make_message { no, yes };
 
     static bool check_subtype(std::string_view source, parsed_fields_t* output = nullptr);
     static bool check_host(std::string_view source, parsed_fields_t* output = nullptr);
     static bool check_location(std::string_view source, parsed_fields_t* output = nullptr);
     static bool check_isolation(std::string_view source, parsed_fields_t* output = nullptr);
-    static bool check_year(std::string_view source, parsed_fields_t* output = nullptr);
+    static bool check_year(std::string_view source, parsed_fields_t& output, make_message report = make_message::yes);
     static bool host_confusing_with_location(std::string_view source);
     // static void host_location_fix(try_fields_t& input, parsed_fields_t& output, std::string_view name);
     static location_parts_t find_location_parts(const std::vector<std::string_view>& parts);
     static std::string check_reassortant_in_front(std::string_view source, parsed_fields_t& output);
+    static bool check_nibsc_extra(std::vector<std::string_view>& parts);
 
     static std::optional<location_data_t> location_lookup(std::string_view source);
 
@@ -120,6 +121,26 @@ namespace acmacs::virus::inline v2::name
     {
         if (output)
             output->messages.emplace_back(key, value);
+    }
+
+    inline ssize_t count_open_paren(std::string_view source) { return std::count(std::begin(source), std::end(source), '('); }
+    inline ssize_t count_close_paren(std::string_view source) { return std::count(std::begin(source), std::end(source), ')'); }
+
+    // returns 0 if paren match: "()(())"
+    // returns <0 if close paren prevail: "xx)"
+    // returns >0 if open paren prevail: "xx(()"
+    inline int paren_match(std::string_view source, std::string_view paren = "()")
+    {
+        int counter{0};
+        for (auto sym : source) {
+            if (sym == paren[0])
+                ++counter;
+            else if (sym == paren[1]) {
+                if (--counter < 0)
+                    return counter;
+            }
+        }
+        return counter;
     }
 
     // ----------------------------------------------------------------------
@@ -184,7 +205,7 @@ void acmacs::virus::name::no_location_parts(std::string_view name, const std::ve
 
 // ----------------------------------------------------------------------
 
-void acmacs::virus::name::one_location_part(const std::vector<std::string_view>& parts, location_part_t&& location_part, parsed_fields_t& output)
+void acmacs::virus::name::one_location_part(std::vector<std::string_view>& parts, location_part_t&& location_part, parsed_fields_t& output)
 {
     if (location_part.valid())
         set(output, std::move(location_part));
@@ -203,7 +224,7 @@ void acmacs::virus::name::one_location_part(const std::vector<std::string_view>&
                     check_subtype(parts[0], &output);
                     check_host(parts[1], &output);
                     check_isolation(parts[3], &output);
-                    check_year(parts[4], &output);
+                    check_year(parts[4], output);
                     break;
                 default:
                     output.messages.emplace_back("unexpected-location-part", fmt::format("{} num-parts:{}", location_part.part_no, parts.size()));
@@ -219,20 +240,20 @@ void acmacs::virus::name::one_location_part(const std::vector<std::string_view>&
 
 // ----------------------------------------------------------------------
 
-void acmacs::virus::name::one_location_part_at_1(const std::vector<std::string_view>& parts, parsed_fields_t& output)
+void acmacs::virus::name::one_location_part_at_1(std::vector<std::string_view>& parts, parsed_fields_t& output)
 {
     try {
         switch (parts.size()) {
             case 3: // A/Alaska/1935
-                if (!check_subtype(parts[0], &output) || !check_year(parts[2], &output) || !check_isolation(unknown_isolation, &output))
+                if (!check_subtype(parts[0], &output) || !check_year(parts[2], output) || !check_isolation(unknown_isolation, &output))
                     throw std::exception{};
                 break;
             case 4: // A/Germany/1/2014
-                if (!check_subtype(parts[0], &output) || !check_isolation(parts[2], &output) || !check_year(parts[3], &output))
+                if (!check_subtype(parts[0], &output) || !check_isolation(parts[2], &output) || !check_year(parts[3], output))
                     throw std::exception{};
                 break;
             case 5:
-                if (check_year(parts[4], &output)) {
+                if (check_year(parts[4], output, make_message::no)) {
                     if (auto location_data = location_lookup(string::join(" ", parts[1], parts[2])); location_data.has_value()) { // A/Lyon/CHU/R19.03.77/2019
                         set(output, std::move(*location_data));
                         if (!check_subtype(parts[0], &output) || !check_isolation(parts[3], &output)) // A/Algeria/G0164/15/2015 :h1n1
@@ -241,9 +262,12 @@ void acmacs::virus::name::one_location_part_at_1(const std::vector<std::string_v
                     else if (!check_subtype(parts[0], &output) || !check_isolation(string::join("-", parts[2], parts[3]), &output)) // A/Algeria/G0164/15/2015 :h1n1
                         throw std::exception{};
                 }
-                else { // "A/Beijing/2019-15554/2018  CNIC-1902  (19/148)"
-                    throw std::exception{};
+                else if (check_nibsc_extra(parts) && parts.size() == 4 /* check_nibsc_extra removed last part */) { // "A/Beijing/2019-15554/2018  CNIC-1902  (19/148)"
+                    // AD_DEBUG("nisbc extra {}", parts);
+                    one_location_part_at_1(parts, output);
                 }
+                else
+                    throw std::exception{};
                 break;
             default:
                 throw std::exception{};
@@ -282,37 +306,6 @@ void acmacs::virus::name::two_location_parts(std::vector<std::string_view>& part
         output.messages.emplace_back("double-location", fmt::format("{}", location_parts));
 
 } // acmacs::virus::name::two_location_parts
-
-// ----------------------------------------------------------------------
-
-// bool acmacs::virus::name::check(try_fields_t&& input, parsed_fields_t& output)
-// {
-//     output = parsed_fields_t{};
-//     // messages.clear();
-// //    if (check_location(input.location, &output)) {
-//         if (check_year(input.year_rest, &output) && check_subtype(input.subtype, &output) && check_host(input.host, &output) &&
-//             check_isolation(input.isolation, &output))
-//             return true;
-// //    }
-//     return false;
-
-// } // acmacs::virus::name::check
-
-// ----------------------------------------------------------------------
-
-// bool acmacs::virus::name::check(try_fields_t&& input, parsed_fields_t& output, parsing_messages_t& messages, std::string_view name)
-// {
-//     output = parsed_fields_t{};
-//     // messages.clear();
-//     if (check_location(input.location, &output, &messages, name)) {
-//         host_location_fix(input, output, name);
-//         if (check_year(input.year_rest, &output, &messages, name) && check_subtype(input.subtype, &output, &messages, name) && check_host(input.host, &output, &messages, name) &&
-//             check_isolation(input.isolation, &output, &messages, name))
-//             return true;
-//     }
-//     return false;
-
-// } // acmacs::virus::name::check
 
 // ----------------------------------------------------------------------
 
@@ -466,32 +459,31 @@ bool acmacs::virus::name::check_isolation(std::string_view source, parsed_fields
 
 // ----------------------------------------------------------------------
 
-bool acmacs::virus::name::check_year(std::string_view source, parsed_fields_t* output)
+bool acmacs::virus::name::check_year(std::string_view source, parsed_fields_t& output, make_message report)
 {
 #include "acmacs-base/global-constructors-push.hh"
     static const auto current_year = date::current_year();
     static const auto current_year_2 = current_year % 100;
 #include "acmacs-base/diagnostics-pop.hh"
 
-
     const std::string_view digits{source.data(), static_cast<size_t>(std::find_if(std::begin(source), std::end(source), [](char cc) { return !std::isdigit(cc); }) - std::begin(source))};
 
     try {
-        if (std::count(std::begin(source), std::end(source), '(') != std::count(std::begin(source), std::end(source), ')')) // e.g. last part in "A/Beijing/2019-15554/2018  CNIC-1902  (19/148)"
+        if (paren_match(source) != 0) // e.g. last part in "A/Beijing/2019-15554/2018  CNIC-1902  (19/148)"
             throw std::exception{};
         switch (digits.size()) {
             case 1:
             case 2:
                 if (const auto year = ::string::from_chars<size_t>(digits); year <= current_year_2)
-                    output->year = fmt::format("{}", year + 2000);
+                    output.year = fmt::format("{}", year + 2000);
                 else if (year < 100) // from_chars returns std::numeric_limits<size_t>::max() if number cannot be read
-                    output->year = fmt::format("{}", year + 1900);
+                    output.year = fmt::format("{}", year + 1900);
                 else
                     throw std::exception{};
                 break;
             case 4:
                 if (const auto year = ::string::from_chars<size_t>(digits); year <= current_year)
-                    output->year = fmt::format("{}", year);
+                    output.year = fmt::format("{}", year);
                 else
                     throw std::exception{};
                 break;
@@ -499,11 +491,12 @@ bool acmacs::virus::name::check_year(std::string_view source, parsed_fields_t* o
                 throw std::exception{};
         }
         if (digits.size() < source.size())
-            output->extra.emplace_back(std::next(std::begin(source), static_cast<ssize_t>(digits.size())), std::end(source));
+            output.extra.emplace_back(std::next(std::begin(source), static_cast<ssize_t>(digits.size())), std::end(source));
         return true;
     }
     catch (std::exception&) {
-        add_message(output, parsing_message_t::invalid_year, source);
+        if (report == make_message::yes)
+            output.messages.emplace_back(parsing_message_t::invalid_year, source);
         return false;
     }
 
@@ -612,6 +605,21 @@ std::string acmacs::virus::name::check_reassortant_in_front(std::string_view sou
     return result;
 
 } // acmacs::virus::name::check_reassortant_in_front
+
+// ----------------------------------------------------------------------
+
+bool acmacs::virus::name::check_nibsc_extra(std::vector<std::string_view>& parts)
+{
+    // remove (19/148) in "A/Beijing/2019-15554/2018  CNIC-1902  (19/148)"
+    if (parts.size() > 2 && paren_match(parts[parts.size() - 2]) > 0 && paren_match(parts[parts.size() - 1]) < 0) {
+        parts.erase(std::prev(std::end(parts)));
+        parts.back().remove_suffix(parts.back().size() - parts.back().find_last_of('('));
+        return true;
+    }
+    else
+        return false;
+
+} // acmacs::virus::name::check_nibsc_extra
 
 // ----------------------------------------------------------------------
 
