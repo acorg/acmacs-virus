@@ -33,10 +33,9 @@ int main(int argc, const char* const* argv)
         }
         else if (!opt.names.empty()) {
             for (const auto& src : opt.names) {
-                acmacs::virus::name::parsing_messages_t messages;
-                const auto fields = acmacs::virus::name::parse(src, messages);
-                if (!messages.empty())
-                    AD_WARNING("{}", messages);
+                const auto fields = acmacs::virus::name::parse(src);
+                if (!fields.messages.empty())
+                    AD_WARNING("{}", fields.messages);
                 fmt::print("{} -> {}\n", src, fields);
             }
         }
@@ -61,12 +60,12 @@ void names_from_file(const Options& opt)
     acmacs::virus::name::parsing_messages_t messages;
     for (const auto& line : acmacs::string::split(lines, "\n", acmacs::string::Split::RemoveEmpty)) {
         ++lines_read;
-        const auto messages_before = messages.size();
-        const auto fields = acmacs::virus::name::parse(line, messages);
-        if (messages_before != messages.size()) {
+        auto fields = acmacs::virus::name::parse(line);
+        if (!fields.messages.empty()) {
             ++failed;
             if (opt.print_bad)
                 fmt::print("{}\n", line);
+            acmacs::virus::name::merge(messages, std::move(fields.messages));
         }
         else
             ++succeeded;

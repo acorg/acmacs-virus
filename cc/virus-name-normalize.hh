@@ -27,7 +27,7 @@ namespace acmacs::virus::inline v2::name
         std::string name() const;
     };
 
-    parsed_fields_t parse(std::string_view source, parsing_messages_t& messages);
+    parsed_fields_t parse(std::string_view source);
 
 } // namespace acmacs::virus::inline v2
 
