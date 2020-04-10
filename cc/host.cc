@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <array>
 
+#include "acmacs-base/string.hh"
 #include "acmacs-virus/host.hh"
 
 // ----------------------------------------------------------------------
@@ -47,7 +48,7 @@ bool acmacs::virus::name::is_host(std::string_view source)
 
     };
 
-    return std::find(std::begin(hosts), std::end(hosts), source) != std::end(hosts);
+    return std::find(std::begin(hosts), std::end(hosts), ::string::upper(source)) != std::end(hosts);
 
 } // acmacs::virus::name::is_host
 

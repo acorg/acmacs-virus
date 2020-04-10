@@ -95,25 +95,25 @@ namespace acmacs::virus::inline v2::name
     {
         using namespace std::string_view_literals;
         if (source.size() > 6) {
-            switch (source.front()) {
+            switch (std::toupper(source.front())) {
                 case 'I': // IVR
                 case 'N': // NIB, NYMC
                 case 'R': // RG
                 case 'X': // X-327
                     return true;
               case 'B':
-                  switch (source[1]) {
+                  switch (std::toupper(source[1])) {
                     case 'V':   // BVR
                     case 'X':   // BX
                         return true;
                     case '/':
-                    if (source.substr(2, 5) == "REASS"sv) // B/REASSORTANT/
+                        if (::string::upper(source.substr(2, 5)) == "REASS"sv) // B/REASSORTANT/
                         return true;
                     break;
                   }
                     break;
                 case 'A':
-                    if (source.substr(1, 6) == "/REASS"sv) // A/REASSORTANT/
+                    if (::string::upper(source.substr(1, 6)) == "/REASS"sv) // A/REASSORTANT/
                         return true;
                     break;
             }
@@ -173,10 +173,10 @@ acmacs::virus::name::parsed_fields_t acmacs::virus::name::parse(std::string_view
         return output;
     }
 
-    std::string upcased = ::string::upper(source);
-    if (possible_reassortant_in_front(upcased))
-        upcased = check_reassortant_in_front(upcased, output);
-    auto parts = acmacs::string::split(upcased, "/", acmacs::string::Split::StripKeepEmpty);
+    std::string source_s{source};
+    if (possible_reassortant_in_front(source_s))
+        source_s = check_reassortant_in_front(source_s, output);
+    auto parts = acmacs::string::split(source_s, "/", acmacs::string::Split::StripKeepEmpty);
     auto location_parts = find_location_parts(parts);
     switch (location_parts.size()) {
       case 0:
@@ -389,11 +389,11 @@ void acmacs::virus::name::two_location_parts(std::vector<std::string_view>& part
 bool acmacs::virus::name::check_subtype(std::string_view source, parsed_fields_t& output, make_message report)
 {
 #include "acmacs-base/global-constructors-push.hh"
-    static const std::regex re_a{"^A(?:"
+    static const std::regex re_a("^A(?:"
                                  "\\((H\\d{1,2}(?:N\\d{1,2})?)\\)" // $1
                                  "|"
                                  "(H\\d{1,2}(?:N\\d{1,2})?)" // $2
-                                 ")$"};
+                                 ")$", std::regex::icase);
 #include "acmacs-base/diagnostics-pop.hh"
 
     try {
@@ -401,10 +401,10 @@ bool acmacs::virus::name::check_subtype(std::string_view source, parsed_fields_t
             case 0:
                 break;
             case 1:
-                switch (source.front()) {
+                switch (std::toupper(source[0])) {
                     case 'A':
                     case 'B':
-                        output.subtype = type_subtype_t{source};
+                        output.subtype = type_subtype_t{::string::upper(source)};
                         break;
                     default:
                         throw std::exception{};
@@ -413,9 +413,9 @@ bool acmacs::virus::name::check_subtype(std::string_view source, parsed_fields_t
             default:
                 if (std::cmatch mch; std::regex_match(std::begin(source), std::end(source), mch, re_a)) {
                     if (mch.length(1))
-                        output.subtype = type_subtype_t{fmt::format("A({})", mch.str(1))};
+                        output.subtype = type_subtype_t{fmt::format("A({})", ::string::upper(mch.str(1)))};
                     else if (mch.length(2))
-                        output.subtype = type_subtype_t{fmt::format("A({})", mch.str(2))};
+                        output.subtype = type_subtype_t{fmt::format("A({})", ::string::upper(mch.str(2)))};
                     else
                         throw std::exception{};
                 }
@@ -448,21 +448,12 @@ std::optional<acmacs::virus::name::location_data_t> acmacs::virus::name::locatio
 {
     using namespace std::string_view_literals;
 
-    if (source == "UNKNOWN"sv)
+    const auto upcased{::string::upper(source)};
+    if (upcased == "UNKNOWN"sv)
         return std::nullopt;
 
-    const auto look = [](std::string_view look_for) {
-        const auto& locdb = acmacs::locationdb::get();
-        const auto loc = locdb.find_or_throw(look_for);
-        const auto country = loc.country();
-        return location_data_t{.name = loc.name, .country = std::string{country}, .continent = std::string{locdb.continent_of_country(country)}};
-    };
-
-    try {
-        return look(source);
-    }
-    catch (acmacs::locationdb::LocationNotFound& /*err*/) {
-    }
+    if (const auto loc = acmacs::locationdb::get().find(source, acmacs::locationdb::include_continent::yes); loc.has_value())
+        return location_data_t{.name{loc->name}, .country{loc->country()}, .continent{loc->continent}};
 
     using pp = std::pair<std::string_view, std::string_view>;
     static std::array common_abbreviations{
@@ -470,13 +461,11 @@ std::optional<acmacs::virus::name::location_data_t> acmacs::virus::name::locatio
         pp{"NY"sv, "NEW YORK"sv},
     };
 
-    try {
-        for (const auto& [e1, e2] : common_abbreviations) {
-            if (e1 == source)
-                return look(e2);
+    for (const auto& [e1, e2] : common_abbreviations) {
+        if (e1 == upcased) {
+            if (const auto loc = acmacs::locationdb::get().find(e2, acmacs::locationdb::include_continent::yes); loc.has_value())
+                return location_data_t{.name{loc->name}, .country{loc->country()}, .continent{loc->continent}};
         }
-    }
-    catch (acmacs::locationdb::LocationNotFound& /*err*/) {
     }
 
     return std::nullopt;
