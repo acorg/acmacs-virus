@@ -35,8 +35,6 @@ namespace acmacs::virus::inline v2
 } // namespace acmacs::virus::inline v2
 
 // ----------------------------------------------------------------------
-
-// ----------------------------------------------------------------------
 /// Local Variables:
 /// eval: (if (fboundp 'eu-rename-buffer) (eu-rename-buffer))
 /// End:

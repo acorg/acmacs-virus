@@ -1,9 +1,11 @@
 #include "acmacs-base/string-split.hh"
 #include "acmacs-base/string-join.hh"
+#include "acmacs-base/string-digits.hh"
 #include "acmacs-base/date.hh"
 #include "acmacs-base/regex.hh"
 #include "locationdb/locdb.hh"
 #include "acmacs-virus/virus-name-normalize.hh"
+#include "acmacs-virus/host.hh"
 
 // ----------------------------------------------------------------------
 
@@ -17,28 +19,6 @@ std::string acmacs::virus::name::parsed_fields_t::name() const
 } // acmacs::virus::name::parsed_fields_t::name
 
 // ----------------------------------------------------------------------
-
-namespace acmacs
-{
-    namespace detail
-    {
-        template <typename Pred> inline std::string_view prefix(std::string_view source, Pred pred)
-        {
-            return std::string_view{source.data(), static_cast<size_t>(std::find_if(std::begin(source), std::end(source), pred) - std::begin(source))};
-        }
-    } // namespace detail
-
-    inline std::string_view digit_prefix(std::string_view source)
-    {
-        return detail::prefix(source, [](char cc) { return !std::isdigit(cc); });
-    }
-
-    inline std::string_view non_digit_prefix(std::string_view source)
-    {
-        return detail::prefix(source, [](char cc) { return std::isdigit(cc); });
-    }
-
-} // namespace acmacs
 
 // ----------------------------------------------------------------------
 
@@ -103,8 +83,6 @@ namespace acmacs::virus::inline v2::name
     static bool check_location(std::string_view source, parsed_fields_t& output);
     static bool check_isolation(std::string_view source, parsed_fields_t& output);
     static bool check_year(std::string_view source, parsed_fields_t& output, make_message report = make_message::yes);
-    static bool host_confusing_with_location(std::string_view source);
-    // static void host_location_fix(try_fields_t& input, parsed_fields_t& output, std::string_view name);
     static location_parts_t find_location_parts(const std::vector<std::string_view>& parts);
     static std::string check_reassortant_in_front(std::string_view source, parsed_fields_t& output);
     static bool check_nibsc_extra(std::vector<std::string_view>& parts);
@@ -263,7 +241,7 @@ bool acmacs::virus::name::location_as_prefix(std::vector<std::string_view>& part
 
     // A/Baylor1A/81 A/BiliranTB5/0423/2015
     // find longest prefix that can be found in the location database
-    for (auto prefix = acmacs::non_digit_prefix(parts[part_to_check]); prefix.size() > 2 && prefix.size() < parts[part_to_check].size(); prefix.remove_suffix(1)) {
+    for (auto prefix = acmacs::string::non_digit_prefix(parts[part_to_check]); prefix.size() > 2 && prefix.size() < parts[part_to_check].size(); prefix.remove_suffix(1)) {
         if (check_prefix(prefix))
             return true;
     }
@@ -385,7 +363,7 @@ void acmacs::virus::name::two_location_parts(std::vector<std::string_view>& part
     if ((location_parts[0].part_no + 1) != location_parts[1].part_no) {
         output.messages.emplace_back("double-location", fmt::format("{}", location_parts));
     }
-    else if (host_confusing_with_location(parts[location_parts.front().part_no])) {
+    else if (is_host(parts[location_parts.front().part_no])) {
         one_location_part(parts, std::move(location_parts[1]), output);
     }
     else if (location_parts[0].location.name == location_parts[1].location.country) { // A/India/Delhi/DB106/2009 -> A/Delhi/DB106/2009
@@ -562,7 +540,7 @@ bool acmacs::virus::name::check_year(std::string_view source, parsed_fields_t& o
     static const auto current_year_2 = current_year % 100;
 #include "acmacs-base/diagnostics-pop.hh"
 
-    const auto digits = acmacs::digit_prefix(source);
+    const auto digits = acmacs::string::digit_prefix(source);
 
     try {
         if (paren_match(source) != 0) // e.g. last part in "A/Beijing/2019-15554/2018  CNIC-1902  (19/148)"
@@ -597,79 +575,6 @@ bool acmacs::virus::name::check_year(std::string_view source, parsed_fields_t& o
     }
 
 } // acmacs::virus::name::check_year
-
-// ----------------------------------------------------------------------
-
-bool acmacs::virus::name::host_confusing_with_location(std::string_view source)
-{
-    using namespace std::string_view_literals;
-
-    static std::array hosts{
-        "TURKEY"sv,
-        "DUCK"sv,
-        "MALLARD"sv,
-        "CHICKEN"sv,
-        "GOOSE"sv,
-        "PEACOCK"sv,
-        "CAT"sv,
-        "DOMESTIC"sv,
-        "EQUINE"sv,
-        "SWINE"sv,
-        "UNKNOWN"sv,
-        "SWAN"sv,
-        "TIGER"sv,
-        "WILLET"sv,
-        "QUAIL"sv,
-        "PELICAN"sv,
-        "EGRET"sv,
-        "PARTRIDGE"sv,
-        "CURLEW"sv,
-        "PIGEON"sv,
-        "CANINE"sv,
-        "TEAL"sv,
-        "GULL"sv,
-        "AVES"sv,               // Aves is the class of birds (nominative plural of avis "bird" in Latin), and town in Portugal
-    };
-
-    return std::find(std::begin(hosts), std::end(hosts), source) != std::end(hosts);
-
-} // acmacs::virus::name::host_confusing_with_location
-
-// ----------------------------------------------------------------------
-
-// void acmacs::virus::name::host_location_fix(try_fields_t& input, parsed_fields_t& output, std::string_view name)
-// {
-//     const auto use_loc_empty_host = [&](const location_data_t& loc) {
-//         input.host = std::string_view{};
-//         output.host = host_t{};
-//         output.location = loc.name;
-//         output.country = loc.country;
-//         output.continent = loc.continent;
-//     };
-
-//     // Location data is in output, location is valid, country in the output present
-//     if (const auto host_loc = location_lookup(input.host); host_loc.has_value()) {
-//         if (host_loc->name == output.country) { // A/India/Delhi/DB106/2009 -> A/Delhi/DB106/2009
-//             input.host = std::string_view{};
-//             output.host = host_t{};
-//         }
-//         else if (host_loc->country == output.location) { // A/Cologne/Germany/01/2009 -> A/Cologne/01/2009
-//             use_loc_empty_host(*host_loc);
-//         }
-//         else if (host_loc->country == output.country && host_loc->name != output.location) { // "B/Mount_Lebanon/Ain_W_zein/3/2019" -> "B/Mount Lebanon Ain W zein/3/2019"
-//             if (const auto loc2 = location_lookup(fmt::format("{} {}", host_loc->name, output.location)); loc2.has_value()) {
-//                 use_loc_empty_host(*loc2);
-//             }
-//             else if (!host_confusing_with_location(input.host)) {
-//                 AD_WARNING("location and host are separate locations: loc:\"{}\" host:\"{}\" <-- \"{}\"", input.location, input.host, name);
-//             }
-//         }
-//         else if (!host_confusing_with_location(input.host)) {
-//             AD_WARNING("location and host are separate locations: loc:\"{}\" host:\"{}\" <-- \"{}\"", input.location, input.host, name);
-//         }
-//     }
-
-// } // acmacs::virus::name::host_location_fix
 
 // ----------------------------------------------------------------------
 
@@ -716,9 +621,6 @@ bool acmacs::virus::name::check_nibsc_extra(std::vector<std::string_view>& parts
         return false;
 
 } // acmacs::virus::name::check_nibsc_extra
-
-// ----------------------------------------------------------------------
-
 
 // ----------------------------------------------------------------------
 /// Local Variables:

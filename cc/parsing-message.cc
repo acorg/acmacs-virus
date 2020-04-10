@@ -2,7 +2,10 @@
 
 #include "acmacs-base/debug.hh"
 #include "acmacs-base/counter.hh"
+#include "acmacs-base/string-split.hh"
+#include "acmacs-base/string-digits.hh"
 #include "acmacs-virus/parsing-message.hh"
+#include "acmacs-virus/host.hh"
 
 // ----------------------------------------------------------------------
 
@@ -26,11 +29,48 @@ void acmacs::virus::name::report(parsing_messages_by_key_t& messages)
            fmt::print("    \"{}\"     \"{}\"\n", msg, source);
     }
 
-    // if (const auto found = messages.find(parsing_message_t::location_field_not_found); found != std::end(messages)) {
-    //     AD_INFO("LFNF ({})", found->second.size());
-    //     for (const auto& mm : found->second)
-    //        fmt::print("{}\n", mm.second);
-    // }
+    if (const auto found = messages.find(parsing_message_t::location_field_not_found); found != std::end(messages)) {
+        // AD_INFO("LFNF ({})", found->second.size());
+
+        std::set<std::string> locations_to_check;
+        const auto add = [&locations_to_check](std::string_view part) {
+            auto prefix = acmacs::string::non_digit_prefix(part);
+            while (prefix.size() > 2 && (prefix.back() == '_' || prefix.back() == '-' || prefix.back() == ' '))
+                prefix.remove_suffix(1);
+            if (prefix.size() > 2 && !is_host(::string::upper(prefix)))
+                locations_to_check.insert(std::string{prefix});
+        };
+
+        for (const auto& mm : found->second) {
+            // fmt::print("{}\n", mm.second);
+            const auto parts = acmacs::string::split(mm.second, "/", acmacs::string::Split::StripKeepEmpty);
+            switch (parts.size()) {
+              case 3:
+                  add(parts[1]);
+                  break;
+              case 4:
+                  add(parts[1]);
+                  add(parts[2]);
+                  break;
+              case 5:
+              case 6:
+                  add(parts[2]);
+                  add(parts[3]);
+                  break;
+            }
+        }
+        if (!locations_to_check.empty()) {
+            fmt::print(stderr, "\n");
+            AD_INFO("Locations to check ({})", locations_to_check.size());
+            for (const auto& loc : locations_to_check)
+                fmt::print("{}\n", loc);
+
+            fmt::print(stderr, "\nlocdb");
+            for (const auto& loc : locations_to_check)
+                fmt::print(stderr, " \"{}\"", loc);
+            fmt::print(stderr, "\n");
+        }
+    }
 
 } // acmacs::virus::name::report
 
