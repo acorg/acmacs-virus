@@ -12,6 +12,7 @@ bool acmacs::virus::name::is_host(std::string_view source)
     static std::array hosts{
         "TURKEY"sv,
         "DUCK"sv,
+        "MUSCOVY DUCK"sv,
         "MALLARD"sv,
         "CHICKEN"sv,
         "GOOSE"sv,
@@ -34,6 +35,16 @@ bool acmacs::virus::name::is_host(std::string_view source)
         "TEAL"sv,
         "GULL"sv,
         "AVES"sv,               // Aves is the class of birds (nominative plural of avis "bird" in Latin), and town in Portugal
+        "LITTLE CUCKOO-DOVE"sv,
+        "GREAT BLACK-HEADED GULL"sv,
+        "GREY HERON"sv,
+        "FOWL"sv,
+        "DOMESTIC GOOSE"sv,
+        "COMMON EIDER"sv,
+        "AMERICAN GREEN-WINGED TEAL"sv,
+        "ANAS PLATYRHYNCHOS"sv, // = mallard
+        "AYTHYA FULIGULA"sv,    // = tufted duck
+
     };
 
     return std::find(std::begin(hosts), std::end(hosts), source) != std::end(hosts);

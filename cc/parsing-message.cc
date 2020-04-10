@@ -3,9 +3,12 @@
 #include "acmacs-base/debug.hh"
 #include "acmacs-base/counter.hh"
 #include "acmacs-base/string-split.hh"
+#include "acmacs-base/string-join.hh"
 #include "acmacs-base/string-digits.hh"
 #include "acmacs-virus/parsing-message.hh"
 #include "acmacs-virus/host.hh"
+
+// ----------------------------------------------------------------------
 
 // ----------------------------------------------------------------------
 
@@ -32,13 +35,16 @@ void acmacs::virus::name::report(parsing_messages_by_key_t& messages)
     if (const auto found = messages.find(parsing_message_t::location_field_not_found); found != std::end(messages)) {
         // AD_INFO("LFNF ({})", found->second.size());
 
-        std::set<std::string> locations_to_check;
+        acmacs::Counter<std::string> locations_to_check;
         const auto add = [&locations_to_check](std::string_view part) {
-            auto prefix = acmacs::string::non_digit_prefix(part);
-            while (prefix.size() > 2 && (prefix.back() == '_' || prefix.back() == '-' || prefix.back() == ' '))
-                prefix.remove_suffix(1);
-            if (prefix.size() > 2 && !is_host(::string::upper(prefix)))
-                locations_to_check.insert(std::string{prefix});
+            const auto prefix_case = acmacs::string::non_digit_prefix(part);
+            if (const auto camel = acmacs::string::split_camel_case(prefix_case); camel.size() > 1)
+                AD_DEBUG("Camel \"{}\" -> \"{}\"", prefix_case, acmacs::string::join(" ", camel));
+            auto prefix = ::string::upper(prefix_case);
+            while (prefix.size() > 4 && (prefix.back() == '_' || prefix.back() == '-' || prefix.back() == ' '))
+                prefix.erase(prefix.size() - 1);
+            if (prefix.size() > 3 && !is_host(prefix))
+                locations_to_check.count(prefix);
         };
 
         for (const auto& mm : found->second) {
@@ -62,13 +68,14 @@ void acmacs::virus::name::report(parsing_messages_by_key_t& messages)
         if (!locations_to_check.empty()) {
             fmt::print(stderr, "\n");
             AD_INFO("Locations to check ({})", locations_to_check.size());
-            for (const auto& loc : locations_to_check)
-                fmt::print("{}\n", loc);
+            fmt::print("{}\n", locations_to_check.report_sorted_max_first("{quoted_first:30s} {second:4d}\n"));
+            // for (const auto& loc : locations_to_check)
+            //     fmt::print("{}\n", loc);
 
-            fmt::print(stderr, "\nlocdb");
-            for (const auto& loc : locations_to_check)
-                fmt::print(stderr, " \"{}\"", loc);
-            fmt::print(stderr, "\n");
+            // fmt::print(stderr, "\nlocdb");
+            // for (const auto& loc : locations_to_check)
+            //     fmt::print(stderr, " \"{}\"", loc);
+            // fmt::print(stderr, "\n");
         }
     }
 

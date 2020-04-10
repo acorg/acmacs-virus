@@ -322,12 +322,12 @@ namespace virus_name
     {
         const auto fix1 = [](const auto& src) {
             // std::cerr << "DEBUG: fix1 " << src << '\n';
-            const auto& locdb = get_locdb();
-            if (detail::find_indexed_by_name_no_fixes(locdb.names(), src).has_value())
+            const auto& locdb = acmacs::locationdb::get();
+            if (locdb.find_by_name_no_fixes(src).has_value())
                 return src;
-            if (const auto replacement_it = detail::find_indexed_by_name_no_fixes(locdb.replacements(), src); replacement_it.has_value())
+            if (const auto replacement_it = locdb.find_by_replacement_no_fixes(src); replacement_it.has_value())
                 return replacement_it.value()->second;
-            throw LocationNotFound(src);
+            throw acmacs::locationdb::LocationNotFound(src);
         };
 
         if (name.host.empty() && std::isalpha(name.isolation[0])) {
@@ -338,7 +338,7 @@ namespace virus_name
                     name.isolation = std::string(num_start, name.isolation.end());
                     return;
                 }
-                catch (LocationNotFound&) {
+                catch (acmacs::locationdb::LocationNotFound&) {
                 }
             }
         }
@@ -346,13 +346,13 @@ namespace virus_name
         try {
             name.location = fix1(name.location);
         }
-        catch (LocationNotFound&) {
+        catch (acmacs::locationdb::LocationNotFound&) {
             if (!name.host.empty()) {
                 try {
                     name.location = fix1(string::concat(name.host, ' ', name.location));
                     name.host.clear();
                 }
-                catch (LocationNotFound&) {
+                catch (acmacs::locationdb::LocationNotFound&) {
                     const auto location = fix1(name.host);
                     // A/Algeria/G0281/16/2016
                     name.host.clear();

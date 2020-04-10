@@ -452,8 +452,8 @@ std::optional<acmacs::virus::name::location_data_t> acmacs::virus::name::locatio
         return std::nullopt;
 
     const auto look = [](std::string_view look_for) {
-        const auto& locdb = get_locdb();
-        const auto loc = locdb.find(look_for);
+        const auto& locdb = acmacs::locationdb::get();
+        const auto loc = locdb.find_or_throw(look_for);
         const auto country = loc.country();
         return location_data_t{.name = loc.name, .country = std::string{country}, .continent = std::string{locdb.continent_of_country(country)}};
     };
@@ -461,7 +461,7 @@ std::optional<acmacs::virus::name::location_data_t> acmacs::virus::name::locatio
     try {
         return look(source);
     }
-    catch (LocationNotFound& /*err*/) {
+    catch (acmacs::locationdb::LocationNotFound& /*err*/) {
     }
 
     using pp = std::pair<std::string_view, std::string_view>;
@@ -476,7 +476,7 @@ std::optional<acmacs::virus::name::location_data_t> acmacs::virus::name::locatio
                 return look(e2);
         }
     }
-    catch (LocationNotFound& /*err*/) {
+    catch (acmacs::locationdb::LocationNotFound& /*err*/) {
     }
 
     return std::nullopt;
