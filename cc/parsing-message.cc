@@ -38,8 +38,6 @@ void acmacs::virus::name::report(parsing_messages_by_key_t& messages)
         acmacs::Counter<std::string> locations_to_check;
         const auto add = [&locations_to_check](std::string_view part) {
             const auto prefix_case = acmacs::string::non_digit_prefix(part);
-            if (const auto camel = acmacs::string::split_camel_case(prefix_case); camel.size() > 1)
-                AD_DEBUG("Camel \"{}\" -> \"{}\"", prefix_case, acmacs::string::join(" ", camel));
             auto prefix = ::string::upper(prefix_case);
             while (prefix.size() > 4 && (prefix.back() == '_' || prefix.back() == '-' || prefix.back() == ' '))
                 prefix.erase(prefix.size() - 1);
