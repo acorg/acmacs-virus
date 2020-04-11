@@ -453,7 +453,7 @@ std::optional<acmacs::virus::name::location_data_t> acmacs::virus::name::locatio
         return std::nullopt;
 
     if (const auto loc = acmacs::locationdb::get().find(source, acmacs::locationdb::include_continent::yes); loc.has_value())
-        return location_data_t{.name{loc->name}, .country{loc->country()}, .continent{loc->continent}};
+        return location_data_t{.name{loc->name}, .country{std::string{loc->country()}}, .continent{loc->continent}};
 
     using pp = std::pair<std::string_view, std::string_view>;
     static std::array common_abbreviations{
@@ -464,7 +464,7 @@ std::optional<acmacs::virus::name::location_data_t> acmacs::virus::name::locatio
     for (const auto& [e1, e2] : common_abbreviations) {
         if (e1 == upcased) {
             if (const auto loc = acmacs::locationdb::get().find(e2, acmacs::locationdb::include_continent::yes); loc.has_value())
-                return location_data_t{.name{loc->name}, .country{loc->country()}, .continent{loc->continent}};
+                return location_data_t{.name{loc->name}, .country{std::string{loc->country()}}, .continent{loc->continent}};
         }
     }
 
