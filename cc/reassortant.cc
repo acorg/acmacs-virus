@@ -2,6 +2,7 @@
 
 #include "acmacs-base/regex.hh"
 #include "acmacs-base/string.hh"
+#include "acmacs-base/string-strip.hh"
 #include "acmacs-virus/reassortant.hh"
 
 // ----------------------------------------------------------------------
@@ -45,7 +46,7 @@ std::tuple<acmacs::virus::Reassortant, std::string> acmacs::virus::parse_reassor
     if (reassortant.empty() && rest.empty()) // nothing found
         return {Reassortant{}, std::string{source}};
     else
-        return {Reassortant{reassortant}, string::collapse_spaces(string::strip(rest))};
+        return {Reassortant{reassortant}, ::string::collapse_spaces(acmacs::string::strip(rest))};
 
 } // acmacs::virus::parse_reassortant
 

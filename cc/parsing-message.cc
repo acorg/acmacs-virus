@@ -5,6 +5,7 @@
 #include "acmacs-base/string-split.hh"
 #include "acmacs-base/string-join.hh"
 #include "acmacs-base/string-digits.hh"
+#include "acmacs-base/string.hh"
 #include "acmacs-virus/parsing-message.hh"
 #include "acmacs-virus/host.hh"
 

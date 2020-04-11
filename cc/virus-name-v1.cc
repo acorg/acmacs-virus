@@ -5,6 +5,7 @@
 #include <regex>
 
 #include "acmacs-base/fmt.hh"
+#include "acmacs-base/string-strip.hh"
 #include "locationdb/locdb.hh"
 #include "acmacs-virus/virus-name-v1.hh"
 
@@ -215,12 +216,12 @@ namespace virus_name
     {
         std::cmatch m;
         if (std::regex_search(std::begin(name), std::end(name), m, _internal::international_name_with_extra)) {
-            virus_type = string::strip(m[1].str());
-            host = string::strip(m[2].str());
-            location = string::strip(m[3].str());
-            isolation = string::strip(m[4].str());
+            virus_type = acmacs::string::strip(m[1].str());
+            host = acmacs::string::strip(m[2].str());
+            location = acmacs::string::strip(m[3].str());
+            isolation = acmacs::string::strip(m[4].str());
             year = _internal::make_year(m);
-            extra = acmacs::string::join(" ", string::strip(m.prefix().str()), string::strip(m[7].str()));
+            extra = acmacs::string::join(" ", acmacs::string::strip(m.prefix().str()), acmacs::string::strip(m[7].str()));
         }
         else
             throw Unrecognized(fmt::format("Cannot split {}", name));
@@ -277,7 +278,7 @@ namespace virus_name
             std::smatch mat;
             if (std::regex_search(extra, mat, std::get<std::regex>(re_entry))) {
                 reassortant = mat.format(std::get<const char*>(re_entry));
-                extra = acmacs::string::join(" ", string::strip(mat.format("$`")), string::strip(mat.format("$'")));
+                extra = acmacs::string::join(" ", acmacs::string::strip(mat.format("$`")), acmacs::string::strip(mat.format("$'")));
             }
         }
         if (!extra.empty() && rep == report_extra::yes)
@@ -291,15 +292,15 @@ namespace virus_name
     //     try {
     //         split(name, virus_type, host, location, isolation, year, passage);
 
-    //         virus_type = string::strip(virus_type);
-    //         host = string::strip(host);
-    //         location = string::strip(location);
-    //         isolation = string::strip(isolation);
+    //         virus_type = acmacs::string::strip(virus_type);
+    //         host = acmacs::string::strip(host);
+    //         location = acmacs::string::strip(location);
+    //         isolation = acmacs::string::strip(isolation);
     //         auto first_not_zero = isolation.find_first_not_of('0');
     //         if (first_not_zero != std::string::npos)
     //             isolation.erase(0, first_not_zero);
-    //         year = string::strip(year);
-    //         passage = string::strip(passage);
+    //         year = acmacs::string::strip(year);
+    //         passage = acmacs::string::strip(passage);
     //         if (host.empty())
     //             result = acmacs::string::join("/", virus_type, location, isolation, year);
     //         else

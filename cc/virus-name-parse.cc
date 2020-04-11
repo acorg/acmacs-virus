@@ -1,5 +1,7 @@
 #include "acmacs-base/regex.hh"
 #include "acmacs-base/date.hh"
+#include "acmacs-base/string-strip.hh"
+#include "acmacs-base/string-from-chars.hh"
 #include "locationdb/locdb.hh"
 #include "acmacs-virus/virus-name-parse.hh"
 
@@ -164,7 +166,7 @@ static const std::regex re_location_stop_list("(?:REASSORTANT|DOMESTIC|EQUINE|SW
 acmacs::virus::v2::parse_result_t acmacs::virus::v2::parse_name(std::string_view source, parse_name_f flags, acmacs::debug dbg)
 {
 
-    const auto make_extra = [](const std::smatch& match) { return string::join(" ", {::string::strip(match.prefix().str()), ::string::strip(match.suffix().str())}); };
+    const auto make_extra = [](const std::smatch& match) { return string::join(" ", {acmacs::string::strip(match.prefix().str()), acmacs::string::strip(match.suffix().str())}); };
 
     name_data_t name_data{name_t{}, host_t{}, std::string{}, std::string{}};
     std::string extra;
@@ -458,7 +460,7 @@ location_t fix_location(std::string_view source, acmacs::virus::v2::parse_name_f
 
     try {
         const auto& locdb = acmacs::locationdb::get();
-        const auto loc = locdb.find_or_throw(::string::strip(source));
+        const auto loc = locdb.find_or_throw(acmacs::string::strip(source));
         // fmt::print(stderr, "DEBUG: fix_location {} -> {} -- {} -- {}\n", source, loc.name, loc.replacement, loc.location_name);
         return {loc.name, std::string(loc.country()), std::string(locdb.continent_of_country(loc.country()))};
     }
@@ -497,7 +499,7 @@ std::string fix_year(std::string_view source, std::string_view /*name*/, std::ve
     static const auto current_year_2 = current_year % 100;
 #include "acmacs-base/diagnostics-pop.hh"
 
-    if (const auto year = string::from_chars<size_t>(source); year < 10) {
+    if (const auto year = acmacs::string::from_chars<size_t>(source); year < 10) {
         return "200" + std::to_string(year);
     }
     else if (year < 18) {

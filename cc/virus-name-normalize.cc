@@ -1,6 +1,8 @@
 #include "acmacs-base/string-split.hh"
 #include "acmacs-base/string-join.hh"
 #include "acmacs-base/string-digits.hh"
+#include "acmacs-base/string-strip.hh"
+#include "acmacs-base/string-from-chars.hh"
 #include "acmacs-base/date.hh"
 #include "acmacs-base/regex.hh"
 #include "locationdb/locdb.hh"
@@ -166,7 +168,7 @@ template <> struct fmt::formatter<acmacs::virus::name::location_parts_t> : publi
 
 acmacs::virus::name::parsed_fields_t acmacs::virus::name::parse(std::string_view source)
 {
-    source = ::string::strip(source);
+    source = acmacs::string::strip(source);
     parsed_fields_t output{.raw = std::string{source}};
     if (source.empty()) {
         AD_WARNING("empty source");
@@ -537,7 +539,7 @@ bool acmacs::virus::name::check_year(std::string_view source, parsed_fields_t& o
         switch (digits.size()) {
             case 1:
             case 2:
-                if (const auto year = ::string::from_chars<size_t>(digits); year <= current_year_2)
+                if (const auto year = acmacs::string::from_chars<size_t>(digits); year <= current_year_2)
                     output.year = fmt::format("{}", year + 2000);
                 else if (year < 100) // from_chars returns std::numeric_limits<size_t>::max() if number cannot be read
                     output.year = fmt::format("{}", year + 1900);
@@ -545,7 +547,7 @@ bool acmacs::virus::name::check_year(std::string_view source, parsed_fields_t& o
                     throw std::exception{};
                 break;
             case 4:
-                if (const auto year = ::string::from_chars<size_t>(digits); year <= current_year)
+                if (const auto year = acmacs::string::from_chars<size_t>(digits); year <= current_year)
                     output.year = fmt::format("{}", year);
                 else
                     throw std::exception{};
