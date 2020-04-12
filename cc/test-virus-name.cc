@@ -90,9 +90,9 @@ void test_builtin()
 
     // const auto field_mistmatch_output = [](auto&& res, auto&& exp) {
     //     if (res == exp)
-    //         return ::string::concat('"', acmacs::to_string(res), '"');
+    //         return acmacs::string::concat('"', acmacs::to_string(res), '"');
     //     else
-    //         return ::string::concat("! \"", acmacs::to_string(res), "\"  vs. expected \"", acmacs::to_string(exp), '"');
+    //         return acmacs::string::concat("! \"", acmacs::to_string(res), "\"  vs. expected \"", acmacs::to_string(exp), '"');
     // };
 
     size_t errors = 0;
@@ -115,7 +115,7 @@ void test_builtin()
     }
 
     if (errors)
-        throw std::runtime_error(::string::concat("test_builtin: ", errors, " errors found"));
+        throw std::runtime_error(acmacs::string::concat("test_builtin: ", errors, " errors found"));
 
 } // test_builtin
 

@@ -335,7 +335,7 @@ namespace virus_name
             if (const auto num_start = std::find_if(std::begin(name.isolation), std::end(name.isolation), [](char cc) { return std::isdigit(cc); }); num_start != std::end(name.isolation)) {
                 // A/Jilin/Nanguan112/2007 (CDC sequences)
                 try {
-                    name.location = fix1(string::concat(name.location, ' ', std::string_view(name.isolation.data(), static_cast<size_t>(num_start - name.isolation.begin()))));
+                    name.location = fix1(acmacs::string::concat(name.location, ' ', std::string_view(name.isolation.data(), static_cast<size_t>(num_start - name.isolation.begin()))));
                     name.isolation = std::string(num_start, name.isolation.end());
                     return;
                 }
@@ -350,14 +350,14 @@ namespace virus_name
         catch (acmacs::locationdb::LocationNotFound&) {
             if (!name.host.empty()) {
                 try {
-                    name.location = fix1(string::concat(name.host, ' ', name.location));
+                    name.location = fix1(acmacs::string::concat(name.host, ' ', name.location));
                     name.host.clear();
                 }
                 catch (acmacs::locationdb::LocationNotFound&) {
                     const auto location = fix1(name.host);
                     // A/Algeria/G0281/16/2016
                     name.host.clear();
-                    name.isolation = string::concat(name.location, '-', name.isolation);
+                    name.isolation = acmacs::string::concat(name.location, '-', name.isolation);
                     name.location = location;
                 }
             }
