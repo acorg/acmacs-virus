@@ -120,14 +120,11 @@ void test_builtin()
         TestData{"A/BiliranTB5/0423/2015",                          to_compare_t{A, H,                 "BILIRAN",  "TB5-0423", "2015", R, P, E}},
         TestData{"A/chicken/Yunnan/Kunming/2007",                   to_compare_t{A, host_t{"CHICKEN"}, "YUNNAN KUNMING", "UNKNOWN", "2007", R, P, E}},
 
-        //----
-        //TestData{"",          to_compare_t{name_t{"", R, Passage{}, ""}},
+        // gisaid
+        TestData{"A/Flu-Bangkok/24/19",                             to_compare_t{A,                       H, "BANGKOK", "24", "2019", R, P, E}},
+        TestData{"A(H1)//ARGENTINA/FLE0116/2009",                   to_compare_t{type_subtype_t{"A(H1)"}, H, "ARGENTINA", "FLE0116", "2009", R, P, E}},
 
-        // TestData{"A/H3N2/SINGAPORE/INFIMH-16-0019/2016",            to_compare_t{A, "(H3N2)/SINGAPORE/INFIMH-16-0019/2016", R, Passage{}, ""}},
-        // TestData{"SINGAPORE/INFIMH-16-0019/2016",                   to_compare_t{name_t{"SINGAPORE/INFIMH-16-0019/2016", R, Passage{}, ""}},
-        // TestData{"SINGAPORE/INFIMH-16-0019/16",                     to_compare_t{name_t{"SINGAPORE/INFIMH-16-0019/2016", R, Passage{}, ""}},
-
-        // TestData{"A-Rostov-CRIE-1-2018",                            to_compare_t{A, "ROSTOV/CRIE-1/2018", R, Passage{}, ""}}, // CRIE (Russia)
+        // TestData{"",                   to_compare_t{A, H, "", "", "", R, P, E}},
     };
 
     size_t errors = 0;

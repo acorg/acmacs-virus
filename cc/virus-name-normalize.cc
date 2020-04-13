@@ -3,6 +3,7 @@
 #include "acmacs-base/string-digits.hh"
 #include "acmacs-base/string-strip.hh"
 #include "acmacs-base/string-from-chars.hh"
+#include "acmacs-base/string.hh"
 #include "acmacs-base/date.hh"
 #include "acmacs-base/regex.hh"
 #include "locationdb/locdb.hh"
@@ -88,7 +89,7 @@ namespace acmacs::virus::inline v2::name
     static bool check_location(std::string_view source, parsed_fields_t& output);
     static bool check_isolation(std::string_view source, parsed_fields_t& output);
     static bool check_year(std::string_view source, parsed_fields_t& output, make_message report = make_message::yes);
-    static location_parts_t find_location_parts(const std::vector<std::string_view>& parts);
+    static location_parts_t find_location_parts(std::vector<std::string_view>& parts);
     static std::string check_reassortant_in_front(std::string_view source, parsed_fields_t& output);
     static bool check_nibsc_extra(std::vector<std::string_view>& parts);
     static bool location_as_prefix(std::vector<std::string_view>& parts, size_t part_to_check, parsed_fields_t& output);
@@ -517,7 +518,7 @@ std::optional<acmacs::virus::name::location_data_t> acmacs::virus::name::locatio
         return location_data_t{.name{loc->name}, .country{std::string{loc->country()}}, .continent{loc->continent}};
 
     using pp = std::pair<std::string_view, std::string_view>;
-    static std::array common_abbreviations{
+    static const std::array common_abbreviations{
         pp{"UK"sv, "UNITED KINGDOM"sv},
         pp{"NY"sv, "NEW YORK"sv},
     };
@@ -552,12 +553,35 @@ bool acmacs::virus::name::check_location(std::string_view source, parsed_fields_
 
 // ----------------------------------------------------------------------
 
-acmacs::virus::name::location_parts_t acmacs::virus::name::find_location_parts(const std::vector<std::string_view>& parts)
+acmacs::virus::name::location_parts_t acmacs::virus::name::find_location_parts(std::vector<std::string_view>& parts)
 {
+    using namespace std::string_view_literals;
+
+    static const std::array prefixes_to_ignore{
+        "FLU-"sv, // A/FLU-BANGKOK/24/19
+    };
+
     location_parts_t location_parts;
     for (size_t part_no = 0; part_no < parts.size(); ++part_no) {
-        if (const auto loc = location_lookup(parts[part_no]); loc.has_value())
-            location_parts.push_back({part_no, *loc});
+        if (const auto loc1 = location_lookup(parts[part_no]); loc1.has_value()) {
+            location_parts.push_back({part_no, *loc1});
+        }
+        else {
+            switch (part_no) {
+                case 1:
+                case 2:
+                    for (const auto& prefix : prefixes_to_ignore) {
+                        if (acmacs::string::startswith(::string::upper(parts[part_no]), prefix)) {
+                            if (const auto loc2 = location_lookup(parts[part_no].substr(prefix.size())); loc2.has_value()) {
+                                parts[part_no].remove_prefix(prefix.size());
+                                location_parts.push_back({part_no, *loc2});
+                                break;
+                            }
+                        }
+                    }
+                    break;
+            }
+        }
     }
     return location_parts;
 
