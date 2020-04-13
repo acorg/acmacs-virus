@@ -89,32 +89,32 @@ void test_builtin()
         TestData{"A/SINGAPORE/INFIMH-16-0019/2016 NEW CL2  X-307A", to_compare_t{A,                         H,              "SINGAPORE", "INFIMH-16-0019",   "2016", Reassortant{"NYMC-307A"}, "CL2"}},
         TestData{"A/SINGAPORE/INFIMH-16-0019/2016 CL2 NEW X-307A",  to_compare_t{A,                         H,              "SINGAPORE", "INFIMH-16-0019",   "2016", Reassortant{"NYMC-307A"}, "CL2"}},
         TestData{"A/SINGAPORE/INFIMH-16-0019/2016 CL2  X-307A NEW", to_compare_t{A,                         H,              "SINGAPORE", "INFIMH-16-0019",   "2016", Reassortant{"NYMC-307A"}, "CL2"}},
-        TestData{"A/Snowy Sheathbill/Antarctica/2899/2014",         to_compare_t{A, host_t{"SNOWY SHEATHBILL"}, "ANTARCTICA", "2899", "2014", R, E}},
-        TestData{"A/wigeon/Italy/6127-23/2007",                     to_compare_t{A, host_t{"WIGEON"}, "ITALY", "6127-23", "2007", R, E}},
-        TestData{"B/Via?A Del Mar/73490/2017",                      to_compare_t{B, H, "VINA DEL MAR", "73490", "2017", R, E}},
-        TestData{"B/Cameroon11V-12080 GVFI/2011",                   to_compare_t{B, H, "CAMEROON", "11V-12080 GVFI", "2011", R, E}},
-        TestData{"A/Mali 071 Ci/2015",                              to_compare_t{A, H, "MALI", "71 CI", "2015", R, E}},
-        TestData{"A/Zambia/13/174/2013",                            to_compare_t{A, H, "ZAMBIA", "13-174", "2013", R, E}},
-        TestData{"A/Lyon/CHU18.54.48/2018",                         to_compare_t{A, H, "LYON CHU", "18.54.48", "2018", R, E}},
-        TestData{"A/Lyon/CHU/R18.54.48/2018",                       to_compare_t{A, H, "LYON CHU", "R18.54.48", "2018", R, E}},
-        TestData{"A/Algeria/G0281/16/2016",                         to_compare_t{A, H, "ALGERIA", "G0281-16", "2016", R, E}},
-        TestData{"A/chicken/Ghana/7/2015",                          to_compare_t{A, host_t{"CHICKEN"}, "GHANA", "7", "2015", R, E}},
-        TestData{"IVR-153 (A/CALIFORNIA/07/2009)",                  to_compare_t{A, H, "CALIFORNIA", "7", "2009", Reassortant{"IVR-153"}, E}},
-        TestData{"A/Brisbane/01/2018  NYMC-X-311 (18/160)",         to_compare_t{A, H, "BRISBANE", "1", "2018", Reassortant{"NYMC-311"}, E}}, // "(18/160)" removed by check_nibsc_extra
-        TestData{"A/Antananarivo/1067/2016 CBER-11B C1.3",          to_compare_t{A, H, "ANTANANARIVO", "1067", "2016", Reassortant{"CBER-11B"}, "C1.3"}}, // CDC
-        TestData{"A/Montana/50/2016 CBER-07 D2.3",                  to_compare_t{A, H, "MONTANA", "50", "2016", Reassortant{"CBER-07"}, "D2.3"}}, // CDC
-        TestData{"A/duck/Guangdong/02.11 DGQTXC195-P/2015(Mixed)",  to_compare_t{A, host_t{"DUCK"}, "GUANGDONG", "2.11 DGQTXC195-P", "2015", R, E}}, // (MIXED) removed
-        TestData{"A/duck/Guangdong/02.11 DGQTXC195-P/2015(H5N1)",  to_compare_t{type_subtype_t{"A(H5N1)"}, host_t{"DUCK"}, "GUANGDONG", "2.11 DGQTXC195-P", "2015", R, E}},
-        TestData{"A/swine/Chachoengsao/2003",                       to_compare_t{A, host_t{"SWINE"}, "CHACHOENGSAO", "UNKNOWN", "2003", R, E}},
+        TestData{"A/Snowy Sheathbill/Antarctica/2899/2014",         to_compare_t{A,                         host_t{"SNOWY SHEATHBILL"}, "ANTARCTICA", "2899", "2014", R, E}},
+        TestData{"A/wigeon/Italy/6127-23/2007",                     to_compare_t{A,                         host_t{"WIGEON"}, "ITALY", "6127-23", "2007", R, E}},
+        TestData{"B/Via?A Del Mar/73490/2017",                      to_compare_t{B,                         H,                "VINA DEL MAR", "73490", "2017", R, E}},
+        TestData{"B/Cameroon11V-12080 GVFI/2011",                   to_compare_t{B,                         H,                "CAMEROON", "11V-12080 GVFI", "2011", R, E}},
+        TestData{"A/Mali 071 Ci/2015",                              to_compare_t{A,                         H,                "MALI", "71 CI", "2015", R, E}},
+        TestData{"A/Zambia/13/174/2013",                            to_compare_t{A,                         H,                "ZAMBIA", "13-174", "2013", R, E}},
+        TestData{"A/Lyon/CHU18.54.48/2018",                         to_compare_t{A,                         H,                "LYON CHU", "18.54.48", "2018", R, E}},
+        TestData{"A/Lyon/CHU/R18.54.48/2018",                       to_compare_t{A,                         H,                "LYON CHU", "R18.54.48", "2018", R, E}},
+        TestData{"A/Algeria/G0281/16/2016",                         to_compare_t{A,                         H,                "ALGERIA", "G0281-16", "2016", R, E}},
+        TestData{"A/chicken/Ghana/7/2015",                          to_compare_t{A,                         host_t{"CHICKEN"}, "GHANA", "7", "2015", R, E}},
+        TestData{"IVR-153 (A/CALIFORNIA/07/2009)",                  to_compare_t{A,                         H,                "CALIFORNIA", "7", "2009", Reassortant{"IVR-153"}, E}},
+        TestData{"A/Brisbane/01/2018  NYMC-X-311 (18/160)",         to_compare_t{A,                         H,                "BRISBANE", "1", "2018", Reassortant{"NYMC-311"}, E}}, // "(18/160)" removed by check_nibsc_extra
+        TestData{"A/Antananarivo/1067/2016 CBER-11B C1.3",          to_compare_t{A,                         H,                "ANTANANARIVO", "1067", "2016", Reassortant{"CBER-11B"}, "C1.3"}}, // CDC
+        TestData{"A/Montana/50/2016 CBER-07 D2.3",                  to_compare_t{A,                         H,                "MONTANA", "50", "2016", Reassortant{"CBER-07"}, "D2.3"}}, // CDC
+        TestData{"A/duck/Guangdong/02.11 DGQTXC195-P/2015(Mixed)",  to_compare_t{A,                         host_t{"DUCK"},   "GUANGDONG", "2.11 DGQTXC195-P", "2015", R, E}}, // (MIXED) removed
+        TestData{"A/duck/Guangdong/02.11 DGQTXC195-P/2015(H5N1)",   to_compare_t{type_subtype_t{"A(H5N1)"}, host_t{"DUCK"},   "GUANGDONG", "2.11 DGQTXC195-P", "2015", R, E}},
+        TestData{"A/swine/Chachoengsao/2003",                       to_compare_t{A,                         host_t{"SWINE"},   "CHACHOENGSAO", "UNKNOWN", "2003", R, E}},
 
-        // // nbci -- genbank
-        // TestData{"A/Anas platyrhynchos/Belgium/17330 2/2013",       to_compare_t{A, host_t{"ANAS PLATYRHYNCHOS"}, "BELGIUM", "17330 2", "2013", R, E}},
-        // // TestData{"A/mallard/Balkhash/6304_HA/2014",                 to_compare_t{A, host_t{"MALLARD"}, "BALKHASH", "6304", "2014"}, R, E}},
-        // TestData{"A/mallard/Balkhas/6304_HA/2014",                  to_compare_t{A, host_t{"MALLARD"}, "BALKHAS", "6304", "2014", R, E}},
-        // TestData{"A/SWINE/NE/55024/2018",       to_compare_t{A, host_t{"SWINE"}, "NE", "55024", "2018"}, R, E}},
-        // TestData{"A/chicken/Iran221/2001",       to_compare_t{A, host_t{"", R, E}},
-        // TestData{"A/BiliranTB5/0423/2015",       to_compare_t{A, host_t{"", R, E}},
-        // TestData{"A/chicken/Yunnan/Kunming/2007",       to_compare_t{A, host_t{"CHICKEN"}, R, E}},
+        // nbci -- genbank
+        TestData{"A/Anas platyrhynchos/Belgium/17330 2/2013",       to_compare_t{A, host_t{"ANAS PLATYRHYNCHOS"}, "BELGIUM", "17330 2", "2013", R, E}},
+        // TestData{"A/mallard/Balkhash/6304_HA/2014",                 to_compare_t{A, host_t{"MALLARD"}, "BALKHASH", "6304", "2014"}, R, E}},
+        TestData{"A/mallard/Balkhash/6304_HA/2014",                 to_compare_t{A, host_t{"MALLARD"}, "BALKHASH", "6304", "2014", R, E}}, // _HA is seqgment reference in ncbi
+        // TestData{"A/SWINE/NE/55024/2018",                           to_compare_t{A, host_t{"SWINE"},   "NE", "55024", "2018", R, E}},
+        TestData{"A/chicken/Iran221/2001",                          to_compare_t{A, host_t{"CHICKEN"}, "IRAN", "221", "2001", R, E}},
+        TestData{"A/BiliranTB5/0423/2015",                          to_compare_t{A, H,                 "BILIRAN",  "TB5-0423", "2015", R, E}},
+        TestData{"A/chicken/Yunnan/Kunming/2007",                   to_compare_t{A, host_t{"CHICKEN"}, "YUNNAN KUNMING", "UNKNOWN", "2007", R, E}},
 
         //----
         //TestData{"",          to_compare_t{name_t{"", R, Passage{}, ""}},
@@ -125,13 +125,6 @@ void test_builtin()
 
         // TestData{"A-Rostov-CRIE-1-2018",                            to_compare_t{A, "ROSTOV/CRIE-1/2018", R, Passage{}, ""}}, // CRIE (Russia)
     };
-
-    // const auto field_mistmatch_output = [](auto&& res, auto&& exp) {
-    //     if (res == exp)
-    //         return acmacs::string::concat('"', acmacs::to_string(res), '"');
-    //     else
-    //         return acmacs::string::concat("! \"", acmacs::to_string(res), "\"  vs. expected \"", acmacs::to_string(exp), '"');
-    // };
 
     size_t errors = 0;
     for (const auto& entry : data) {

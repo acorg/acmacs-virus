@@ -574,6 +574,8 @@ bool acmacs::virus::name::check_isolation(std::string_view source, parsed_fields
         else
             output.messages.emplace_back(parsing_message_t::isolation_absent, source);
     }
+    if (output.isolation.size() > 3 && output.isolation.substr(output.isolation.size() - 3) == "_HA") // isolation ending with _HA means HA segment in sequences from ncbi
+        output.isolation.erase(output.isolation.size() - 3);
     return true;
 
 } // acmacs::virus::name::check_isolation
