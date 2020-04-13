@@ -39,7 +39,7 @@ template <> struct fmt::formatter<acmacs::virus::parse_result_t> : public fmt::f
         if (!res.reassortant.empty())
             format_to(ctx.out(), " R:\"{}\"", res.reassortant);
         if (!res.extra.empty())
-            format_to(ctx.out(), " E:\"{}\"", res.extra);
+            format_to(ctx.out(), " <{}>", res.extra);
         if (!res.passage.empty())
             format_to(ctx.out(), " P:\"{}\"", res.passage);
         if (!res.host.empty())

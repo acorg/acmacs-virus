@@ -28,7 +28,7 @@ acmacs::virus::name_t acmacs::virus::name::parsed_fields_t::name() const
 
 namespace acmacs::virus::inline v2::name
 {
-    constexpr const std::string_view unknown_isolation{"UNKNWON"};
+    constexpr const std::string_view unknown_isolation{"UNKNOWN"};
 
     // ----------------------------------------------------------------------
 
@@ -92,6 +92,7 @@ namespace acmacs::virus::inline v2::name
     static bool check_nibsc_extra(std::vector<std::string_view>& parts);
     static bool location_as_prefix(std::vector<std::string_view>& parts, size_t part_to_check, parsed_fields_t& output);
     static void check_extra(parsed_fields_t& output);
+    static bool location_part_as_isolation_prefix(std::string_view isolation, parsed_fields_t& output);
 
     static std::optional<location_data_t> location_lookup(std::string_view source);
 
@@ -297,13 +298,17 @@ void acmacs::virus::name::one_location_part(std::vector<std::string_view>& parts
 void acmacs::virus::name::one_location_part_at_1(std::vector<std::string_view>& parts, parsed_fields_t& output)
 {
     try {
+        // AD_DEBUG("one_location_part_at_1: {}", parts);
         switch (parts.size()) {
             case 3: // A/Alaska/1935
                 if (!check_subtype(parts[0], output) || !check_year(parts[2], output) || !check_isolation(unknown_isolation, output))
                     throw std::exception{};
                 break;
             case 4: // A/Germany/1/2014
-                if (!check_subtype(parts[0], output) || !check_isolation(parts[2], output) || !check_year(parts[3], output))
+                if (!check_subtype(parts[0], output) || !check_year(parts[3], output))
+                    throw std::exception{};
+                if (!location_part_as_isolation_prefix(parts[2], output) // A/Lyon/CHU18.54.48/2018
+                    && !check_isolation(parts[2], output))
                     throw std::exception{};
                 break;
             case 5:
@@ -335,9 +340,30 @@ void acmacs::virus::name::one_location_part_at_1(std::vector<std::string_view>& 
 
 // ----------------------------------------------------------------------
 
+bool acmacs::virus::name::location_part_as_isolation_prefix(std::string_view isolation, parsed_fields_t& output)
+{
+    if (std::isdigit(isolation[0]))
+        return false;
+
+    for (auto prefix = acmacs::string::non_digit_prefix(isolation); prefix.size() > 2 && prefix.size() < isolation.size(); prefix.remove_suffix(1)) {
+        // AD_DEBUG("location_part_as_isolation_prefix \"{}\" + \"{}\"", output.location, prefix);
+        if (auto location_data = location_lookup(fmt::format("{} {}", output.location, prefix)); location_data.has_value()) { // "LYON CHU" <- A/Lyon/CHU19.03.77/2019
+            set(output, std::move(*location_data));
+            check_isolation(isolation.substr(prefix.size()), output);
+            return true;
+        }
+    }
+
+    return false;
+
+} // acmacs::virus::name::location_part_as_isolation_prefix
+
+// ----------------------------------------------------------------------
+
 void acmacs::virus::name::one_location_part_at_2(std::vector<std::string_view>& parts, parsed_fields_t& output)
 {
     try {
+        // AD_DEBUG("one_location_part_at_2: {}", parts);
         switch (parts.size()) {
             case 4: // A/Chicken/Liaoning/99
                 if (!check_subtype(parts[0], output) || !check_host(parts[1], output) || !check_isolation(unknown_isolation, output) || !check_year(parts[3], output))
@@ -536,8 +562,10 @@ acmacs::virus::name::location_parts_t acmacs::virus::name::find_location_parts(c
 
 bool acmacs::virus::name::check_isolation(std::string_view source, parsed_fields_t& output)
 {
-    if (const auto skip_zeros = source.find_first_not_of('0'); skip_zeros != std::string_view::npos)
-        output.isolation = source.substr(skip_zeros);
+    using namespace std::string_view_literals;
+    // AD_DEBUG("check_isolation \"{}\"", source);
+    if (const auto skip_spaces_zeros = source.find_first_not_of(" 0"sv); skip_spaces_zeros != std::string_view::npos)
+        output.isolation = ::string::upper(source.substr(skip_spaces_zeros));
     if (output.isolation.empty()) {
         if (!source.empty()) {
             output.isolation = source;
@@ -645,11 +673,28 @@ bool acmacs::virus::name::check_nibsc_extra(std::vector<std::string_view>& parts
 
 void acmacs::virus::name::check_extra(parsed_fields_t& output)
 {
-    // if (!output.extra.empty()) {
-    //     std::smatch match_extra_remove;
-    //     while (std::regex_search(extra, match_extra_remove, re_extra_remove))
-    //         output.extra = make_extra(match_extra_remove);
-    // }
+    using namespace acmacs::regex;
+
+#include "acmacs-base/global-constructors-push.hh"
+    static const std::array normalize_data{
+        look_replace_t{std::regex("(?:" "\\b(?:NEW)\\b" "|" "\\(MIXED\\)" ")", std::regex::icase), {"$` $'"}}, // NEW, (MIXED) - remove
+        look_replace_t{std::regex("\\(((?:H\\d{1,2})?(?:N\\d{1,2})?)\\)", std::regex::icase), {"$` $'", "$1"}}, // (H3N2) - subtype
+    };
+
+#include "acmacs-base/diagnostics-pop.hh"
+
+    while (!output.extra.empty()) {
+        if (const auto res = scan_replace(output.extra, normalize_data); res.has_value()) {
+            // AD_DEBUG("check_extra {}", *res);
+            output.extra = acmacs::string::strip(res->front());
+            if (res->size() > 1 && !(*res)[1].empty()) { // subtype
+                if (output.subtype == type_subtype_t{"A"})
+                    output.subtype = type_subtype_t{fmt::format("A({})", (*res)[1])};
+            }
+        }
+        else
+            break;
+    }
 
     if (!output.extra.empty()) {
         if (output.reassortant.empty())
