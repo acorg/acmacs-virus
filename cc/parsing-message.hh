@@ -20,6 +20,7 @@ namespace acmacs::virus::inline v2::name
         constexpr static inline std::string_view invalid_isolation{"invalid-isolation"};
         constexpr static inline std::string_view invalid_year{"invalid-year"};
         constexpr static inline std::string_view unrecognized_passage{"unrecognized-passage"};
+        constexpr static inline std::string_view reassortant_without_name{"reassortant-without-name"};
 
         std::string_view key;
         std::string value;

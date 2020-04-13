@@ -18,13 +18,13 @@ namespace acmacs::virus::inline v2::name
         Reassortant reassortant;
         Passage passage;
         // aa_substitutions
-        std::vector<std::string> extra;
+        std::string extra;
         std::string country;
         std::string continent;
         parsing_messages_t messages;
 
         bool good() const { return !location.empty() && !isolation.empty() && year.size() == 4; }
-        std::string name() const;
+        name_t name() const;
     };
 
     parsed_fields_t parse(std::string_view source);
@@ -39,7 +39,7 @@ template <> struct fmt::formatter<acmacs::virus::name::parsed_fields_t> : public
     {
         format_to(ctx.out(), "{{\"{}\" \"{}\" \"{}\" \"{}\" \"{}\"", fields.subtype, fields.host, fields.location, fields.isolation, fields.year);
         if (!fields.extra.empty())
-            format_to(ctx.out(), " {}", fields.extra);
+            format_to(ctx.out(), " <{}>", fields.extra);
         if (!fields.reassortant.empty())
             format_to(ctx.out(), " \"{}\"", fields.reassortant);
         if (!fields.passage.empty())

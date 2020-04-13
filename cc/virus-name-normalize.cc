@@ -11,12 +11,14 @@
 
 // ----------------------------------------------------------------------
 
-std::string acmacs::virus::name::parsed_fields_t::name() const
+acmacs::virus::name_t acmacs::virus::name::parsed_fields_t::name() const
 {
     if (good())
-        return string::join("/", subtype, host, location, isolation, year);
+        return name_t{string::join("/", subtype, host, location, isolation, year)};
+    else if (subtype.empty() && host.empty() && location.empty() && isolation.empty() && year.empty() && !reassortant.empty())
+        return name_t{*reassortant};
     else
-        return raw;
+        return name_t{raw};
 
 } // acmacs::virus::name::parsed_fields_t::name
 
@@ -89,6 +91,7 @@ namespace acmacs::virus::inline v2::name
     static std::string check_reassortant_in_front(std::string_view source, parsed_fields_t& output);
     static bool check_nibsc_extra(std::vector<std::string_view>& parts);
     static bool location_as_prefix(std::vector<std::string_view>& parts, size_t part_to_check, parsed_fields_t& output);
+    static void check_extra(parsed_fields_t& output);
 
     static std::optional<location_data_t> location_lookup(std::string_view source);
 
@@ -151,6 +154,14 @@ namespace acmacs::virus::inline v2::name
 
     // ----------------------------------------------------------------------
 
+    inline void add_extra(acmacs::virus::name::parsed_fields_t& output, std::string_view to_add)
+    {
+        if (output.extra.empty())
+            output.extra.assign(to_add);
+        else
+            output.extra += fmt::format(" {}", to_add);
+    }
+
 } // namespace acmacs::virus::inline v2::name
 
 template <> struct fmt::formatter<acmacs::virus::name::location_parts_t> : public fmt::formatter<acmacs::fmt_default_formatter>
@@ -194,6 +205,8 @@ acmacs::virus::name::parsed_fields_t acmacs::virus::name::parse(std::string_view
           output.messages.emplace_back("multiple-location", fmt::format("{}", location_parts));
           break;
     }
+
+    check_extra(output);
 
     if (!output.good() && output.messages.empty())
         output.messages.emplace_back(parsing_message_t::unrecognized, source);
@@ -571,7 +584,7 @@ bool acmacs::virus::name::check_year(std::string_view source, parsed_fields_t& o
                 throw std::exception{};
         }
         if (digits.size() < source.size())
-            output.extra.emplace_back(std::next(std::begin(source), static_cast<ssize_t>(digits.size())), std::end(source));
+            add_extra(output, source.substr(digits.size()));
         return true;
     }
     catch (std::exception&) {
@@ -605,7 +618,7 @@ std::string acmacs::virus::name::check_reassortant_in_front(std::string_view sou
         result.erase(result.begin(), std::next(result.begin(), 3));
 
     if (result.empty() && !output.reassortant.empty())
-        output.messages.emplace_back(parsing_message_t::empty_name);
+        output.messages.emplace_back(parsing_message_t::reassortant_without_name);
 
     // AD_DEBUG("check_reassortant_in_front \"{}\" -> \"{}\" R:\"{}\"", source, result, *output.reassortant);
 
@@ -627,6 +640,23 @@ bool acmacs::virus::name::check_nibsc_extra(std::vector<std::string_view>& parts
         return false;
 
 } // acmacs::virus::name::check_nibsc_extra
+
+// ----------------------------------------------------------------------
+
+void acmacs::virus::name::check_extra(parsed_fields_t& output)
+{
+    // if (!output.extra.empty()) {
+    //     std::smatch match_extra_remove;
+    //     while (std::regex_search(extra, match_extra_remove, re_extra_remove))
+    //         output.extra = make_extra(match_extra_remove);
+    // }
+
+    if (!output.extra.empty()) {
+        if (output.reassortant.empty())
+            std::tie(output.reassortant, output.extra) = parse_reassortant(output.extra);
+    }
+
+} // acmacs::virus::name::check_extra
 
 // ----------------------------------------------------------------------
 /// Local Variables:
