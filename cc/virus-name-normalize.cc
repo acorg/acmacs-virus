@@ -212,10 +212,13 @@ void acmacs::virus::name::no_location_parts(std::vector<std::string_view>& parts
                 if (std::isdigit(parts[1][0]) || !check_subtype(parts[0], output, make_message::no) || !check_year(parts[2], output, make_message::no) || !location_as_prefix(parts, 1, output))
                     throw std::exception{};
                 break;
-            case 4: // A/BiliranTB5/0423/2015
-                if (std::isdigit(parts[1][0]) || !std::isdigit(parts[2][0]) || !location_as_prefix(parts, 1, output))
+            case 4:
+                if (std::isdigit(parts[2][0]) && location_as_prefix(parts, 1, output)) // A/BiliranTB5/0423/2015
+                    break;
+                else if (location_as_prefix(parts, 2, output)) // A/chicken/Iran221/2001
+                    break;
+                else
                     throw std::exception{};
-                break;
             default:
                 throw std::exception{};
         }
@@ -395,7 +398,8 @@ bool acmacs::virus::name::check_subtype(std::string_view source, parsed_fields_t
                                  "\\((H\\d{1,2}(?:N\\d{1,2})?)\\)" // $1
                                  "|"
                                  "(H\\d{1,2}(?:N\\d{1,2})?)" // $2
-                                 ")$", std::regex::icase);
+                                 ")$",
+                                 std::regex::icase);
 #include "acmacs-base/diagnostics-pop.hh"
 
     try {
@@ -413,16 +417,27 @@ bool acmacs::virus::name::check_subtype(std::string_view source, parsed_fields_t
                 }
                 break;
             default:
-                if (std::cmatch mch; std::regex_match(std::begin(source), std::end(source), mch, re_a)) {
-                    if (mch.length(1))
-                        output.subtype = type_subtype_t{fmt::format("A({})", ::string::upper(mch.str(1)))};
-                    else if (mch.length(2))
-                        output.subtype = type_subtype_t{fmt::format("A({})", ::string::upper(mch.str(2)))};
-                    else
+                switch (std::toupper(source[0])) {
+                    case 'A':
+                        if (std::cmatch mch; std::regex_match(std::begin(source), std::end(source), mch, re_a)) {
+                            if (mch.length(1))
+                                output.subtype = type_subtype_t{fmt::format("A({})", ::string::upper(mch.str(1)))};
+                            else if (mch.length(2))
+                                output.subtype = type_subtype_t{fmt::format("A({})", ::string::upper(mch.str(2)))};
+                            else
+                                throw std::exception{};
+                        }
+                        else
+                            throw std::exception{};
+                        break;
+                    case 'H':
+                        if (source.size() > 3 && std::toupper(source[1]) == 'Y' && source[2] == ' ') // "HY A"
+                            return check_subtype(source.substr(3), output, report);
+                        else
+                            throw std::exception{};
+                    default:
                         throw std::exception{};
                 }
-                else
-                    throw std::exception{};
                 break;
         }
         return true;

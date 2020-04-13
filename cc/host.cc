@@ -45,6 +45,8 @@ bool acmacs::virus::name::is_host(std::string_view source)
         "AMERICAN GREEN-WINGED TEAL"sv,
         "ANAS PLATYRHYNCHOS"sv, // = mallard
         "AYTHYA FULIGULA"sv,    // = tufted duck
+        "COCKATOO"sv,           // parrot
+        "WILD DUCK"sv,
 
     };
 
