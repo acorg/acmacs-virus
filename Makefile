@@ -18,7 +18,6 @@ SRC_DIR = $(abspath $(ACMACSD_ROOT)/sources)
 ACMACS_VIRUS_SOURCES = \
   virus-name-fields.cc virus-name-v1.cc \
   virus-name-normalize.cc parsing-message.cc \
-  virus-name-parse.cc \
   virus-name.cc \
   host.cc passage.cc reassortant.cc
 

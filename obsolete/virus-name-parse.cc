@@ -1,3 +1,5 @@
+#error obsolete, use "acmacs-virus/virus-name-normalize.hh"
+
 #include "acmacs-base/regex.hh"
 #include "acmacs-base/date.hh"
 #include "acmacs-base/string-strip.hh"

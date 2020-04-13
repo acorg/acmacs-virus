@@ -179,12 +179,13 @@ template <> struct fmt::formatter<acmacs::virus::name::location_parts_t> : publi
 
 // ----------------------------------------------------------------------
 
-acmacs::virus::name::parsed_fields_t acmacs::virus::name::parse(std::string_view source)
+acmacs::virus::name::parsed_fields_t acmacs::virus::name::parse(std::string_view source, warn_on_empty woe)
 {
     source = acmacs::string::strip(source);
     parsed_fields_t output{.raw = std::string{source}};
     if (source.empty()) {
-        AD_WARNING("empty source");
+        if (woe == warn_on_empty::yes)
+            AD_WARNING("empty source");
         return output;
     }
 

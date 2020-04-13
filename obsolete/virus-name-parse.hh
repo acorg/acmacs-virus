@@ -1,5 +1,7 @@
 #pragma once
 
+#error obsolete, use "acmacs-virus/virus-name-normalize.hh"
+
 #include "acmacs-virus/virus-name.hh"
 #include "acmacs-virus/parsing-message.hh"
 
