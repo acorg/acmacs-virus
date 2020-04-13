@@ -23,14 +23,14 @@ namespace acmacs::virus::inline v2
 
     // ----------------------------------------------------------------------
 
-    std::string_view host(const name_t& name);
-    std::string_view location(const name_t& name);
-    std::string_view isolation(const name_t& name);
-    std::optional<size_t> year(const name_t& name);
+    std::string_view host(const name_t& name) noexcept;
+    std::string_view location(const name_t& name) noexcept;
+    std::string_view isolation(const name_t& name) noexcept;
+    std::optional<size_t> year(const name_t& name) noexcept;
 
     // ----------------------------------------------------------------------
 
-    void set_type_subtype(name_t& name, const type_subtype_t& type_subtype);
+    void set_type_subtype(name_t& name, const type_subtype_t& type_subtype) noexcept;
 
 } // namespace acmacs::virus::inline v2
 

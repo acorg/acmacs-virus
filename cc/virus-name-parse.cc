@@ -458,14 +458,10 @@ location_t fix_location(std::string_view source, acmacs::virus::v2::parse_name_f
             return {};
     }
 
-    try {
-        const auto& locdb = acmacs::locationdb::get();
-        const auto loc = locdb.find_or_throw(acmacs::string::strip(source));
-        // fmt::print(stderr, "DEBUG: fix_location {} -> {} -- {} -- {}\n", source, loc.name, loc.replacement, loc.location_name);
-        return {loc.name, std::string(loc.country()), std::string(locdb.continent_of_country(loc.country()))};
+    if (const auto found = acmacs::locationdb::get().find(source, acmacs::locationdb::include_continent::yes); found.has_value()) {
+        return {found->name, std::string{found->country()}, found->continent};
     }
-    catch (acmacs::locationdb::LocationNotFound& /*err*/) {
-        // std::cerr << "LocationNotFound: \"" << source << "\"\n";
+    else {
         if (messages) {
             messages->emplace_back(acmacs::virus::v2::name::parsing_message_t::location_not_found, source);
             if (std::regex_search(std::begin(source), std::end(source), re_location_stop_list))
