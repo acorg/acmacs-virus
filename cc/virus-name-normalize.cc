@@ -494,6 +494,9 @@ bool acmacs::virus::name::check_subtype(std::string_view source, parsed_fields_t
 
 bool acmacs::virus::name::check_host(std::string_view source, parsed_fields_t& output)
 {
+    using namespace std::string_view_literals;
+    if (source.size() >= 4 && source.substr(0, 4) == "TEST"sv)
+        output.messages.emplace_back(parsing_message_t::invalid_host, source);
     output.host = host_t{source};
     return true;
 
@@ -678,6 +681,12 @@ void acmacs::virus::name::check_extra(parsed_fields_t& output)
 {
     using namespace acmacs::regex;
 
+    if (!output.extra.empty() && output.reassortant.empty())
+        std::tie(output.reassortant, output.extra) = parse_reassortant(output.extra);
+
+    if (!output.extra.empty() && output.passage.empty())
+        std::tie(output.passage, output.extra) = parse_passage(output.extra, passage_only::no);
+
 #include "acmacs-base/global-constructors-push.hh"
     static const std::array normalize_data{
         look_replace_t{std::regex("(?:"
@@ -688,6 +697,7 @@ void acmacs::virus::name::check_extra(parsed_fields_t& output)
                                   std::regex::icase),
                        {"$` $'"}},                                                                              // NEW, (MIXED) - remove
         look_replace_t{std::regex("\\(((?:H\\d{1,2})?(?:N\\d{1,2})?)\\)", std::regex::icase), {"$` $'", "$1"}}, // (H3N2) - subtype
+        look_replace_t{std::regex("^[\\(\\)_\\-\\s,\\.]+$", std::regex::icase), {"$` $'"}},
     };
 
 #include "acmacs-base/diagnostics-pop.hh"
@@ -704,12 +714,6 @@ void acmacs::virus::name::check_extra(parsed_fields_t& output)
         else
             break;
     }
-
-    if (!output.extra.empty() && output.reassortant.empty())
-        std::tie(output.reassortant, output.extra) = parse_reassortant(output.extra);
-
-    if (!output.extra.empty() && output.passage.empty())
-        std::tie(output.passage, output.extra) = parse_passage(output.extra, passage_only::no);
 
 } // acmacs::virus::name::check_extra
 
