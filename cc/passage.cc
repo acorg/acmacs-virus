@@ -5,6 +5,7 @@
 #include <cctype>
 
 #include "acmacs-base/string-join.hh"
+#include "acmacs-base/string-strip.hh"
 #include "acmacs-base/date.hh"
 #include "acmacs-virus/passage.hh"
 
@@ -65,7 +66,7 @@ struct parsing_failed : public std::exception { using std::exception::exception;
 
 using callback_t = source_iter_t (*)(processing_data_t& data, source_iter_t first, source_iter_t last); // returns new first value, throws parsing_failed
 
-static inline source_iter_t parts_push_i(processing_data_t& data, const char* p1, std::string p2={}, source_iter_t result={})
+static inline source_iter_t parts_push_i(processing_data_t& data, const char* p1, const std::string& p2={}, source_iter_t result={})
 {
     data.parts.push_back(p1);
     data.last_passage_type = p1;
@@ -81,6 +82,13 @@ static inline source_iter_t push_lab_separator(processing_data_t& data, char ori
     else
         data.parts.push_back("/");
     return result;
+}
+
+static inline void add_to_extra(processing_data_t& data, char orig_symbol, std::string_view p2)
+{
+    data.extra.append(1, ' ');
+    data.extra.append(1, orig_symbol);
+    data.extra.append(p2);
 }
 
 // ----------------------------------------------------------------------
@@ -169,8 +177,12 @@ static const std::regex re_s_spfck_n("^PFCK(\\d+)", std::regex::icase);
 static const std::regex re_x_n("^(\\d+)", std::regex::icase);
 static const std::regex re_p_n("^(\\d+)", std::regex::icase);
 
+// 0
+static const std::regex re_0_original("^(?:R|O?[RT]IGINAL)[;\\s\\-_\\(\\)A-Z0]*", std::regex::icase);
+
 // ignore/remove
-static const std::regex re_passage("^ASSAGE[:\\-\\s]?(?:DETAILS:)?", std::regex::icase);
+static const std::regex re_c_ignore("^LONE-[A-Z\\d]+", std::regex::icase); // clone-C12 in gisaid from Netehralnds
+static const std::regex re_p_ignore("^ASSAGE[:\\-\\s]?(?:DETAILS:)?", std::regex::icase);
 static const std::regex re_dash_ori("^\\s*ORI\\s*$", std::regex::icase);
 
 static const std::regex re_digits("^(\\d+)");
@@ -204,7 +216,9 @@ static const std::map<char, callback_t> normalize_data{
          std::cmatch match;
          if (first == last)     // just C
              return parts_push_i(data, "MDCK", "?", first);
-         if (std::regex_search(first, last, match, re_c_c_n))
+         if (std::regex_search(first, last, match, re_c_ignore))
+             add_to_extra(data, 'C', match.str(0)); // CLONE-xxx is extra
+         else if (std::regex_search(first, last, match, re_c_c_n))
              parts_push_i(data, "MDCK", match[1].str());
          else if (std::regex_search(first, last, match, re_c_clinical))
              parts_push_i(data, "OR");
@@ -315,7 +329,7 @@ static const std::map<char, callback_t> normalize_data{
          std::cmatch match;
          if (std::regex_search(first, last, match, re_p_n))
              return parts_push_i(data, "X", match[1].str(), match[0].second);
-         else if (std::regex_search(first, last, match, re_passage))
+         else if (std::regex_search(first, last, match, re_p_ignore))
              return match[0].second; // ignore PASSAGE-
          else if (std::regex_search(first, last, match, re_p_pm))
              return parts_push_i(data, "OR", {}, match[0].second);
@@ -397,6 +411,15 @@ static const std::map<char, callback_t> normalize_data{
              return parts_push_i(data, "X", "?", first);
          else
              throw parsing_failed{};
+     }},
+    {'0',
+     [](processing_data_t& data, source_iter_t first, source_iter_t last) -> source_iter_t {
+         std::cmatch match;
+         if (std::regex_search(first, last, match, re_0_original))
+             parts_push_i(data, "OR");
+         else
+             throw parsing_failed{};
+         return match[0].second;
      }},
     {' ', [](processing_data_t&, source_iter_t first, source_iter_t /*last*/) -> source_iter_t { return first; }},
     {'/', [](processing_data_t& data, source_iter_t first, source_iter_t /*last*/) -> source_iter_t { return push_lab_separator(data, '/', first); }},
@@ -492,7 +515,7 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
         }
     }
     // fmt::print(stderr, "parse_passage \"{}\" --> \"{}\"\n", source, data.parts);
-    return {Passage{string::join("", data.parts)}, data.extra};
+    return {Passage{string::join("", data.parts)}, ::string::upper(acmacs::string::strip(data.extra))};
 
 } // acmacs::virus::parse_passage
 

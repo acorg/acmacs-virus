@@ -91,6 +91,7 @@ namespace acmacs::virus::inline v2::name
     static bool check_year(std::string_view source, parsed_fields_t& output, make_message report = make_message::yes);
     static location_parts_t find_location_parts(std::vector<std::string_view>& parts);
     static std::string check_reassortant_in_front(std::string_view source, parsed_fields_t& output);
+    static std::string remove_reassortant_second_name(std::string_view source);
     static bool check_nibsc_extra(std::vector<std::string_view>& parts);
     static bool location_as_prefix(std::vector<std::string_view>& parts, size_t part_to_check, parsed_fields_t& output);
     static void check_extra(parsed_fields_t& output);
@@ -109,19 +110,19 @@ namespace acmacs::virus::inline v2::name
                 case 'R': // RG
                 case 'X': // X-327
                     return true;
-              case 'B':
-                  switch (std::toupper(source[1])) {
-                    case 'V':   // BVR
-                    case 'X':   // BX
-                        return true;
-                    case '/':
-                        if (::string::upper(source.substr(2, 5)) == "REASS"sv) // B/REASSORTANT/
-                        return true;
-                    break;
-                  }
+                case 'B':
+                    switch (std::toupper(source[1])) {
+                        case 'V': // BVR
+                        case 'X': // BX
+                            return true;
+                        case '/':
+                            if (::string::upper(source.substr(2, 5)) == "REASS"sv || ::string::upper(source.substr(2, 2)) == "X-"sv|| ::string::upper(source.substr(2, 4)) == "NYMC"sv) // B/REASSORTANT/
+                                return true;
+                            break;
+                    }
                     break;
                 case 'A':
-                    if (::string::upper(source.substr(1, 6)) == "/REASS"sv) // A/REASSORTANT/
+                    if (::string::upper(source.substr(1, 6)) == "/REASS"sv || ::string::upper(source.substr(1, 3)) == "/X-"sv|| ::string::upper(source.substr(1, 5)) == "/NYMC"sv) // A/REASSORTANT/
                         return true;
                     break;
             }
@@ -193,6 +194,7 @@ acmacs::virus::name::parsed_fields_t acmacs::virus::name::parse(std::string_view
     std::string source_s{source};
     if (possible_reassortant_in_front(source_s))
         source_s = check_reassortant_in_front(source_s, output);
+
     auto parts = acmacs::string::split(source_s, "/", acmacs::string::Split::StripKeepEmpty);
     auto location_parts = find_location_parts(parts);
     switch (location_parts.size()) {
@@ -707,9 +709,19 @@ std::string acmacs::virus::name::check_reassortant_in_front(std::string_view sou
         else if (result.front() == '(' && result.find(')', 1) == std::string::npos) {
             result.erase(result.begin());
         }
+
+        if (result.size() > 3 && !output.reassortant.empty() && result[0] == 'H' && result[1] == 'Y' && result[2] == ' ')
+            result.erase(result.begin(), std::next(result.begin(), 3));
+
+        // remove common reassortant parts to allow parsing the main virus name
+        if (!result.empty() && !output.reassortant.empty())
+            result = remove_reassortant_second_name(result);
+        // AD_DEBUG("check_reassortant_in_front \"{}\" <-- \"{}\"", result, source);
+
+        if ((source[0] == 'A' || source[0] == 'B') && source[1] == '/' && result[1] != '/')
+            result.insert(0, source.substr(0, 2));
+        // AD_DEBUG("reass in front \"{}\" <-- \"{}\" '{}' '{}' '{}'", result, source, source[0], source[1], result[1]);
     }
-    if (result.size() > 3 && !output.reassortant.empty() && result[0] == 'H' && result[1] == 'Y' && result[2] == ' ')
-        result.erase(result.begin(), std::next(result.begin(), 3));
 
     if (result.empty() && !output.reassortant.empty())
         output.messages.emplace_back(parsing_message_t::reassortant_without_name);
@@ -719,6 +731,44 @@ std::string acmacs::virus::name::check_reassortant_in_front(std::string_view sou
     return result;
 
 } // acmacs::virus::name::check_reassortant_in_front
+
+// ----------------------------------------------------------------------
+
+std::string acmacs::virus::name::remove_reassortant_second_name(std::string_view source)
+{
+
+#define RRSN_PR8 "(?:(?:A/)?Puerto +Rico/8/(?:19)34|PR8(?:\\s*\\([A-Z\\d\\-]+\\))?|A/PR/8/34(?:\\(H1N1\\))?)" // "A/Puerto Rico/8/1934" "PR8  (CNIC-HB29578)" "A/PR/8/34(H1N1)"
+#define RRSN_LEE40 "(?:B/)?Lee/(?:19)40"
+#define RRSN_TX77  "Texas/1/(?:19)?77"
+#define RRSN_AA60  "Ann Arbor/6/(?:19)?60"
+#define RRSN_NYMC "(?:(?:NYMC )?B?X-\\d+[A-Z]+|NYMC-\\d+[A-Z]+)"
+
+#define RRSN_SXS " x "
+
+    using namespace acmacs::regex;
+#include "acmacs-base/global-constructors-push.hh"
+    static const std::array common_reassortant_names{
+        look_replace_t{std::regex("(?:"
+                                  RRSN_SXS RRSN_PR8                    "|"
+                                  RRSN_PR8 RRSN_SXS                    "|"
+                                  RRSN_PR8 "-"                         "|"
+                                  RRSN_SXS RRSN_LEE40                  "|"
+                                  RRSN_LEE40 RRSN_SXS                  "|"
+                                  RRSN_SXS RRSN_LEE40 "\\s+" RRSN_NYMC "|"
+                                  RRSN_SXS RRSN_NYMC                   "|"
+                                  RRSN_SXS RRSN_TX77                   "|"
+                                  RRSN_SXS RRSN_AA60                   "|"
+                                  RRSN_NYMC RRSN_SXS
+                                  ")", std::regex::icase), {"$` $'"}}
+    };
+#include "acmacs-base/diagnostics-pop.hh"
+
+    if (const auto res = scan_replace(source, common_reassortant_names); res.has_value())
+        return std::string{acmacs::string::strip(res->front())};
+    else
+        return std::string{source};
+
+} // acmacs::virus::name::remove_reassortant_second_name
 
 // ----------------------------------------------------------------------
 
@@ -757,7 +807,9 @@ void acmacs::virus::name::check_extra(parsed_fields_t& output)
                                   std::regex::icase),
                        {"$` $'"}},                                                                              // NEW, (MIXED) - remove
         look_replace_t{std::regex("\\(((?:H\\d{1,2})?(?:N\\d{1,2})?)\\)", std::regex::icase), {"$` $'", "$1"}}, // (H3N2) - subtype
-        look_replace_t{std::regex("^[\\(\\)_\\-\\s,\\.]+$", std::regex::icase), {"$` $'"}},
+        look_replace_t{std::regex("^(?:-LIKE)$", std::regex::icase), {"$` $'"}}, // remove few common annotations (meaningless for us)
+        look_replace_t{std::regex("^[_\\-\\s,\\.]+", std::regex::icase), {"$'"}}, // remove meaningless prefixes used as separators in the name
+        look_replace_t{std::regex("^[\\(\\)_\\-\\s,\\.]+$", std::regex::icase), {"$` $'"}}, // remove artefacts
     };
 
 #include "acmacs-base/diagnostics-pop.hh"

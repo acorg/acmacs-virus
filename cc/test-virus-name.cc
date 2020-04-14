@@ -57,7 +57,7 @@ template <> struct fmt::formatter<to_compare_t> : public fmt::formatter<acmacs::
 {
     template <typename FormatContext> auto format(const to_compare_t& fields, FormatContext& ctx)
     {
-        return format_to(ctx.out(), "{{\"{}\" \"{}\" \"{}\" \"{}\" \"{}\" \"{}\"}}", fields.subtype, fields.host, fields.location, fields.isolation, fields.year, fields.reassortant);
+        return format_to(ctx.out(), "{{\"{}\" \"{}\" \"{}\" \"{}\" \"{}\" <{}> \"{}\"}}", fields.subtype, fields.host, fields.location, fields.isolation, fields.year, fields.extra, fields.reassortant);
     }
 };
 
@@ -125,6 +125,9 @@ void test_builtin()
         TestData{"A/Flu-Bangkok/24/19",                             to_compare_t{A,                       H, "BANGKOK", "24", "2019", R, P, E}},
         TestData{"A(H1)//ARGENTINA/FLE0116/2009",                   to_compare_t{type_subtype_t{"A(H1)"}, H, "ARGENTINA", "FLE0116", "2009", R, P, E}},
         TestData{"A/FriuliVeneziaGiuliaPN/230/2019",                to_compare_t{A,                       H, "FRIULI-VENEZIA GIULIA PN", "230", "2019", R, P, E}},
+        TestData{"A/turkey/Netherlands/03010496/03 clone-C12",      to_compare_t{A,        host_t{"TURKEY"}, "NETHERLANDS", "3010496", "2003", R, P, "CLONE-C12"}},
+        TestData{"A/reassortant/IDCDC-RG22(New York/18/2009 x Puerto Rico/8/1934)", to_compare_t{A, H, "NEW YORK", "18", "2009", Reassortant{"RG-22"}, P, E}},
+        TestData{"A/X-53A(Puerto Rico/8/1934-New Jersey/11/1976)",                  to_compare_t{A, H, "NEW JERSEY", "11", "1976", Reassortant{"NYMC-53A"}, P, E}},
 
         // TestData{"",                   to_compare_t{A, H, "", "", "", R, P, E}},
     };
