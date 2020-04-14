@@ -231,7 +231,8 @@ std::vector<std::string> acmacs::virus::name::possible_locations_in_name(std::st
         auto prefix = acmacs::string::non_digit_prefix(part);
         while (prefix.size() > 2 && prefix.back() == '-')
             prefix.remove_suffix(1);
-        if (prefix.size() > 2 && std::isalpha(prefix[0]) && std::isalpha(prefix[1]) && prefix != "SWL" && !acmacs::string::startswith(prefix, "NYMC") && !is_host(::string::upper(prefix)))
+        const std::string u_prefix = ::string::upper(prefix);
+        if (prefix.size() > 2 && std::isalpha(prefix[0]) && std::isalpha(prefix[1]) && u_prefix != "SWL" && u_prefix != "REASSORTANT" && !acmacs::string::startswith(u_prefix, "NYMC") && !is_host(u_prefix))
             result.push_back(std::string{prefix});
     };
 
