@@ -35,7 +35,7 @@ bool acmacs::virus::name::is_host(std::string_view source)
         "CANINE"sv,
         "TEAL"sv,
         "GULL"sv,
-        "AVES"sv,               // Aves is the class of birds (nominative plural of avis "bird" in Latin), and town in Portugal
+        "AVES"sv, // Aves is the class of birds (nominative plural of avis "bird" in Latin), and town in Portugal
         "LITTLE CUCKOO-DOVE"sv,
         "GREAT BLACK-HEADED GULL"sv,
         "GREY HERON"sv,
@@ -47,7 +47,30 @@ bool acmacs::virus::name::is_host(std::string_view source)
         "AYTHYA FULIGULA"sv,    // = tufted duck
         "COCKATOO"sv,           // parrot
         "WILD DUCK"sv,
-
+        "TUFTED DUCK"sv,
+        "WHOOPER SWAN"sv,
+        "WILD BIRD"sv,
+        "WILD BIRD FECES"sv,
+        "VILLAGE CHICKEN"sv,
+        "AMERICAN BLACK DUCK"sv,
+        "BLACK DUCK"sv,
+        "RUDDY SHELDUCK"sv,
+        "BLACK DUCK"sv,
+        "DOMESTIC DUCK"sv,
+        "RUDDY_SHELDUCK"sv,
+        "SPOT-BILLED DUCK"sv,
+        "AMERICAN WIGEON"sv,
+        "BLACK-HEADED GULL"sv,
+        "BLACK-TAILED GULL"sv,
+        "HERRING GULL"sv,
+        "LAUGHING GULL"sv,
+        "RING-BILLED GULL"sv,
+        "SLENDER-BILLED GULL"sv,
+        "YELLOW-LEGGED GULL"sv,
+        "JAPANESE QUAIL"sv,
+        "JAPANESE WHITE-EYE"sv,
+        "ORIENTAL WHITE STORK"sv,
+        "BLUE-WINGED TEAL"sv,
     };
 
     return std::find(std::begin(hosts), std::end(hosts), ::string::upper(source)) != std::end(hosts);

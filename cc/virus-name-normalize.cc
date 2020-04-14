@@ -16,7 +16,7 @@
 acmacs::virus::name_t acmacs::virus::name::parsed_fields_t::name() const
 {
     if (good())
-        return name_t{string::join("/", subtype, host, location, isolation, year)};
+        return name_t{acmacs::string::join("/", subtype, host, location, isolation, year)};
     else if (subtype.empty() && host.empty() && location.empty() && isolation.empty() && year.empty() && !reassortant.empty())
         return name_t{*reassortant};
     else
@@ -221,6 +221,40 @@ acmacs::virus::name::parsed_fields_t acmacs::virus::name::parse(std::string_view
 
 // ----------------------------------------------------------------------
 
+std::vector<std::string> acmacs::virus::name::possible_locations_in_name(std::string_view source)
+{
+    std::vector<std::string> result;
+    if (source.empty())
+        return result;
+
+    const auto add = [&result](std::string_view part) {
+        auto prefix = acmacs::string::non_digit_prefix(part);
+        while (prefix.size() > 2 && prefix.back() == '-')
+            prefix.remove_suffix(1);
+        if (prefix.size() > 2 && std::isalpha(prefix[0]) && std::isalpha(prefix[1]) && prefix != "SWL" && !acmacs::string::startswith(prefix, "NYMC") && !is_host(::string::upper(prefix)))
+            result.push_back(std::string{prefix});
+    };
+
+    parsed_fields_t output{.raw = std::string{source}};
+    std::string source_s{source};
+    if (possible_reassortant_in_front(source_s))
+        source_s = check_reassortant_in_front(source_s, output);
+    const auto parts = acmacs::string::split(source_s, "/", acmacs::string::Split::StripKeepEmpty);
+    for (const auto& part : parts)
+        add(part);
+    // switch (parts.size()) {
+    //   case 3:
+    //       add(part[0]);
+    //       add(part[1]);
+    //       break;
+    // }
+
+    return result;
+
+} // acmacs::virus::name::possible_locations_in_name
+
+// ----------------------------------------------------------------------
+
 void acmacs::virus::name::no_location_parts(std::vector<std::string_view>& parts, parsed_fields_t& output)
 {
     try {
@@ -261,9 +295,9 @@ bool acmacs::virus::name::location_as_prefix(std::vector<std::string_view>& part
             return false;
     };
 
-    // A/Baylor1A/81 A/BiliranTB5/0423/2015
+    // A/Baylor1A/81 A/BiliranTB5/0423/2015 A/FriuliVeneziaGiuliaPN/230/2019
     // find longest prefix that can be found in the location database
-    for (auto prefix = acmacs::string::non_digit_prefix(parts[part_to_check]); prefix.size() > 2 && prefix.size() < parts[part_to_check].size(); prefix.remove_suffix(1)) {
+    for (auto prefix = acmacs::string::non_digit_prefix(parts[part_to_check]); prefix.size() > 2; prefix.remove_suffix(1)) {
         if (check_prefix(prefix))
             return true;
     }
@@ -555,33 +589,33 @@ bool acmacs::virus::name::check_location(std::string_view source, parsed_fields_
 
 acmacs::virus::name::location_parts_t acmacs::virus::name::find_location_parts(std::vector<std::string_view>& parts)
 {
-    using namespace std::string_view_literals;
+    // using namespace std::string_view_literals;
 
-    static const std::array prefixes_to_ignore{
-        "FLU-"sv, // A/FLU-BANGKOK/24/19
-    };
+    // static const std::array prefixes_to_ignore{
+    //     "FLU-"sv, // A/FLU-BANGKOK/24/19
+    // };
 
     location_parts_t location_parts;
     for (size_t part_no = 0; part_no < parts.size(); ++part_no) {
         if (const auto loc1 = location_lookup(parts[part_no]); loc1.has_value()) {
             location_parts.push_back({part_no, *loc1});
         }
-        else {
-            switch (part_no) {
-                case 1:
-                case 2:
-                    for (const auto& prefix : prefixes_to_ignore) {
-                        if (acmacs::string::startswith(::string::upper(parts[part_no]), prefix)) {
-                            if (const auto loc2 = location_lookup(parts[part_no].substr(prefix.size())); loc2.has_value()) {
-                                parts[part_no].remove_prefix(prefix.size());
-                                location_parts.push_back({part_no, *loc2});
-                                break;
-                            }
-                        }
-                    }
-                    break;
-            }
-        }
+        // else {
+        //     switch (part_no) {
+        //         case 1:
+        //         case 2:
+        //             for (const auto& prefix : prefixes_to_ignore) {
+        //                 if (acmacs::string::startswith(::string::upper(parts[part_no]), prefix)) {
+        //                     if (const auto loc2 = location_lookup(parts[part_no].substr(prefix.size())); loc2.has_value()) {
+        //                         parts[part_no].remove_prefix(prefix.size());
+        //                         location_parts.push_back({part_no, *loc2});
+        //                         break;
+        //                     }
+        //                 }
+        //             }
+        //             break;
+        //     }
+        // }
     }
     return location_parts;
 

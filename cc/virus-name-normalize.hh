@@ -30,6 +30,7 @@ namespace acmacs::virus::inline v2::name
     enum class warn_on_empty { no, yes };
 
     parsed_fields_t parse(std::string_view source, warn_on_empty woe = warn_on_empty::yes);
+    std::vector<std::string> possible_locations_in_name(std::string_view source);
 
 } // namespace acmacs::virus::inline v2
 

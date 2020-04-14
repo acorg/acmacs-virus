@@ -124,6 +124,7 @@ void test_builtin()
         // gisaid
         TestData{"A/Flu-Bangkok/24/19",                             to_compare_t{A,                       H, "BANGKOK", "24", "2019", R, P, E}},
         TestData{"A(H1)//ARGENTINA/FLE0116/2009",                   to_compare_t{type_subtype_t{"A(H1)"}, H, "ARGENTINA", "FLE0116", "2009", R, P, E}},
+        TestData{"A/FriuliVeneziaGiuliaPN/230/2019",                to_compare_t{A,                       H, "FRIULI-VENEZIA GIULIA PN", "230", "2019", R, P, E}},
 
         // TestData{"",                   to_compare_t{A, H, "", "", "", R, P, E}},
     };
