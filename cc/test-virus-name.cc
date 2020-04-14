@@ -51,6 +51,7 @@ inline auto operator==(const acmacs::virus::name::parsed_fields_t& parsed, const
     return parsed.subtype == expected.subtype && parsed.host == expected.host && parsed.location == expected.location && parsed.isolation == expected.isolation && parsed.year == expected.year &&
            parsed.reassortant == expected.reassortant && parsed.passage == expected.passage && parsed.extra == expected.extra;
 }
+inline auto operator!=(const acmacs::virus::name::parsed_fields_t& parsed, const to_compare_t& expected) { return !operator==(parsed, expected); }
 
 template <> struct fmt::formatter<to_compare_t> : public fmt::formatter<acmacs::fmt_default_formatter>
 {
