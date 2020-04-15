@@ -33,9 +33,9 @@ int main(int argc, const char* const* argv)
         }
         else if (!opt.names.empty()) {
             for (const auto& src : opt.names) {
-                const auto fields = acmacs::virus::name::parse(src);
+                auto fields = acmacs::virus::name::parse(src);
                 if (!fields.messages.empty())
-                    AD_WARNING("{}", fields.messages);
+                    acmacs::messages::report_by_type(fields.messages);
                 fmt::print("{} -> {}\n", src, fields);
             }
         }
@@ -57,7 +57,7 @@ void names_from_file(const Options& opt)
 
     const std::string lines = acmacs::file::read(opt.from_file);
     size_t lines_read{0}, succeeded{0}, failed{0};
-    acmacs::virus::name::parsing_messages_by_key_t messages;
+    acmacs::messages::messages_t messages;
     for (const auto& line : acmacs::string::split(lines, "\n", acmacs::string::Split::RemoveEmpty)) {
         ++lines_read;
         auto fields = acmacs::virus::name::parse(line);
@@ -65,7 +65,7 @@ void names_from_file(const Options& opt)
             ++failed;
             if (opt.print_bad)
                 fmt::print("{}\n", line);
-            acmacs::virus::name::merge(messages, std::move(fields.messages), line);
+            acmacs::messages::move_and_add_source(messages, std::move(fields.messages), acmacs::messages::position_t{opt.from_file, lines_read});
         }
         else
             ++succeeded;
@@ -75,7 +75,7 @@ void names_from_file(const Options& opt)
     }
     fmt::print("Lines: {:6d}\nGood:  {:6d}\nBad:   {:6d}\n", lines_read, succeeded, failed);
     if (opt.print_messages)
-        acmacs::virus::name::report(messages);
+        acmacs::virus::name::report_by_type(messages);
     if (opt.print_hosts)
         fmt::print("\nHosts ({})\n{}\n", hosts.size(), hosts.report_sorted_max_first("    {first:40s} {second}\n"));
 

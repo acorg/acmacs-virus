@@ -9,76 +9,133 @@
 #include "acmacs-virus/parsing-message.hh"
 #include "acmacs-virus/host.hh"
 
-// ----------------------------------------------------------------------
+static acmacs::Counter<std::string> count_locations_to_check(acmacs::messages::iter_t first, acmacs::messages::iter_t last);
 
 // ----------------------------------------------------------------------
 
-void acmacs::virus::name::merge(parsing_messages_by_key_t& target, parsing_messages_t&& new_messages, std::string_view source)
+void acmacs::virus::v2::name::report_by_type(acmacs::messages::messages_t& messages)
 {
-    for (auto& msg : new_messages)
-        target[msg.key].emplace_back(std::move(msg.value), source);
+    const auto index = acmacs::messages::make_index(messages);
+    acmacs::messages::report(index);
 
-} // acmacs::virus::name::merge
-
-// ----------------------------------------------------------------------
-
-void acmacs::virus::name::report(parsing_messages_by_key_t& messages)
-{
-    AD_INFO("Total messages: {}", std::accumulate(std::begin(messages), std::end(messages), 0ul, [](auto sum, const auto& msgs) { return sum + msgs.second.size(); }));
-    for (auto& [key, msgs] : messages) {
-        fmt::print(stderr, "\n");
-        AD_INFO("{} ({})", key, msgs.size());
-        std::sort(std::begin(msgs), std::end(msgs), [](const auto& e1, const auto& e2) { return e1.first < e2.first; });
-        for (const auto& [msg, source] : msgs)
-           fmt::print("    \"{}\"     \"{}\"\n", msg, source);
-    }
-
-    if (const auto found = messages.find(parsing_message_t::location_field_not_found); found != std::end(messages)) {
-        // AD_INFO("LFNF ({})", found->second.size());
-
-        acmacs::Counter<std::string> locations_to_check;
-        const auto add = [&locations_to_check](std::string_view part) {
-            const auto prefix_case = acmacs::string::non_digit_prefix(part);
-            auto prefix = ::string::upper(prefix_case);
-            while (prefix.size() > 4 && (prefix.back() == '_' || prefix.back() == '-' || prefix.back() == ' '))
-                prefix.erase(prefix.size() - 1);
-            if (prefix.size() > 3 && !is_host(prefix))
-                locations_to_check.count(prefix);
-        };
-
-        for (const auto& mm : found->second) {
-            // fmt::print("{}\n", mm.second);
-            const auto parts = acmacs::string::split(mm.second, "/", acmacs::string::Split::StripKeepEmpty);
-            switch (parts.size()) {
-              case 3:
-                  add(parts[1]);
-                  break;
-              case 4:
-                  add(parts[1]);
-                  add(parts[2]);
-                  break;
-              case 5:
-              case 6:
-                  add(parts[2]);
-                  add(parts[3]);
-                  break;
-            }
-        }
-        if (!locations_to_check.empty()) {
-            fmt::print(stderr, "\n");
-            AD_INFO("Locations to check ({})", locations_to_check.size());
-            fmt::print("{}\n", locations_to_check.report_sorted_max_first("{quoted_first:30s} {second:4d}\n"));
-            // for (const auto& loc : locations_to_check)
-            //     fmt::print("{}\n", loc);
-
-            // fmt::print(stderr, "\nlocdb");
-            // for (const auto& loc : locations_to_check)
-            //     fmt::print(stderr, " \"{}\"", loc);
-            // fmt::print(stderr, "\n");
+    if (const auto& [first, last] = acmacs::messages::find(acmacs::messages::key::location_field_not_found, index); first != last) {
+        if (const auto locations_to_check = count_locations_to_check(first, last); !locations_to_check.empty()) {
+            AD_INFO("Locations to check ({}):", locations_to_check.size());
+            fmt::print(stderr, "{}\n", locations_to_check.report_sorted_max_first("  {quoted_first:30s} {second:4d}\n"));
         }
     }
 
-} // acmacs::virus::name::report
+} // acmacs::virus::v2::name::report_by_type
+
+// ----------------------------------------------------------------------
+
+acmacs::Counter<std::string> count_locations_to_check(acmacs::messages::iter_t first, acmacs::messages::iter_t last)
+{
+    acmacs::Counter<std::string> locations_to_check;
+
+    const auto add = [&locations_to_check](std::string_view part) {
+        const auto prefix_case = acmacs::string::non_digit_prefix(part);
+        auto prefix = ::string::upper(prefix_case);
+        while (prefix.size() > 4 && (prefix.back() == '_' || prefix.back() == '-' || prefix.back() == ' '))
+            prefix.erase(prefix.size() - 1);
+        if (prefix.size() > 3 && !acmacs::virus::name::is_host(prefix))
+            locations_to_check.count(prefix);
+    };
+
+    for (; first != last; ++first) {
+        // fmt::print("{}\n", mm.second);
+        const auto parts = acmacs::string::split(first->value, "/", acmacs::string::Split::StripKeepEmpty);
+        switch (parts.size()) {
+            case 3:
+                add(parts[1]);
+                break;
+            case 4:
+                add(parts[1]);
+                add(parts[2]);
+                break;
+            case 5:
+            case 6:
+                add(parts[2]);
+                add(parts[3]);
+                break;
+        }
+    }
+
+    return locations_to_check;
+
+} // count_locations_to_check
+
+// ----------------------------------------------------------------------
+
+
+// ----------------------------------------------------------------------
+
+// void acmacs::virus::name::merge(parsing_messages_by_key_t& target, parsing_messages_t&& new_messages, std::string_view source)
+// {
+//     for (auto& msg : new_messages)
+//         target[msg.key].emplace_back(std::move(msg.value), source);
+
+// } // acmacs::virus::name::merge
+
+// // ----------------------------------------------------------------------
+
+// void acmacs::virus::name::report(parsing_messages_by_key_t& messages)
+// {
+//     AD_INFO("Total messages: {}", std::accumulate(std::begin(messages), std::end(messages), 0ul, [](auto sum, const auto& msgs) { return sum + msgs.second.size(); }));
+//     for (auto& [key, msgs] : messages) {
+//         fmt::print(stderr, "\n");
+//         AD_INFO("{} ({})", key, msgs.size());
+//         std::sort(std::begin(msgs), std::end(msgs), [](const auto& e1, const auto& e2) { return e1.first < e2.first; });
+//         for (const auto& [msg, source] : msgs)
+//            fmt::print("    \"{}\"     \"{}\"\n", msg, source);
+//     }
+
+//     if (const auto found = messages.find(parsing_message_t::location_field_not_found); found != std::end(messages)) {
+//         // AD_INFO("LFNF ({})", found->second.size());
+
+//         acmacs::Counter<std::string> locations_to_check;
+//         const auto add = [&locations_to_check](std::string_view part) {
+//             const auto prefix_case = acmacs::string::non_digit_prefix(part);
+//             auto prefix = ::string::upper(prefix_case);
+//             while (prefix.size() > 4 && (prefix.back() == '_' || prefix.back() == '-' || prefix.back() == ' '))
+//                 prefix.erase(prefix.size() - 1);
+//             if (prefix.size() > 3 && !is_host(prefix))
+//                 locations_to_check.count(prefix);
+//         };
+
+//         for (const auto& mm : found->second) {
+//             // fmt::print("{}\n", mm.second);
+//             const auto parts = acmacs::string::split(mm.second, "/", acmacs::string::Split::StripKeepEmpty);
+//             switch (parts.size()) {
+//               case 3:
+//                   add(parts[1]);
+//                   break;
+//               case 4:
+//                   add(parts[1]);
+//                   add(parts[2]);
+//                   break;
+//               case 5:
+//               case 6:
+//                   add(parts[2]);
+//                   add(parts[3]);
+//                   break;
+//             }
+//         }
+//         if (!locations_to_check.empty()) {
+//             fmt::print(stderr, "\n");
+//             AD_INFO("Locations to check ({})", locations_to_check.size());
+//             fmt::print("{}\n", locations_to_check.report_sorted_max_first("{quoted_first:30s} {second:4d}\n"));
+//             // for (const auto& loc : locations_to_check)
+//             //     fmt::print("{}\n", loc);
+
+//             // fmt::print(stderr, "\nlocdb");
+//             // for (const auto& loc : locations_to_check)
+//             //     fmt::print(stderr, " \"{}\"", loc);
+//             // fmt::print(stderr, "\n");
+//         }
+//     }
+
+// } // acmacs::virus::name::report
 
 // ----------------------------------------------------------------------
 

@@ -21,7 +21,7 @@ namespace acmacs::virus::inline v2::name
         std::string extra;
         std::string country;
         std::string continent;
-        parsing_messages_t messages;
+        acmacs::messages::messages_t messages;
 
         bool good() const { return !location.empty() && !isolation.empty() && year.size() == 4; }
         name_t name() const;

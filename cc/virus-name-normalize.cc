@@ -130,12 +130,6 @@ namespace acmacs::virus::inline v2::name
         return false;
     }
 
-    // inline void add_message(parsed_fields_t* output, std::string_view key, std::string_view value)
-    // {
-    //     if (output)
-    //         output->messages.emplace_back(key, value);
-    // }
-
     inline ssize_t count_open_paren(std::string_view source) { return std::count(std::begin(source), std::end(source), '('); }
     inline ssize_t count_close_paren(std::string_view source) { return std::count(std::begin(source), std::end(source), ')'); }
 
@@ -208,14 +202,14 @@ acmacs::virus::name::parsed_fields_t acmacs::virus::name::parse(std::string_view
           two_location_parts(parts, std::move(location_parts), output);
           break;
       default:
-          output.messages.emplace_back("multiple-location", fmt::format("{}", location_parts));
+          output.messages.emplace_back("multiple-location", fmt::format("{}", location_parts), MESSAGE_CODE_POSITION);
           break;
     }
 
     check_extra(output);
 
     if (!output.good() && output.messages.empty())
-        output.messages.emplace_back(parsing_message_t::unrecognized, source);
+        output.messages.emplace_back(acmacs::messages::key::unrecognized, source, MESSAGE_CODE_POSITION);
 
     return output;
 
@@ -278,7 +272,7 @@ void acmacs::virus::name::no_location_parts(std::vector<std::string_view>& parts
         }
     }
     catch (std::exception&) {
-        output.messages.emplace_back(parsing_message_t::location_field_not_found);
+        output.messages.emplace_back(acmacs::messages::key::location_field_not_found, fmt::format("{}", parts), MESSAGE_CODE_POSITION);
     }
 
 } // acmacs::virus::name::no_location_parts
@@ -327,7 +321,7 @@ void acmacs::virus::name::one_location_part(std::vector<std::string_view>& parts
             one_location_part_at_2(parts, output);
             break;
         default:
-            output.messages.emplace_back("unexpected-location-part", fmt::format("{}", location_part.part_no));
+            output.messages.emplace_back("unexpected-location-part", fmt::format("{} {}", location_part.part_no, parts), MESSAGE_CODE_POSITION);
             break;
     }
 
@@ -373,7 +367,7 @@ void acmacs::virus::name::one_location_part_at_1(std::vector<std::string_view>& 
         }
     }
     catch (std::exception&) {
-        output.messages.emplace_back("unexpected-location-part", fmt::format("1 {}", parts));
+        output.messages.emplace_back("unexpected-location-part", fmt::format("1 {}", parts), MESSAGE_CODE_POSITION);
     }
 
 } // acmacs::virus::name::one_location_part_at_1
@@ -435,7 +429,7 @@ void acmacs::virus::name::one_location_part_at_2(std::vector<std::string_view>& 
         }
     }
     catch (std::exception&) {
-        output.messages.emplace_back("unexpected-location-part", fmt::format("2 {}", parts));
+        output.messages.emplace_back("unexpected-location-part", fmt::format("2 {}", parts), MESSAGE_CODE_POSITION);
     }
 
 } // acmacs::virus::name::one_location_part_at_2
@@ -445,7 +439,7 @@ void acmacs::virus::name::one_location_part_at_2(std::vector<std::string_view>& 
 void acmacs::virus::name::two_location_parts(std::vector<std::string_view>& parts, location_parts_t&& location_parts, parsed_fields_t& output)
 {
     if ((location_parts[0].part_no + 1) != location_parts[1].part_no) {
-        output.messages.emplace_back("double-location", fmt::format("{}", location_parts));
+        output.messages.emplace_back("double-location", fmt::format("{}", location_parts), MESSAGE_CODE_POSITION);
     }
     else if (is_host(parts[location_parts.front().part_no])) {
         one_location_part(parts, std::move(location_parts[1]), output);
@@ -464,7 +458,7 @@ void acmacs::virus::name::two_location_parts(std::vector<std::string_view>& part
         one_location_part(parts, location_part_t{.part_no=location_parts[0].part_no}, output);
     }
     else
-        output.messages.emplace_back("double-location", fmt::format("{}", location_parts));
+        output.messages.emplace_back("double-location", fmt::format("{}", location_parts), MESSAGE_CODE_POSITION);
 
 } // acmacs::virus::name::two_location_parts
 
@@ -529,7 +523,7 @@ bool acmacs::virus::name::check_subtype(std::string_view source, parsed_fields_t
     }
     catch (std::exception&) {
         if (report == make_message::yes)
-            output.messages.emplace_back(parsing_message_t::invalid_subtype, source);
+            output.messages.emplace_back(acmacs::messages::key::invalid_subtype, source, MESSAGE_CODE_POSITION);
         return false;
     }
 
@@ -541,7 +535,7 @@ bool acmacs::virus::name::check_host(std::string_view source, parsed_fields_t& o
 {
     using namespace std::string_view_literals;
     if (source.size() >= 4 && source.substr(0, 4) == "TEST"sv)
-        output.messages.emplace_back(parsing_message_t::invalid_host, source);
+        output.messages.emplace_back(acmacs::messages::key::invalid_host, source, MESSAGE_CODE_POSITION);
     output.host = host_t{source};
     return true;
 
@@ -588,7 +582,7 @@ bool acmacs::virus::name::check_location(std::string_view source, parsed_fields_
         return true;
     }
     else {
-        output.messages.emplace_back(parsing_message_t::location_not_found, source);
+        output.messages.emplace_back(acmacs::messages::key::location_not_found, source, MESSAGE_CODE_POSITION);
         return false;
     }
 
@@ -641,10 +635,10 @@ bool acmacs::virus::name::check_isolation(std::string_view source, parsed_fields
     if (output.isolation.empty()) {
         if (!source.empty()) {
             output.isolation = source;
-            // output.messages.emplace_back(parsing_message_t::invalid_isolation, source);
+            // output.messages.emplace_back(acmacs::messages::key::invalid_isolation, source, MESSAGE_CODE_POSITION);
         }
         else
-            output.messages.emplace_back(parsing_message_t::isolation_absent, source);
+            output.messages.emplace_back(acmacs::messages::key::isolation_absent, source, MESSAGE_CODE_POSITION);
     }
     if (output.isolation.size() > 3 && output.isolation.substr(output.isolation.size() - 3) == "_HA") // isolation ending with _HA means HA segment in sequences from ncbi
         output.isolation.erase(output.isolation.size() - 3);
@@ -691,7 +685,7 @@ bool acmacs::virus::name::check_year(std::string_view source, parsed_fields_t& o
     }
     catch (std::exception&) {
         if (report == make_message::yes)
-            output.messages.emplace_back(parsing_message_t::invalid_year, source);
+            output.messages.emplace_back(acmacs::messages::key::invalid_year, source, MESSAGE_CODE_POSITION);
         return false;
     }
 
@@ -730,7 +724,7 @@ std::string acmacs::virus::name::check_reassortant_in_front(std::string_view sou
     }
 
     if (result.empty() && !output.reassortant.empty())
-        output.messages.emplace_back(parsing_message_t::reassortant_without_name);
+        output.messages.emplace_back(acmacs::messages::key::reassortant_without_name, source, MESSAGE_CODE_POSITION);
 
     // AD_DEBUG("check_reassortant_in_front \"{}\" -> \"{}\" R:\"{}\"", source, result, *output.reassortant);
 
