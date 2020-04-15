@@ -310,9 +310,10 @@ void acmacs::virus::name::one_location_part(std::vector<std::string_view>& parts
         set(output, std::move(location_part));
     switch (location_part.part_no) {
         case 0:
-            AD_DEBUG("location in part 0 {}", parts);
-            // if (parts.size() == 3)
-            //     check(try_fields_t{.location = parts[0], .isolation = parts[1], .year_rest = parts[2]}, output);
+            if (parts.size() == 3 && check_year(parts[2], output) && check_isolation(parts[1], output))
+                ;
+            else
+                AD_DEBUG("location in part 0 {}", parts);
             break;
         case 1:
             one_location_part_at_1(parts, output);
