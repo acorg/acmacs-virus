@@ -272,7 +272,7 @@ void acmacs::virus::name::no_location_parts(std::vector<std::string_view>& parts
         }
     }
     catch (std::exception&) {
-        output.messages.emplace_back(acmacs::messages::key::location_field_not_found, fmt::format("{}", parts), MESSAGE_CODE_POSITION);
+        output.messages.emplace_back(acmacs::messages::key::location_field_not_found, acmacs::string::join("/", parts), MESSAGE_CODE_POSITION);
     }
 
 } // acmacs::virus::name::no_location_parts
