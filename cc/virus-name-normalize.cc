@@ -3,7 +3,7 @@
 #include "acmacs-base/string-digits.hh"
 #include "acmacs-base/string-strip.hh"
 #include "acmacs-base/string-from-chars.hh"
-#include "acmacs-base/string.hh"
+#include "acmacs-base/string-compare.hh"
 #include "acmacs-base/date.hh"
 #include "acmacs-base/regex.hh"
 #include "locationdb/locdb.hh"
@@ -472,16 +472,21 @@ void acmacs::virus::name::two_location_parts(std::vector<std::string_view>& part
 
 bool acmacs::virus::name::check_subtype(std::string_view source, parsed_fields_t& output, make_message report)
 {
+    using namespace acmacs::regex;
 #include "acmacs-base/global-constructors-push.hh"
-    static const std::regex re_a("^A(?:"
-                                 "\\((H\\d{1,2}(?:N\\d{1,2})?)\\)" // $1
-                                 "|"
-                                 "(H\\d{1,2}(?:N\\d{1,2})?)" // $2
-                                 ")$",
-                                 std::regex::icase);
+    static const std::array scan_data{
+        look_replace_t{std::regex("(?:"
+                                  "(H\\d{1,2}/?(?:N\\d{1,2}V?)?)"
+                                  "|"
+                                  "(H\\d{1,2})/?N[\\?\\-]"
+                                  ")$",
+                                  std::regex::icase),
+                       {"$1$2"}},
+    };
 #include "acmacs-base/diagnostics-pop.hh"
 
     try {
+        // AD_DEBUG("check_subtype \"{}\"", source);
         switch (source.size()) {
             case 0:
                 break;
@@ -497,18 +502,19 @@ bool acmacs::virus::name::check_subtype(std::string_view source, parsed_fields_t
                 break;
             default:
                 switch (std::toupper(source[0])) {
-                    case 'A':
-                        if (std::cmatch mch; std::regex_match(std::begin(source), std::end(source), mch, re_a)) {
-                            if (mch.length(1))
-                                output.subtype = type_subtype_t{fmt::format("A({})", ::string::upper(mch.str(1)))};
-                            else if (mch.length(2))
-                                output.subtype = type_subtype_t{fmt::format("A({})", ::string::upper(mch.str(2)))};
-                            else
-                                throw std::exception{};
+                    case 'A': {
+                        // AD_DEBUG("check_subtype \"{}\"", source);
+                        size_t first{1}, size{source.size() - 1};
+                        if (source[1] == '(' && source.back() == ')') {
+                            ++first;
+                            size -= 2;
                         }
+                        if (const auto res = scan_replace(source.substr(first, size), scan_data); res.has_value())
+                            output.subtype = type_subtype_t{fmt::format("A({})", res->front())};
                         else
                             throw std::exception{};
                         break;
+                    }
                     case 'H':
                         if (source.size() > 3 && std::toupper(source[1]) == 'Y' && source[2] == ' ') // "HY A"
                             return check_subtype(source.substr(3), output, report);
@@ -806,7 +812,7 @@ void acmacs::virus::name::check_extra(parsed_fields_t& output)
                                   ")",
                                   std::regex::icase),
                        {"$` $'"}},                                                                              // NEW, (MIXED) - remove
-        look_replace_t{std::regex("\\(((?:H\\d{1,2})?(?:N\\d{1,2})?)\\)", std::regex::icase), {"$` $'", "$1"}}, // (H3N2) - subtype
+        look_replace_t{std::regex("\\(((?:H\\d{1,2})?(?:N(?:\\d{1,2}|[\\?\\-]))?)\\)", std::regex::icase), {"$` $'", "$1"}}, // (H3N2) (H3N?) (H3) - subtype
         look_replace_t{std::regex("^(?:-LIKE)$", std::regex::icase), {"$` $'"}}, // remove few common annotations (meaningless for us)
         look_replace_t{std::regex("^[_\\-\\s,\\.]+", std::regex::icase), {"$'"}}, // remove meaningless prefixes used as separators in the name
         look_replace_t{std::regex("^[\\(\\)_\\-\\s,\\.]+$", std::regex::icase), {"$` $'"}}, // remove artefacts
@@ -816,11 +822,12 @@ void acmacs::virus::name::check_extra(parsed_fields_t& output)
 
     while (!output.extra.empty()) {
         if (const auto res = scan_replace(output.extra, normalize_data); res.has_value()) {
-            // AD_DEBUG("check_extra {}", *res);
+            // AD_DEBUG("check_extra {} {}", *res, output);
             output.extra = acmacs::string::strip(res->front());
             if (res->size() > 1 && !(*res)[1].empty()) { // subtype
+                // AD_DEBUG("check_extra {} {}", *res, output.subtype);
                 if (output.subtype == type_subtype_t{"A"})
-                    output.subtype = type_subtype_t{fmt::format("A({})", (*res)[1])};
+                    check_subtype(fmt::format("A({})", (*res)[1]), output);
             }
         }
         else

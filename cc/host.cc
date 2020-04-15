@@ -77,6 +77,7 @@ bool acmacs::virus::name::is_host(std::string_view source)
         "RUDDY TURNSTONE"sv,
         "BLUE WINGED TEAL"sv,
         "GREEN-WINGED TEAL"sv,
+        "BRANT GOOSE"sv,
     };
 
     return std::find(std::begin(hosts), std::end(hosts), ::string::upper(source)) != std::end(hosts);

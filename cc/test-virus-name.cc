@@ -57,7 +57,7 @@ template <> struct fmt::formatter<to_compare_t> : public fmt::formatter<acmacs::
 {
     template <typename FormatContext> auto format(const to_compare_t& fields, FormatContext& ctx)
     {
-        return format_to(ctx.out(), "{{\"{}\" \"{}\" \"{}\" \"{}\" \"{}\" <{}> \"{}\"}}", fields.subtype, fields.host, fields.location, fields.isolation, fields.year, fields.extra, fields.reassortant);
+        return format_to(ctx.out(), "{{\"{}\" \"{}\" \"{}\" \"{}\" \"{}\" <{}> \"{}\" \"{}\"}}", fields.subtype, fields.host, fields.location, fields.isolation, fields.year, fields.extra, fields.reassortant, fields.passage);
     }
 };
 
@@ -128,6 +128,9 @@ void test_builtin()
         TestData{"A/turkey/Netherlands/03010496/03 clone-C12",      to_compare_t{A,        host_t{"TURKEY"}, "NETHERLANDS", "3010496", "2003", R, P, "CLONE-C12"}},
         TestData{"A/reassortant/IDCDC-RG22(New York/18/2009 x Puerto Rico/8/1934)", to_compare_t{A, H, "NEW YORK", "18", "2009", Reassortant{"RG-22"}, P, E}},
         TestData{"A/X-53A(Puerto Rico/8/1934-New Jersey/11/1976)",                  to_compare_t{A, H, "NEW JERSEY", "11", "1976", Reassortant{"NYMC-53A"}, P, E}},
+        TestData{"A/Anas platyrhynchos/bonn/7/03(H2N?)",            to_compare_t{type_subtype_t{"A(H2)"}, host_t{"ANAS PLATYRHYNCHOS"}, "BONN", "7", "2003", R, P, E}},
+        TestData{"A/California/7/2004 (cell-passaged)(H3)",                   to_compare_t{type_subtype_t{"A(H3)"}, H, "CALIFORNIA", "7", "2004", R, Passage{"MDCK?"}, E}},
+        TestData{"A/California/7/2004 (egg-passaged)(H3)",                   to_compare_t{type_subtype_t{"A(H3)"}, H, "CALIFORNIA", "7", "2004", R, Passage{"E?"}, E}},
 
         // TestData{"",                   to_compare_t{A, H, "", "", "", R, P, E}},
     };
