@@ -89,7 +89,7 @@ namespace acmacs::virus::inline v2::name
     static bool check_location(std::string_view source, parsed_fields_t& output);
     static bool check_isolation(std::string_view source, parsed_fields_t& output);
     static bool check_year(std::string_view source, parsed_fields_t& output, make_message report = make_message::yes);
-    static location_parts_t find_location_parts(std::vector<std::string_view>& parts);
+    static location_parts_t find_location_parts(std::vector<std::string_view>& parts, acmacs::messages::messages_t& messages);
     static std::string check_reassortant_in_front(std::string_view source, parsed_fields_t& output);
     static std::string remove_reassortant_second_name(std::string_view source);
     static bool check_nibsc_extra(std::vector<std::string_view>& parts);
@@ -189,8 +189,8 @@ acmacs::virus::name::parsed_fields_t acmacs::virus::name::parse(std::string_view
     if (possible_reassortant_in_front(source_s))
         source_s = check_reassortant_in_front(source_s, output);
 
-    auto parts = acmacs::string::split(source_s, "/", acmacs::string::Split::StripKeepEmpty);
-    auto location_parts = find_location_parts(parts);
+    auto parts = acmacs::string::split(source_s, "/", acmacs::string::Split::StripRemoveEmpty);
+    auto location_parts = find_location_parts(parts, output.messages);
     switch (location_parts.size()) {
       case 0:
           no_location_parts(parts, output);
@@ -217,38 +217,38 @@ acmacs::virus::name::parsed_fields_t acmacs::virus::name::parse(std::string_view
 
 // ----------------------------------------------------------------------
 
-std::vector<std::string> acmacs::virus::name::possible_locations_in_name(std::string_view source)
-{
-    std::vector<std::string> result;
-    if (source.empty())
-        return result;
+// std::vector<std::string> acmacs::virus::name::possible_locations_in_name(std::string_view source)
+// {
+//     std::vector<std::string> result;
+//     if (source.empty())
+//         return result;
 
-    const auto add = [&result](std::string_view part) {
-        auto prefix = acmacs::string::non_digit_prefix(part);
-        while (prefix.size() > 2 && prefix.back() == '-')
-            prefix.remove_suffix(1);
-        const std::string u_prefix = ::string::upper(prefix);
-        if (prefix.size() > 2 && std::isalpha(prefix[0]) && std::isalpha(prefix[1]) && u_prefix != "SWL" && u_prefix != "REASSORTANT" && !acmacs::string::startswith(u_prefix, "NYMC") && !is_host(u_prefix))
-            result.push_back(std::string{prefix});
-    };
+//     const auto add = [&result](std::string_view part) {
+//         auto prefix = acmacs::string::non_digit_prefix(part);
+//         while (prefix.size() > 2 && prefix.back() == '-')
+//             prefix.remove_suffix(1);
+//         const std::string u_prefix = ::string::upper(prefix);
+//         if (prefix.size() > 2 && std::isalpha(prefix[0]) && std::isalpha(prefix[1]) && u_prefix != "SWL" && u_prefix != "REASSORTANT" && !acmacs::string::startswith(u_prefix, "NYMC") && !is_host(u_prefix))
+//             result.push_back(std::string{prefix});
+//     };
 
-    parsed_fields_t output{.raw = std::string{source}};
-    std::string source_s{source};
-    if (possible_reassortant_in_front(source_s))
-        source_s = check_reassortant_in_front(source_s, output);
-    const auto parts = acmacs::string::split(source_s, "/", acmacs::string::Split::StripKeepEmpty);
-    for (const auto& part : parts)
-        add(part);
-    // switch (parts.size()) {
-    //   case 3:
-    //       add(part[0]);
-    //       add(part[1]);
-    //       break;
-    // }
+//     parsed_fields_t output{.raw = std::string{source}};
+//     std::string source_s{source};
+//     if (possible_reassortant_in_front(source_s))
+//         source_s = check_reassortant_in_front(source_s, output);
+//     const auto parts = acmacs::string::split(source_s, "/", acmacs::string::Split::StripKeepEmpty);
+//     for (const auto& part : parts)
+//         add(part);
+//     // switch (parts.size()) {
+//     //   case 3:
+//     //       add(part[0]);
+//     //       add(part[1]);
+//     //       break;
+//     // }
 
-    return result;
+//     return result;
 
-} // acmacs::virus::name::possible_locations_in_name
+// } // acmacs::virus::name::possible_locations_in_name
 
 // ----------------------------------------------------------------------
 
@@ -591,7 +591,7 @@ bool acmacs::virus::name::check_location(std::string_view source, parsed_fields_
 
 // ----------------------------------------------------------------------
 
-acmacs::virus::name::location_parts_t acmacs::virus::name::find_location_parts(std::vector<std::string_view>& parts)
+acmacs::virus::name::location_parts_t acmacs::virus::name::find_location_parts(std::vector<std::string_view>& parts, acmacs::messages::messages_t& messages)
 {
     // using namespace std::string_view_literals;
 
@@ -621,6 +621,15 @@ acmacs::virus::name::location_parts_t acmacs::virus::name::find_location_parts(s
         //     }
         // }
     }
+
+    // if just one location part found, it is in place 0 or 1, next part starts with a letter, this location is perhaps a host (e.g. TURKEY)
+    if (location_parts.size() == 1 && location_parts[0].part_no < 2 && location_parts[0].part_no < (parts.size() - 1) &&  is_host(location_parts[0].location.name)) {
+        if (acmacs::string::non_digit_prefix(parts[location_parts[0].part_no + 1]).size() == parts[location_parts[0].part_no + 1].size())
+            return {};          // location is most probably next part, but locdb cannot detect it
+        if (std::isalpha(parts[location_parts[0].part_no + 1][0])) // perhaps real location and isolation are inside the same part
+            messages.emplace_back(acmacs::messages::key::location_or_host, acmacs::string::join("/", parts), MESSAGE_CODE_POSITION);
+    }
+
     return location_parts;
 
 } // acmacs::virus::name::find_location_parts

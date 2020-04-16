@@ -21,6 +21,7 @@ namespace acmacs::messages::inline v1
         constexpr static inline std::string_view invalid_year{"invalid-year"};
         constexpr static inline std::string_view unrecognized_passage{"unrecognized-passage"};
         constexpr static inline std::string_view reassortant_without_name{"reassortant-without-name"};
+        constexpr static inline std::string_view location_or_host{"+location-or-host"};
     }
 }
 

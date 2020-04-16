@@ -138,12 +138,13 @@ void test_builtin()
     size_t errors = 0;
     for (const auto& entry : data) {
         try {
-            const auto result = acmacs::virus::name::parse(entry.raw_name);
+            auto result = acmacs::virus::name::parse(entry.raw_name);
             if (result != entry.expected) {
                 AD_ERROR("{} <-- \"{}\"  expected: \"{}\"", result, entry.raw_name, entry.expected);
                 ++errors;
             }
             else if (!result.messages.empty()) {
+                acmacs::messages::report_by_type(result.messages);
                 AD_INFO("{}", result);
             }
         }
