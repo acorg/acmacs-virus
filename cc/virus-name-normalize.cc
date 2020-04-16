@@ -10,6 +10,7 @@
 #include "acmacs-virus/virus-name-normalize.hh"
 #include "acmacs-virus/host.hh"
 #include "acmacs-virus/passage.hh"
+#include "acmacs-virus/defines.hh"
 
 // ----------------------------------------------------------------------
 
@@ -467,65 +468,66 @@ void acmacs::virus::name::two_location_parts(std::vector<std::string_view>& part
 
 bool acmacs::virus::name::check_subtype(std::string_view source, parsed_fields_t& output, make_message report)
 {
-    using namespace acmacs::regex;
+    try {
+
+        using namespace acmacs::regex;
 #include "acmacs-base/global-constructors-push.hh"
-    static const std::array scan_data{
-        look_replace_t{std::regex("(?:"
-                                  "(H\\d{1,2}/?(?:N\\d{1,2}V?)?)"
-                                  "|"
-                                  "(H\\d{1,2})/?N[\\?\\-]"
-                                  ")$",
-                                  std::regex::icase),
-                       {"$1$2"}},
-    };
+        static const std::array scan_data{
+            look_replace_t{std::regex(FLU_A_SUBTYPE, std::regex::icase), {"$1$2$3$4"}}, // see defines.hh
+        };
 #include "acmacs-base/diagnostics-pop.hh"
 
-    try {
-        // AD_DEBUG("check_subtype \"{}\"", source);
-        switch (source.size()) {
-            case 0:
-                break;
-            case 1:
-                switch (std::toupper(source[0])) {
-                    case 'A':
-                    case 'B':
-                        output.subtype = type_subtype_t{::string::upper(source)};
-                        break;
-                    default:
-                        throw std::exception{};
-                }
-                break;
-            default:
-                switch (std::toupper(source[0])) {
-                    case 'A': {
-                        // AD_DEBUG("check_subtype \"{}\"", source);
-                        size_t first{1}, size{source.size() - 1};
-                        if (source[1] == '(' && source.back() == ')') {
-                            ++first;
-                            size -= 2;
-                        }
-                        if (const auto res = scan_replace(source.substr(first, size), scan_data); res.has_value())
-                            output.subtype = type_subtype_t{fmt::format("A({})", res->front())};
-                        else
+        try {
+            // AD_DEBUG("check_subtype \"{}\"", source);
+            switch (source.size()) {
+                case 0:
+                    break;
+                case 1:
+                    switch (std::toupper(source[0])) {
+                        case 'A':
+                        case 'B':
+                            output.subtype = type_subtype_t{::string::upper(source)};
+                            break;
+                        default:
                             throw std::exception{};
-                        break;
                     }
-                    case 'H':
-                        if (source.size() > 3 && std::toupper(source[1]) == 'Y' && source[2] == ' ') // "HY A"
-                            return check_subtype(source.substr(3), output, report);
-                        else
+                    break;
+                default:
+                    switch (std::toupper(source[0])) {
+                        case 'A': {
+                            // AD_DEBUG("check_subtype \"{}\"", source);
+                            size_t first{1}, size{source.size() - 1};
+                            if (source[1] == '(' && source.back() == ')') {
+                                ++first;
+                                size -= 2;
+                            }
+                            if (const auto res = scan_replace(source.substr(first, size), scan_data); res.has_value())
+                                output.subtype = type_subtype_t{fmt::format("A({})", res->front())};
+                            else
+                                throw std::exception{};
+                            break;
+                        }
+                        case 'H':
+                            if (source.size() > 3 && std::toupper(source[1]) == 'Y' && source[2] == ' ') // "HY A"
+                                return check_subtype(source.substr(3), output, report);
+                            else
+                                throw std::exception{};
+                        default:
                             throw std::exception{};
-                    default:
-                        throw std::exception{};
-                }
-                break;
+                    }
+                    break;
+            }
+            return true;
         }
-        return true;
+        catch (std::exception&) {
+            if (report == make_message::yes)
+                output.messages.emplace_back(acmacs::messages::key::invalid_subtype, source, MESSAGE_CODE_POSITION);
+            return false;
+        }
     }
-    catch (std::exception&) {
-        if (report == make_message::yes)
-            output.messages.emplace_back(acmacs::messages::key::invalid_subtype, source, MESSAGE_CODE_POSITION);
-        return false;
+    catch (std::exception& err) {
+        AD_ERROR("regex parsing failed \"{}\": {}", FLU_A_SUBTYPE, err);
+        abort();
     }
 
 } // acmacs::virus::name::check_subtype

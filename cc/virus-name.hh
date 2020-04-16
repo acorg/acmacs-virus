@@ -10,7 +10,7 @@
 #include "acmacs-virus/passage.hh"
 #include "acmacs-virus/reassortant.hh"
 
-#include "acmacs-virus/virus-name-v1.hh"
+// #include "acmacs-virus/virus-name-v1.hh"
 
 // ----------------------------------------------------------------------
 

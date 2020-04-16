@@ -155,7 +155,7 @@ void test_builtin()
     }
 
     if (errors)
-        throw std::runtime_error(acmacs::string::concat("test_builtin: ", errors, " errors found"));
+        throw std::runtime_error{fmt::format("test_builtin: {} errors found", errors)};
 
 } // test_builtin
 
