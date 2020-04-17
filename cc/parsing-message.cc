@@ -9,7 +9,7 @@
 #include "acmacs-virus/parsing-message.hh"
 #include "acmacs-virus/host.hh"
 
-static acmacs::Counter<std::string> count_locations_to_check(acmacs::messages::iter_t first, acmacs::messages::iter_t last);
+static void count_locations_to_check(acmacs::messages::iter_t first, acmacs::messages::iter_t last, acmacs::Counter<std::string>& locations_to_check);
 
 // ----------------------------------------------------------------------
 
@@ -18,23 +18,24 @@ void acmacs::virus::v2::name::report_by_type(acmacs::messages::messages_t& messa
     const auto index = acmacs::messages::make_index(messages);
     acmacs::messages::report(index);
 
-    if (const auto& [first, last] = acmacs::messages::find(acmacs::messages::key::location_field_not_found, index); first != last) {
-        if (const auto locations_to_check = count_locations_to_check(first, last); !locations_to_check.empty()) {
-            AD_INFO("Locations to check ({}):", locations_to_check.size());
-            fmt::print(stderr, "{}\n", locations_to_check.report_sorted_max_first("  {quoted_first:30s} {second:4d}\n"));
-        }
-        else
-            AD_INFO("No locations to check");
+    acmacs::Counter<std::string> locations_to_check;
+    if (const auto& [first, last] = acmacs::messages::find(acmacs::messages::key::location_field_not_found, index); first != last)
+        count_locations_to_check(first, last, locations_to_check);
+    if (const auto& [first, last] = acmacs::messages::find(acmacs::messages::key::location_not_found, index); first != last)
+        std::for_each(first, last, [&locations_to_check](const auto& en) { locations_to_check.count(en.value); });
+    if (!locations_to_check.empty()) {
+        AD_INFO("Locations to check ({}):", locations_to_check.size());
+        fmt::print(stderr, "{}\n", locations_to_check.report_sorted_max_first("  {quoted_first:30s} {second:4d}\n"));
     }
+    else
+        AD_INFO("No locations to check");
 
 } // acmacs::virus::v2::name::report_by_type
 
 // ----------------------------------------------------------------------
 
-acmacs::Counter<std::string> count_locations_to_check(acmacs::messages::iter_t first, acmacs::messages::iter_t last)
+void count_locations_to_check(acmacs::messages::iter_t first, acmacs::messages::iter_t last, acmacs::Counter<std::string>& locations_to_check)
 {
-    acmacs::Counter<std::string> locations_to_check;
-
     const auto add = [&locations_to_check](std::string_view part) {
         const auto prefix_case = acmacs::string::non_digit_prefix(part);
         auto prefix = ::string::upper(prefix_case);
@@ -66,8 +67,6 @@ acmacs::Counter<std::string> count_locations_to_check(acmacs::messages::iter_t f
                 break;
         }
     }
-
-    return locations_to_check;
 
 } // count_locations_to_check
 

@@ -254,6 +254,11 @@ acmacs::virus::name::parsed_fields_t acmacs::virus::name::parse(std::string_view
 
 void acmacs::virus::name::no_location_parts(std::vector<std::string_view>& parts, parsed_fields_t& output)
 {
+    const auto set_unknown_location = [&output](std::string_view name) {
+        output.location = ::string::upper(name);
+        output.messages.emplace_back(acmacs::messages::key::location_not_found, name, MESSAGE_CODE_POSITION);
+    };
+
     try {
         switch (parts.size()) {
             case 3: // A/Baylor1A/81
@@ -261,20 +266,16 @@ void acmacs::virus::name::no_location_parts(std::vector<std::string_view>& parts
                     throw std::exception{};
                 break;
             case 4:
-                if (std::isdigit(parts[2][0]) && location_as_prefix(parts, 1, output)) // A/BiliranTB5/0423/2015
-                    break;
-                else if (location_as_prefix(parts, 2, output)) // A/chicken/Iran221/2001
-                    break;
-                else if (check_subtype(parts[0], output, make_message::no) && check_isolation(parts[2], output) && check_year(parts[3], output, make_message::no))      // A/Medellin/FLU8292/2007(H3) - Medellin  is unknown location
-                    output.location = ::string::upper(parts[1]);
+                if ((std::isdigit(parts[2][0]) && location_as_prefix(parts, 1, output)) || location_as_prefix(parts, 2, output)) // "A/BiliranTB5/0423/2015" "A/chicken/Iran221/2001"
+                    ;
+                else if (!is_host(parts[1]) && check_subtype(parts[0], output, make_message::no) && check_isolation(parts[2], output) && check_year(parts[3], output, make_message::no))     // A/Medellin/FLU8292/2007(H3) - Medellin  is unknown location
+                    set_unknown_location(parts[1]);
                 else
                     throw std::exception{};
                 break;
             case 5:
-                if (check_subtype(parts[0], output, make_message::no) && check_host(parts[1], output) && check_isolation(parts[3], output) && check_year(parts[4], output, make_message::no)) {
-                    // A/QUAIL/DELISERDANG/01160025/2016(H5N1) - DELISERDANG is unknown location, QUAIL is known host
-                    output.location = ::string::upper(parts[2]);
-                }
+                if (!is_host(parts[2]) && check_subtype(parts[0], output, make_message::no) && check_host(parts[1], output) && check_isolation(parts[3], output) && check_year(parts[4], output, make_message::no)) // A/QUAIL/DELISERDANG/01160025/2016(H5N1) - DELISERDANG is unknown location, QUAIL is known host
+                    set_unknown_location(parts[2]);
                 else
                     throw std::exception{};
                 break;
