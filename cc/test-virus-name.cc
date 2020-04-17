@@ -131,7 +131,7 @@ void test_builtin()
         TestData{"A/Anas platyrhynchos/bonn/7/03(H2N?)",            to_compare_t{type_subtype_t{"A(H2)"}, host_t{"ANAS PLATYRHYNCHOS"}, "BONN", "7", "2003", R, P, E}},
         TestData{"A/California/7/2004 (cell-passaged)(H3)",                   to_compare_t{type_subtype_t{"A(H3)"}, H, "CALIFORNIA", "7", "2004", R, Passage{"MDCK?"}, E}},
         TestData{"A/California/7/2004 (egg-passaged)(H3)",                   to_compare_t{type_subtype_t{"A(H3)"}, H, "CALIFORNIA", "7", "2004", R, Passage{"E?"}, E}},
-        TestData{"",                   to_compare_t{A, H, "", "", "", R, P, E}},
+        TestData{"A/QUAIL/some unknown location/0025/2016(H5N1)",                   to_compare_t{type_subtype_t{"A(H5N1)"}, host_t{"QUAIL"}, "SOME UNKNOWN LOCATION", "25", "2016", R, P, E}}, // DELISERDANG is unknown location
 
         // TestData{"",                   to_compare_t{A, H, "", "", "", R, P, E}},
     };
