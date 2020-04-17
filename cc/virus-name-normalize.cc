@@ -265,8 +265,11 @@ void acmacs::virus::name::no_location_parts(std::vector<std::string_view>& parts
                     break;
                 else if (location_as_prefix(parts, 2, output)) // A/chicken/Iran221/2001
                     break;
+                else if (check_subtype(parts[0], output, make_message::no) && check_isolation(parts[2], output) && check_year(parts[3], output, make_message::no))      // A/Medellin/FLU8292/2007(H3) - Medellin  is unknown location
+                    output.location = ::string::upper(parts[1]);
                 else
                     throw std::exception{};
+                break;
             case 5:
                 if (check_subtype(parts[0], output, make_message::no) && check_host(parts[1], output) && check_isolation(parts[3], output) && check_year(parts[4], output, make_message::no)) {
                     // A/QUAIL/DELISERDANG/01160025/2016(H5N1) - DELISERDANG is unknown location, QUAIL is known host
