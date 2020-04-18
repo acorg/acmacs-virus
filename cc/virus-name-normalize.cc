@@ -208,7 +208,7 @@ acmacs::virus::name::parsed_fields_t acmacs::virus::name::parse(std::string_view
 
     check_extra(output);
 
-    if (output.good() && is_host(output.location) && std::isalpha(output.isolation[0])) // perhaps real location and isolation are inside the same part
+    if (output.good() && output.host.empty() && std::isalpha(output.isolation[0]) && is_host(output.location)) // perhaps real location and isolation are inside the same part
         output.messages.emplace_back(acmacs::messages::key::location_or_host, source, MESSAGE_CODE_POSITION);
 
     if (!output.good() && output.messages.empty())
