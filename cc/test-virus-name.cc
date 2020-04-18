@@ -141,6 +141,7 @@ void test_builtin()
         TestData{"A/ruddy turnstone/New Jersey/1321401/2005(HxNx)", to_compare_t{A,               hst{"RUDDY TURNSTONE"}, "NEW JERSEY", "1321401", "2005", R, P, E}},
         TestData{"A/duck/ukraine/1/1960(H11N)",                     to_compare_t{typ{"A(H11)"},   hst{"DUCK"}, "UKRAINE", "1", "1960", R, P, E}},
         TestData{"A/ruddy turnstone/Delaware Bay/85/2017(mixed.H5)",to_compare_t{A,               hst{"RUDDY TURNSTONE"}, "DELAWARE BAY", "85", "2017", R, P, E}},
+        TestData{"A/Michigan/1/2010(HON1)",                         to_compare_t{typ{"A(N1)"},    H, "MICHIGAN", "1", "2010", R, P, E}},
 
         // TestData{"",                   to_compare_t{typ{""}, hst{""}, "", R, P, E}},
     };

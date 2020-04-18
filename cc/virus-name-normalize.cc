@@ -499,7 +499,7 @@ inline std::string normalize_a_subtype(std::string_view source)
     static const std::regex re_full{"H\\d{1,2}/?N\\d{1,2}V?", acmacs::regex::icase | std::regex::nosubs},
         re_part{"[HN]\\d{1,2}", acmacs::regex::icase | std::regex::nosubs},
         re_h{"(H\\d{1,2})/?N[\\?\\-x]?", acmacs::regex::icase},
-        re_n{"H[\\?\\-x]?/?(N\\d{1,2})", acmacs::regex::icase},
+        re_n{"H[\\?\\-xo]?/?(N\\d{1,2})", acmacs::regex::icase},
         re_ignore{"(H[\\?\\-x]/?N[\\?\\-x]|[HN\\d]+\\?)", acmacs::regex::icase | std::regex::nosubs};
 #include "acmacs-base/diagnostics-pop.hh"
 
@@ -842,7 +842,7 @@ void acmacs::virus::name::check_extra(parsed_fields_t& output)
                        {"$` $'"}},                                                                              // NEW, (MIXED) - remove
         look_replace_t{std::regex("\\("
                                   "("
-                                  "(?:H(?:\\d{1,2}|[X\\?\\-]))?"
+                                  "(?:H(?:\\d{1,2}|[XO\\?\\-]))?"
                                   "(?:N(?:\\d{1,2}|[X\\?\\-])?V?)?"
                                   "\\??"
                                   ")"
