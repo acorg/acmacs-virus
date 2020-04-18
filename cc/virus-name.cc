@@ -75,7 +75,7 @@ void names_from_file(const Options& opt)
     }
     fmt::print("Lines: {:6d}\nGood:  {:6d}\nBad:   {:6d}\n", lines_read, succeeded, failed);
     if (opt.print_messages)
-        acmacs::virus::name::report_by_type(messages);
+        acmacs::virus::name::report(messages);
     if (opt.print_hosts)
         fmt::print("\nHosts ({})\n{}\n", hosts.size(), hosts.report_sorted_max_first("    {first:40s} {second}\n"));
 
