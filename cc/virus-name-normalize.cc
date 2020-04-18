@@ -462,8 +462,12 @@ void acmacs::virus::name::one_location_part_at_2(std::vector<std::string_view>& 
 
 void acmacs::virus::name::two_location_parts(std::vector<std::string_view>& parts, location_parts_t&& location_parts, parsed_fields_t& output)
 {
+    const auto double_location = [&](const acmacs::messages::code_position_t& code_pos) {
+        output.messages.emplace_back("double-location", fmt::format("{} \"{}\"", location_parts, acmacs::string::join("/", parts)), code_pos);
+    };
+
     if ((location_parts[0].part_no + 1) != location_parts[1].part_no) {
-        output.messages.emplace_back("double-location", fmt::format("{}", location_parts), MESSAGE_CODE_POSITION);
+        double_location(MESSAGE_CODE_POSITION);
     }
     else if (is_host(parts[location_parts.front().part_no])) {
         one_location_part(parts, std::move(location_parts[1]), output);
@@ -482,7 +486,7 @@ void acmacs::virus::name::two_location_parts(std::vector<std::string_view>& part
         one_location_part(parts, location_part_t{.part_no=location_parts[0].part_no}, output);
     }
     else
-        output.messages.emplace_back("double-location", fmt::format("{}", location_parts), MESSAGE_CODE_POSITION);
+        double_location(MESSAGE_CODE_POSITION);
 
 } // acmacs::virus::name::two_location_parts
 
@@ -711,7 +715,7 @@ bool acmacs::virus::name::check_year(std::string_view source, parsed_fields_t& o
     }
     catch (std::exception&) {
         if (report == make_message::yes)
-            output.messages.emplace_back(acmacs::messages::key::invalid_year, source, MESSAGE_CODE_POSITION);
+            output.messages.emplace_back(acmacs::messages::key::invalid_year, fmt::format("\"{}\" <- \"{}\"", source, output.raw), MESSAGE_CODE_POSITION);
         return false;
     }
 
