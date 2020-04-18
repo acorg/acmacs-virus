@@ -208,6 +208,9 @@ acmacs::virus::name::parsed_fields_t acmacs::virus::name::parse(std::string_view
 
     check_extra(output);
 
+    if (output.good() && is_host(output.location) && std::isalpha(output.isolation[0])) // perhaps real location and isolation are inside the same part
+        output.messages.emplace_back(acmacs::messages::key::location_or_host, source, MESSAGE_CODE_POSITION);
+
     if (!output.good() && output.messages.empty())
         output.messages.emplace_back(acmacs::messages::key::unrecognized, source, MESSAGE_CODE_POSITION);
 
@@ -629,43 +632,18 @@ bool acmacs::virus::name::check_location(std::string_view source, parsed_fields_
 
 // ----------------------------------------------------------------------
 
-acmacs::virus::name::location_parts_t acmacs::virus::name::find_location_parts(std::vector<std::string_view>& parts, acmacs::messages::messages_t& messages)
+acmacs::virus::name::location_parts_t acmacs::virus::name::find_location_parts(std::vector<std::string_view>& parts, acmacs::messages::messages_t& /*messages*/)
 {
-    // using namespace std::string_view_literals;
-
-    // static const std::array prefixes_to_ignore{
-    //     "FLU-"sv, // A/FLU-BANGKOK/24/19
-    // };
-
     location_parts_t location_parts;
     for (size_t part_no = 0; part_no < parts.size(); ++part_no) {
-        if (const auto loc1 = location_lookup(parts[part_no]); loc1.has_value()) {
+        if (const auto loc1 = location_lookup(parts[part_no]); loc1.has_value())
             location_parts.push_back({part_no, *loc1});
-        }
-        // else {
-        //     switch (part_no) {
-        //         case 1:
-        //         case 2:
-        //             for (const auto& prefix : prefixes_to_ignore) {
-        //                 if (acmacs::string::startswith(::string::upper(parts[part_no]), prefix)) {
-        //                     if (const auto loc2 = location_lookup(parts[part_no].substr(prefix.size())); loc2.has_value()) {
-        //                         parts[part_no].remove_prefix(prefix.size());
-        //                         location_parts.push_back({part_no, *loc2});
-        //                         break;
-        //                     }
-        //                 }
-        //             }
-        //             break;
-        //     }
-        // }
     }
 
     // if just one location part found, it is in place 0 or 1, next part starts with a letter, this location is perhaps a host (e.g. TURKEY)
     if (location_parts.size() == 1 && location_parts[0].part_no < 2 && location_parts[0].part_no < (parts.size() - 1) &&  is_host(location_parts[0].location.name)) {
         if (acmacs::string::non_digit_prefix(parts[location_parts[0].part_no + 1]).size() == parts[location_parts[0].part_no + 1].size())
             return {};          // location is most probably next part, but locdb cannot detect it
-        if (std::isalpha(parts[location_parts[0].part_no + 1][0])) // perhaps real location and isolation are inside the same part
-            messages.emplace_back(acmacs::messages::key::location_or_host, acmacs::string::join("/", parts), MESSAGE_CODE_POSITION);
     }
 
     return location_parts;
