@@ -494,15 +494,16 @@ void acmacs::virus::name::two_location_parts(std::vector<std::string_view>& part
 
 inline std::string normalize_a_subtype(std::string_view source)
 {
+    // AD_DEBUG("normalize_a_subtype \"{}\"", source);
 #include "acmacs-base/global-constructors-push.hh"
-    static const std::regex re_full{"H\\d{1,2}/?N\\d{1,2}", std::regex::icase | std::regex::ECMAScript | std::regex::optimize | std::regex::nosubs},
-        re_part{"[HN]\\d{1,2}", std::regex::icase | std::regex::ECMAScript | std::regex::optimize | std::regex::nosubs},
-        re_h{"(H\\d{1,2})/?N[\\?\\-x]", std::regex::icase | std::regex::ECMAScript | std::regex::optimize},
-        re_n{"H[\\?\\-x]/?(N\\d{1,2})", std::regex::icase | std::regex::ECMAScript | std::regex::optimize},
-        re_ignore{"H[\\?\\-x]/?N[\\?\\-x]", std::regex::icase | std::regex::ECMAScript | std::regex::optimize | std::regex::nosubs};
+    static const std::regex re_full{"H\\d{1,2}/?N\\d{1,2}V?", acmacs::regex::icase | std::regex::nosubs},
+        re_part{"[HN]\\d{1,2}", acmacs::regex::icase | std::regex::nosubs},
+        re_h{"(H\\d{1,2})/?N[\\?\\-x]?", acmacs::regex::icase},
+        re_n{"H[\\?\\-x]?/?(N\\d{1,2})", acmacs::regex::icase},
+        re_ignore{"(H[\\?\\-x]/?N[\\?\\-x]|[HN\\d]+\\?)", acmacs::regex::icase | std::regex::nosubs};
 #include "acmacs-base/diagnostics-pop.hh"
 
-    if (std::regex_match(std::begin(source), std::end(source), re_full)) { // "H3N2" "H3/N2"
+    if (std::regex_match(std::begin(source), std::end(source), re_full)) { // "H3N2" "H3/N2" "H1N2V"
         if (source[2] == '/')
             return fmt::format("{}{}", source.substr(0, 2), source.substr(3));
         else if (source[3] == '/')
@@ -514,7 +515,7 @@ inline std::string normalize_a_subtype(std::string_view source)
         return std::string{source};
     if (std::cmatch match_hn; std::regex_match(std::begin(source), std::end(source), match_hn, re_h) || std::regex_match(std::begin(source), std::end(source), match_hn, re_n))
         return match_hn.str(1); // "H3N?" "H?N2" - either H or N known
-    if (std::regex_match(std::begin(source), std::end(source), re_ignore)) // "HxNx", "H-N-", "H?N?" - both are unknown
+    if (std::regex_match(std::begin(source), std::end(source), re_ignore)) // "HxNx", "H-N-", "H?N?" "H5N2?" - both are unknown
         return {};
     throw std::exception{};
 }
@@ -547,7 +548,10 @@ bool acmacs::virus::name::check_subtype(std::string_view source, parsed_fields_t
                             source.remove_prefix(1);
                             source.remove_suffix(1);
                         }
-                        output.subtype = type_subtype_t{fmt::format("A({})", normalize_a_subtype(source))}; // may throw
+                        if (const auto norm_subtype = normalize_a_subtype(source); !norm_subtype.empty())
+                            output.subtype = type_subtype_t{fmt::format("A({})", norm_subtype)}; // may throw
+                        else
+                            output.subtype = type_subtype_t{"A"};
                         break;
                     }
                     case 'H':
@@ -832,14 +836,20 @@ void acmacs::virus::name::check_extra(parsed_fields_t& output)
         look_replace_t{std::regex("(?:"
                                   "\\b(?:NEW)\\b"
                                   "|"
-                                  "\\(MIXED\\)"
+                                  "\\(MIXED(?:[\\.,][HN\\d]+)?\\)"
                                   ")",
-                                  std::regex::icase),
+                                  acmacs::regex::icase),
                        {"$` $'"}},                                                                              // NEW, (MIXED) - remove
-        look_replace_t{std::regex("\\(((?:H\\d{1,2})?(?:N(?:\\d{1,2}|[\\?\\-]))?)\\)", std::regex::icase), {"$` $'", "$1"}}, // (H3N2) (H3N?) (H3) - subtype
-        look_replace_t{std::regex("^(?:-LIKE)$", std::regex::icase), {"$` $'"}}, // remove few common annotations (meaningless for us)
-        look_replace_t{std::regex("^[_\\-\\s,\\.]+", std::regex::icase), {"$'"}}, // remove meaningless prefixes used as separators in the name
-        look_replace_t{std::regex("^[\\(\\)_\\-\\s,\\.]+$", std::regex::icase), {"$` $'"}}, // remove artefacts
+        look_replace_t{std::regex("\\("
+                                  "("
+                                  "(?:H(?:\\d{1,2}|[X\\?\\-]))?"
+                                  "(?:N(?:\\d{1,2}|[X\\?\\-])?V?)?"
+                                  "\\??"
+                                  ")"
+                                  "\\)", acmacs::regex::icase), {"$` $'", "$1"}}, // (H3N2) (H3N?) (H1N2V) (H1N1?) (H3) (H11N) - subtype
+        look_replace_t{std::regex("^(?:-LIKE)$", acmacs::regex::icase), {"$` $'"}}, // remove few common annotations (meaningless for us)
+        look_replace_t{std::regex("^[_\\-\\s,\\.]+", acmacs::regex::icase), {"$'"}}, // remove meaningless prefixes used as separators in the name
+        look_replace_t{std::regex("^[\\(\\)_\\-\\s,\\.]+$", acmacs::regex::icase), {"$` $'"}}, // remove artefacts
     };
 
 #include "acmacs-base/diagnostics-pop.hh"
