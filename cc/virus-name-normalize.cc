@@ -264,8 +264,12 @@ void acmacs::virus::name::no_location_parts(std::vector<std::string_view>& parts
 
     try {
         switch (parts.size()) {
-            case 3: // A/Baylor1A/81
-                if (std::isdigit(parts[1][0]) || !check_subtype(parts[0], output, make_message::no) || !check_year(parts[2], output, make_message::no) || !location_as_prefix(parts, 1, output))
+            case 3:
+                if (!std::isdigit(parts[1][0]) && check_subtype(parts[0], output, make_message::no) && check_year(parts[2], output, make_message::no) && location_as_prefix(parts, 1, output))
+                    ; // A/Baylor1A/81
+                else if (acmacs::string::non_digit_prefix(parts[1]).size() == parts[1].size() && !is_host(parts[1]) && check_subtype(parts[0], output, make_message::no) && check_year(parts[2], output, make_message::no) && check_isolation(unknown_isolation, output))
+                    set_unknown_location(parts[1]); // A/unrecognized location/57(H2N2) -> A(H2N2)/unrecognized location/UNKNWON/1957
+                else
                     throw std::exception{};
                 break;
             case 4:
