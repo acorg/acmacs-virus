@@ -62,16 +62,16 @@ namespace acmacs::virus::inline v2::name
 
     using location_parts_t = std::vector<location_part_t>;
 
-    inline void set(parsed_fields_t& output, location_data_t&& location_data)
+    inline void set_location(parsed_fields_t& output, location_data_t&& location_data)
     {
         output.location = std::move(location_data.name);
         output.country = std::move(location_data.country);
         output.continent = std::move(location_data.continent);
     }
 
-    inline void set(parsed_fields_t& output, location_part_t&& location_part)
+    inline void set_location(parsed_fields_t& output, location_part_t&& location_part)
     {
-        set(output, std::move(location_part.location));
+        set_location(output, std::move(location_part.location));
     }
 
     // ----------------------------------------------------------------------
@@ -319,7 +319,7 @@ bool acmacs::virus::name::location_as_prefix(std::vector<std::string_view>& part
 void acmacs::virus::name::one_location_part(std::vector<std::string_view>& parts, location_part_t&& location_part, parsed_fields_t& output)
 {
     if (location_part.valid())
-        set(output, std::move(location_part));
+        set_location(output, std::move(location_part));
     switch (location_part.part_no) {
         case 0:
             if (parts.size() == 3 && check_year(parts[2], output) && check_isolation(parts[1], output))
@@ -361,7 +361,7 @@ void acmacs::virus::name::one_location_part_at_1(std::vector<std::string_view>& 
             case 5:
                 if (check_year(parts[4], output, make_message::no)) {
                     if (auto location_data = location_lookup(string::join(" ", parts[1], parts[2])); location_data.has_value()) { // A/Lyon/CHU/R19.03.77/2019
-                        set(output, std::move(*location_data));
+                        set_location(output, std::move(*location_data));
                         if (!check_subtype(parts[0], output) || !check_isolation(parts[3], output)) // A/Algeria/G0164/15/2015 :h1n1
                             throw std::exception{};
                     }
@@ -394,10 +394,18 @@ bool acmacs::virus::name::location_part_as_isolation_prefix(std::string_view iso
 
     for (auto prefix = acmacs::string::non_digit_prefix(isolation); prefix.size() > 2 && prefix.size() < isolation.size(); prefix.remove_suffix(1)) {
         // AD_DEBUG("location_part_as_isolation_prefix \"{}\" + \"{}\"", output.location, prefix);
-        if (auto location_data = location_lookup(fmt::format("{} {}", output.location, prefix)); location_data.has_value()) { // "LYON CHU" <- A/Lyon/CHU19.03.77/2019
-            set(output, std::move(*location_data));
+        if (auto location_data_combined = location_lookup(fmt::format("{} {}", output.location, prefix)); location_data_combined.has_value()) { // "LYON CHU" <- A/Lyon/CHU19.03.77/2019
+            set_location(output, std::move(*location_data_combined));
             check_isolation(isolation.substr(prefix.size()), output);
             return true;
+        }
+        else if (output.host.empty() && is_host(output.location)) {
+            if (auto location_data_isolation = location_lookup(prefix); location_data_isolation.has_value()) { // "A/turkey/Italy12rs206-2/1999(H7N1)" -> A/Turkey/Italy/12rs206-2/1999(H7N1)
+                check_host(output.location, output);
+                set_location(output, std::move(*location_data_isolation));
+                check_isolation(isolation.substr(prefix.size()), output);
+                return true;
+            }
         }
     }
 
@@ -423,7 +431,7 @@ void acmacs::virus::name::one_location_part_at_2(std::vector<std::string_view>& 
             case 6:
                 if (check_year(parts[5], output, make_message::no)) {
                     if (auto location_data = location_lookup(string::join(" ", parts[2], parts[3])); location_data.has_value()) { // A/swine/Lyon/CHU/R19.03.77/2019
-                        set(output, std::move(*location_data));
+                        set_location(output, std::move(*location_data));
                         if (!check_subtype(parts[0], output) || !check_host(parts[1], output) || !check_isolation(parts[4], output))
                             throw std::exception{};
                     }
@@ -585,6 +593,10 @@ std::optional<acmacs::virus::name::location_data_t> acmacs::virus::name::locatio
     static const std::array common_abbreviations{
         pp{"UK"sv, "UNITED KINGDOM"sv},
         pp{"NY"sv, "NEW YORK"sv},
+        pp{"HK"sv, "HONG KONG"sv},
+        pp{"DE"sv, "GERMANY"sv},
+        pp{"TX"sv, "TEXAS"sv},
+        // MN - Mongolia, Montenegro (obsolete ISO code), Minnesota
     };
 
     for (const auto& [e1, e2] : common_abbreviations) {

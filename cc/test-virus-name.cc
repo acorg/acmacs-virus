@@ -127,12 +127,13 @@ void test_builtin()
         TestData{"A/FriuliVeneziaGiuliaPN/230/2019",                to_compare_t{A,                       H, "FRIULI-VENEZIA GIULIA PN", "230", "2019", R, P, E}},
         TestData{"A/turkey/Netherlands/03010496/03 clone-C12",      to_compare_t{A,        host_t{"TURKEY"}, "NETHERLANDS", "3010496", "2003", R, P, "CLONE-C12"}},
         TestData{"A/reassortant/IDCDC-RG22(New York/18/2009 x Puerto Rico/8/1934)", to_compare_t{A, H, "NEW YORK", "18", "2009", Reassortant{"RG-22"}, P, E}},
-        TestData{"A/X-53A(Puerto Rico/8/1934-New Jersey/11/1976)",                  to_compare_t{A, H, "NEW JERSEY", "11", "1976", Reassortant{"NYMC-53A"}, P, E}},
+        TestData{"A/X-53A(Puerto Rico/8/1934-New Jersey/11/1976)",  to_compare_t{A, H, "NEW JERSEY", "11", "1976", Reassortant{"NYMC-53A"}, P, E}},
         TestData{"A/Anas platyrhynchos/bonn/7/03(H2N?)",            to_compare_t{type_subtype_t{"A(H2)"}, host_t{"ANAS PLATYRHYNCHOS"}, "BONN", "7", "2003", R, P, E}},
-        TestData{"A/California/7/2004 (cell-passaged)(H3)",                   to_compare_t{type_subtype_t{"A(H3)"}, H, "CALIFORNIA", "7", "2004", R, Passage{"MDCK?"}, E}},
-        TestData{"A/California/7/2004 (egg-passaged)(H3)",                   to_compare_t{type_subtype_t{"A(H3)"}, H, "CALIFORNIA", "7", "2004", R, Passage{"E?"}, E}},
-        TestData{"A/QUAIL/some unknown location/0025/2016(H5N1)",                   to_compare_t{type_subtype_t{"A(H5N1)"}, host_t{"QUAIL"}, "SOME UNKNOWN LOCATION", "25", "2016", R, P, E}}, // DELISERDANG is unknown location
-        TestData{"A/Medellin/FLU8292/2007(H3)",                   to_compare_t{type_subtype_t{"A(H3)"}, H, "MEDELLIN", "FLU8292", "2007", R, P, E}}, // Medellin is unknown location
+        TestData{"A/California/7/2004 (cell-passaged)(H3)",         to_compare_t{type_subtype_t{"A(H3)"}, H, "CALIFORNIA", "7", "2004", R, Passage{"MDCK?"}, E}},
+        TestData{"A/California/7/2004 (egg-passaged)(H3)",          to_compare_t{type_subtype_t{"A(H3)"}, H, "CALIFORNIA", "7", "2004", R, Passage{"E?"}, E}},
+        TestData{"A/QUAIL/some unknown location/0025/2016(H5N1)",   to_compare_t{type_subtype_t{"A(H5N1)"}, host_t{"QUAIL"}, "SOME UNKNOWN LOCATION", "25", "2016", R, P, E}}, // DELISERDANG is unknown location
+        TestData{"A/Medellin/FLU8292/2007(H3)",                     to_compare_t{type_subtype_t{"A(H3)"}, H, "MEDELLIN", "FLU8292", "2007", R, P, E}}, // Medellin is unknown location
+        TestData{"A/turkey/Italy12rs206-2/1999(H7N1)",              to_compare_t{type_subtype_t{"A(H7N1)"}, host_t{"TURKEY"}, "ITALY", "12RS206-2", "1999", R, P, E}},
 
         // TestData{"",                   to_compare_t{A, H, "", "", "", R, P, E}},
     };
