@@ -35,6 +35,9 @@ std::string_view acmacs::virus::name::fix_host(std::string_view source)
         pp{"WHITE-FACED WHISTLING-DUCK"sv, "WHITE-FACED WHISTLING DUCK"sv},
         pp{"THICK-BILLED_MURRE"sv, "THICK-BILLED MURRE"sv},
         pp{"MELEAGRIS GALLOPAVO"sv, "WILD TURKEY"sv},
+        pp{"GRAY TEAL"sv, "GREY TEAL"sv},
+        pp{"AFRI.STAR."sv, "AFRICAN STARLING"sv},
+        pp{"CHUKKAR"sv, "CHUKAR"sv},
         // pp{sv, sv},
     };
 
@@ -52,6 +55,7 @@ bool acmacs::virus::name::is_host(std::string_view source)
     using namespace std::string_view_literals;
 
     const static std::array hosts{
+        "AFRICAN STARLING"sv
         "AMERICAN BLACK DUCK"sv,
         "AMERICAN GREEN-WINGED TEAL"sv,
         "AMERICAN WIGEON"sv,
@@ -65,6 +69,7 @@ bool acmacs::virus::name::is_host(std::string_view source)
         "CANINE"sv,
         "CAT"sv,
         "CHICKEN"sv,
+        "CHUKAR"sv
         "COCKATOO"sv, // parrot
         "COMMON EIDER"sv,
         "CURLEW"sv,
@@ -81,6 +86,7 @@ bool acmacs::virus::name::is_host(std::string_view source)
         "GREAT BLACK-HEADED GULL"sv,
         "GREEN-WINGED TEAL"sv,
         "GREY HERON"sv,
+        "GREY TEAL"sv,
         "GULL"sv,
         "HERRING GULL"sv,
         "JAPANESE QUAIL"sv,
@@ -89,6 +95,7 @@ bool acmacs::virus::name::is_host(std::string_view source)
         "LITTLE CUCKOO-DOVE"sv,
         "MAGPIE"sv,
         "MALLARD"sv,
+        "MIGRATORY DUCK"sv,
         "MUSCOVY DUCK"sv,
         "NORTHERN SHOVELER"sv,
         "ORIENTAL WHITE STORK"sv,
