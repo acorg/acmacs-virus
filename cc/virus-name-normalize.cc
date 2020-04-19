@@ -4,6 +4,7 @@
 #include "acmacs-base/string-strip.hh"
 #include "acmacs-base/string-from-chars.hh"
 #include "acmacs-base/string-compare.hh"
+#include "acmacs-base/string.hh"
 #include "acmacs-base/date.hh"
 #include "acmacs-base/regex.hh"
 #include "locationdb/locdb.hh"
@@ -595,7 +596,7 @@ bool acmacs::virus::name::check_host(std::string_view source, parsed_fields_t& o
     using namespace std::string_view_literals;
     if (source.size() >= 4 && source.substr(0, 4) == "TEST"sv)
         output.messages.emplace_back(acmacs::messages::key::invalid_host, source, MESSAGE_CODE_POSITION);
-    output.host = host_t{source};
+    output.host = host_t{::string::remove(source, "'\"")};
     return true;
 
 } // acmacs::virus::name::check_host
