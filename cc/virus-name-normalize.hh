@@ -24,6 +24,7 @@ namespace acmacs::virus::inline v2::name
         acmacs::messages::messages_t messages;
 
         bool good() const noexcept { return !location.empty() && !isolation.empty() && year.size() == 4; }
+        bool not_so_good() const noexcept { return good() && country.empty(); }
         name_t name() const noexcept;
         std::string full_name() const noexcept;
     };

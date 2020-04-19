@@ -596,7 +596,7 @@ bool acmacs::virus::name::check_host(std::string_view source, parsed_fields_t& o
     using namespace std::string_view_literals;
     if (source.size() >= 4 && source.substr(0, 4) == "TEST"sv)
         output.messages.emplace_back(acmacs::messages::key::invalid_host, source, MESSAGE_CODE_POSITION);
-    output.host = host_t{::string::remove(source, "'\"")};
+    output.host = host_t{fix_host(::string::remove(source, "'\""))};
     return true;
 
 } // acmacs::virus::name::check_host
@@ -680,6 +680,8 @@ bool acmacs::virus::name::check_isolation(std::string_view source, parsed_fields
     // AD_DEBUG("check_isolation \"{}\"", source);
     if (const auto skip_spaces_zeros = source.find_first_not_of(" 0"sv); skip_spaces_zeros != std::string_view::npos)
         output.isolation = ::string::upper(source.substr(skip_spaces_zeros));
+    if (output.isolation.size() > 3 && output.isolation.substr(output.isolation.size() - 3) == "_HA") // isolation ending with _HA means HA segment in sequences from ncbi
+        output.isolation.erase(output.isolation.size() - 3);
     if (output.isolation.empty()) {
         if (!source.empty()) {
             output.isolation = source;
@@ -688,8 +690,8 @@ bool acmacs::virus::name::check_isolation(std::string_view source, parsed_fields
         else
             output.messages.emplace_back(acmacs::messages::key::isolation_absent, source, MESSAGE_CODE_POSITION);
     }
-    if (output.isolation.size() > 3 && output.isolation.substr(output.isolation.size() - 3) == "_HA") // isolation ending with _HA means HA segment in sequences from ncbi
-        output.isolation.erase(output.isolation.size() - 3);
+    else
+        ::string::replace_in_place(output.isolation, '_', ' ');
     return true;
 
 } // acmacs::virus::name::check_isolation

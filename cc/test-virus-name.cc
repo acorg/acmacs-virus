@@ -113,7 +113,7 @@ void test_builtin()
         TestData{"A/swine/Chachoengsao/2003",                       to_compare_t{A,              hst{"SWINE"}, "CHACHOENGSAO", "UNKNOWN", "2003", R, P, E}},
 
         // nbci -- genbank
-        TestData{"A/Anas platyrhynchos/Belgium/17330 2/2013",       to_compare_t{A, hst{"ANAS PLATYRHYNCHOS"}, "BELGIUM", "17330 2", "2013", R, P, E}},
+        TestData{"A/Anas platyrhynchos/Belgium/17330 2/2013",       to_compare_t{A, hst{"MALLARD"}, "BELGIUM", "17330 2", "2013", R, P, E}},
         // TestData{"A/mallard/Balkhash/6304_HA/2014",                 to_compare_t{A, hst{"MALLARD"}, "BALKHASH", "6304", "2014"}, R, P, E}},
         TestData{"A/mallard/Balkhash/6304_HA/2014",                 to_compare_t{A, hst{"MALLARD"}, "BALKHASH", "6304", "2014", R, P, E}}, // _HA is seqgment reference in ncbi
         // TestData{"A/SWINE/NE/55024/2018",                           to_compare_t{A, hst{"SWINE"},   "NE", "55024", "2018", R, P, E}},
@@ -128,7 +128,7 @@ void test_builtin()
         TestData{"A/turkey/Netherlands/03010496/03 clone-C12",      to_compare_t{A,               hst{"TURKEY"}, "NETHERLANDS", "3010496", "2003", R, P, "CLONE-C12"}},
         TestData{"A/reassortant/IDCDC-RG22(New York/18/2009 x Puerto Rico/8/1934)", to_compare_t{A, H, "NEW YORK", "18", "2009", Reassortant{"RG-22"}, P, E}},
         TestData{"A/X-53A(Puerto Rico/8/1934-New Jersey/11/1976)",  to_compare_t{A,               H, "NEW JERSEY", "11", "1976", Reassortant{"NYMC-53A"}, P, E}},
-        TestData{"A/Anas platyrhynchos/bonn/7/03(H2N?)",            to_compare_t{typ{"A(H2)"},    hst{"ANAS PLATYRHYNCHOS"}, "BONN", "7", "2003", R, P, E}},
+        TestData{"A/Anas platyrhynchos/bonn/7/03(H2N?)",            to_compare_t{typ{"A(H2)"},    hst{"MALLARD"}, "BONN", "7", "2003", R, P, E}},
         TestData{"A/California/7/2004 (cell-passaged)(H3)",         to_compare_t{typ{"A(H3)"},    H, "CALIFORNIA", "7", "2004", R, Passage{"MDCK?"}, E}},
         TestData{"A/California/7/2004 (egg-passaged)(H3)",          to_compare_t{typ{"A(H3)"},    H, "CALIFORNIA", "7", "2004", R, Passage{"E?"}, E}},
         TestData{"A/QUAIL/some unknown location/0025/2016(H5N1)",   to_compare_t{typ{"A(H5N1)"},  hst{"QUAIL"}, "SOME UNKNOWN LOCATION", "25", "2016", R, P, E}}, // DELISERDANG is unknown location
