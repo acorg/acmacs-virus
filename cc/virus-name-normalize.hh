@@ -23,8 +23,9 @@ namespace acmacs::virus::inline v2::name
         std::string continent;
         acmacs::messages::messages_t messages;
 
-        bool good() const { return !location.empty() && !isolation.empty() && year.size() == 4; }
-        name_t name() const;
+        bool good() const noexcept { return !location.empty() && !isolation.empty() && year.size() == 4; }
+        name_t name() const noexcept;
+        std::string full_name() const noexcept;
     };
 
     enum class warn_on_empty { no, yes };

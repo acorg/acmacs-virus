@@ -13,11 +13,11 @@
 
 // ----------------------------------------------------------------------
 
-acmacs::virus::name_t acmacs::virus::name::parsed_fields_t::name() const
+acmacs::virus::name_t acmacs::virus::name::parsed_fields_t::name() const noexcept
 {
     if (good())
         return name_t{acmacs::string::join("/", subtype, host, location, isolation, year)};
-    else if (subtype.empty() && host.empty() && location.empty() && isolation.empty() && year.empty() && !reassortant.empty())
+    else if (subtype.empty() && host.empty() && location.empty() && isolation.empty() && year.empty() && !reassortant.empty() && extra.empty())
         return name_t{*reassortant};
     else
         return name_t{raw};
@@ -25,6 +25,15 @@ acmacs::virus::name_t acmacs::virus::name::parsed_fields_t::name() const
 } // acmacs::virus::name::parsed_fields_t::name
 
 // ----------------------------------------------------------------------
+
+std::string acmacs::virus::name::parsed_fields_t::full_name() const noexcept
+{
+    if (good())
+        return acmacs::string::join(" ", name(), reassortant, extra, passage);
+    else
+        return raw;
+
+} // acmacs::virus::name::parsed_fields_t::full_name
 
 // ----------------------------------------------------------------------
 
@@ -504,7 +513,7 @@ inline std::string normalize_a_subtype(std::string_view source)
         re_part{"[HN]\\d{1,2}", acmacs::regex::icase | std::regex::nosubs},
         re_h{"(H\\d{1,2})/?N[\\?\\-x]?", acmacs::regex::icase},
         re_n{"H[\\?\\-xo]?/?(N\\d{1,2})", acmacs::regex::icase},
-        re_ignore{"(H[\\?\\-x]/?N[\\?\\-x]|[HN\\d]+\\?)", acmacs::regex::icase | std::regex::nosubs};
+        re_ignore{"(H[\\?\\-x]/?N[\\?\\-x]|[HN\\d]+\\?|H\\d+H\\d+)", acmacs::regex::icase | std::regex::nosubs};
 #include "acmacs-base/diagnostics-pop.hh"
 
     if (std::regex_match(std::begin(source), std::end(source), re_full)) { // "H3N2" "H3/N2" "H1N2V"
@@ -519,7 +528,7 @@ inline std::string normalize_a_subtype(std::string_view source)
         return std::string{source};
     if (std::cmatch match_hn; std::regex_match(std::begin(source), std::end(source), match_hn, re_h) || std::regex_match(std::begin(source), std::end(source), match_hn, re_n))
         return match_hn.str(1); // "H3N?" "H?N2" - either H or N known
-    if (std::regex_match(std::begin(source), std::end(source), re_ignore)) // "HxNx", "H-N-", "H?N?" "H5N2?" - both are unknown
+    if (std::regex_match(std::begin(source), std::end(source), re_ignore)) // "HxNx", "H-N-", "H?N?" "H5N2?" "H3H2" - both are unknown
         return {};
     throw std::exception{};
 }
@@ -847,7 +856,7 @@ void acmacs::virus::name::check_extra(parsed_fields_t& output)
         look_replace_t{std::regex("\\("
                                   "("
                                   "(?:H(?:\\d{1,2}|[XO\\?\\-]))?"
-                                  "(?:N(?:\\d{1,2}|[X\\?\\-])?V?)?"
+                                  "(?:[HN](?:\\d{1,2}|[X\\?\\-])?V?)?"
                                   "\\??"
                                   ")"
                                   "\\)", acmacs::regex::icase), {"$` $'", "$1"}}, // (H3N2) (H3N?) (H1N2V) (H1N1?) (H3) (H11N) - subtype
