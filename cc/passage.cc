@@ -97,94 +97,101 @@ static inline void add_to_extra(processing_data_t& data, char orig_symbol, std::
 #include "acmacs-base/global-constructors-push.hh"
 
 // MDCK C
-static const std::regex re_c_c_x("^(?:[X\\?]|ELL[\\s\\-]*(?:PASSAGED?)?)", std::regex::icase);
-static const std::regex re_c_c_n("^[\\s\\-]*(\\d+)(?![\\.])", std::regex::icase); // no . afterwards to support C1.3 annotation (CDC)
-static const std::regex re_m_mdck_x("^(?:DCK|CDK|DKC)[\\s\\-]*(?:[X\\?`]|PASSAGED?)?", std::regex::icase);
-static const std::regex re_m_mdck_n("^(?:DCK|CDK|DKC)[\\s\\-/]*(\\d+)", std::regex::icase);
-static const std::regex re_m_mdck_siat_x("^DCKX?-SIAT[\\s\\-]*[X\\?]?", std::regex::icase);
-static const std::regex re_m_mdck_siat_n("^DCKX?-SIAT[\\s\\-]*(\\d+)", std::regex::icase);
-static const std::regex re_m_mdck_siat1_n("^DCK-SIAT1[\\s\\-](\\d+)", std::regex::icase);
-static const std::regex re_m_mdck_mix_n("^DCK-MIX(\\d+)", std::regex::icase);
+static const std::regex re_c_c_x("^(?:[X\\?]|ELL[\\s\\-]*(?:PASSAGED?)?)", acmacs::regex::icase);
+static const std::regex re_c_c_n("^[\\s\\-]*(\\d+)(?![\\.])", acmacs::regex::icase); // no . afterwards to support C1.3 annotation (CDC)
+static const std::regex re_c_c_n_mdck("^(\\d+)\\s*\\(MDCK\\)", acmacs::regex::icase); // gisaid
+static const std::regex re_c_canis_mdck("^ANIS\\s+LUPUS\\s+FAMILIARIS\\s+MDCK\\s+CELLS", acmacs::regex::icase); // no . afterwards to support C1.3 annotation (CDC)
+static const std::regex re_m_mdck_x("^(?:DCK|CDK|DKC)[\\s\\-]*(?:[X\\?`]|PASSAGED?|CELLS)?", acmacs::regex::icase);
+static const std::regex re_m_mdck_n("^(?:DCK|CDK|DKC)[\\s\\-/]*(\\d+)", acmacs::regex::icase);
+static const std::regex re_m_mdck_siat_x("^DCKX?-SIAT[\\s\\-]*[X\\?]?", acmacs::regex::icase);
+static const std::regex re_m_mdck_siat_n("^DCKX?-SIAT[\\s\\-]*(\\d+)", acmacs::regex::icase);
+static const std::regex re_m_mdck_siat1_n("^DCK-SIAT1[\\s\\-](\\d+)", acmacs::regex::icase);
+static const std::regex re_m_mdck_mix_n("^DCK-MIX(\\d+)", acmacs::regex::icase);
+static const std::regex re_2_2nd_pass_mdck("^ND\\s+PASS\\s+MDCK", acmacs::regex::icase);
 
 // SIAT S
-static const std::regex re_s_s_x("^[X\\?]", std::regex::icase);
-static const std::regex re_s_siat_x("^IAT?[\\s\\-]*[X\\?]?", std::regex::icase);
-static const std::regex re_s_siat_n("^(?:IAT)?[\\s\\-]*(\\d+)", std::regex::icase);
+static const std::regex re_s_s_x("^[X\\?]", acmacs::regex::icase);
+static const std::regex re_s_siat_x("^IAT?[\\s\\-]*[X\\?]?", acmacs::regex::icase);
+static const std::regex re_s_siat_n("^(?:IAT)?[\\s\\-]*(\\d+)", acmacs::regex::icase);
+static const std::regex re_s_siat1_passage_n("^IAT1/\\s*PASSAGE?(\\d+)", acmacs::regex::icase);
 
 // QMC Seqirus (Novartis) qualified MDCK cells. Previously the cell line called "NC"
-static const std::regex re_q_qmc_x("^MC[\\s\\-]*[X\\?]?", std::regex::icase);
-static const std::regex re_q_qmc_n("^MC[\\s\\-]*(\\d+)", std::regex::icase);
-static const std::regex re_n_nc_n("^C[\\s\\-]*(\\d+)", std::regex::icase);
+static const std::regex re_q_qmc_x("^MC[\\s\\-]*[X\\?]?", acmacs::regex::icase);
+static const std::regex re_q_qmc_n("^MC[\\s\\-]*(\\d+)", acmacs::regex::icase);
+static const std::regex re_n_nc_n("^C[\\s\\-]*(\\d+)", acmacs::regex::icase);
 
 // E EGG
-static const std::regex re_e_e_x("^[\\s\\-]*[X\\?]", std::regex::icase); // may followed by letters, e.g. EXMDCKX (MELB)
-static const std::regex re_e_egg_x("^GG[\\s\\-]*(?:PASSAGED?)?[X\\?]?(?!\\w)", std::regex::icase);
-static const std::regex re_e_egg_n("^(?:GG(?:[\\s\\-]+PASSAGED?)?)?[\\s\\-]*(\\d+)", std::regex::icase);
-static const std::regex re_s_spfe_n("^PFC?E[\\s\\-]*(\\d+)", std::regex::icase);
-static const std::regex re_s_spfe_x("^PFC?E[X\\?]", std::regex::icase);
-static const std::regex re_s_spfe("^PFC?E$", std::regex::icase);
+static const std::regex re_e_e_x("^[\\s\\-]*[X\\?]", acmacs::regex::icase); // may followed by letters, e.g. EXMDCKX (MELB)
+static const std::regex re_e_egg_x("^GG[\\s\\-]*(?:PASSAGED?|GROWN)?[X\\?]?(?!\\w)", acmacs::regex::icase);
+static const std::regex re_e_egg_n("^(?:GG(?:[\\s\\-]+PASSAGED?)?)?[\\s\\-]*(\\d+)", acmacs::regex::icase);
+static const std::regex re_s_spfe_n("^PFC?E[\\s\\-]*(\\d+)", acmacs::regex::icase);
+static const std::regex re_s_spfe_x("^PFC?E[X\\?]", acmacs::regex::icase);
+static const std::regex re_s_spfe("^PFC?E$", acmacs::regex::icase);
 
 // HCK - humanized MDCK cell line for the efficient isolation and propagation of human influenza viruses https://www.researchgate.net/publication/332744615_A_humanized_MDCK_cell_line_for_the_efficient_isolation_and_propagation_of_human_influenza_viruses
-static const std::regex re_h_hck_n("^CK?[\\s\\-]*(\\d+)", std::regex::icase);
-static const std::regex re_h_hck_x("^CK?[\\s\\-]*[X\\?]", std::regex::icase);
+static const std::regex re_h_hck_n("^CK?[\\s\\-]*(\\d+)", acmacs::regex::icase);
+static const std::regex re_h_hck_x("^CK?[\\s\\-]*[X\\?]", acmacs::regex::icase);
 
 // MK M - Monkey Kidney Cell line
-static const std::regex re_m_mk_x("^K?[\\s\\-]*[X\\?]", std::regex::icase);
-static const std::regex re_m_mk_n("^K?[\\s\\-]*(\\d+)", std::regex::icase);
+static const std::regex re_m_mk_x("^K?[\\s\\-]*[X\\?]", acmacs::regex::icase);
+static const std::regex re_m_mk_n("^K?[\\s\\-]*(\\d+)", acmacs::regex::icase);
+static const std::regex re_p_pmk_n("^MK?[\\s\\-]*(\\d+);?", acmacs::regex::icase); // gisaid
+static const std::regex re_p_prmk_n("^RMK?[\\s\\-]*(\\d+)", acmacs::regex::icase); // Primary Rhesus Monkey Kidney Cell line
 
 // MEK - Monkey Epithelial Kidney Cell line
-static const std::regex re_m_mek_x("^EK?[\\s\\-]*[X\\?]", std::regex::icase);
-static const std::regex re_m_mek_n("^EK?[\\s\\-]*(\\d+)", std::regex::icase);
+static const std::regex re_m_mek_x("^EK?[\\s\\-]*[X\\?]", acmacs::regex::icase);
+static const std::regex re_m_mek_n("^EK?[\\s\\-]*(\\d+)", acmacs::regex::icase);
 
 // OR CS CLINICAL ORIGINAL SPECIMEN/SAMPLE
-static const std::regex re_c_clinical("^(?:S(?:-ORI|\\(ORIGINAL\\))?|LINI?CAL[\\sA-Z]*)", std::regex::icase);
-static const std::regex re_o_original("^(?:R|O?[RT]IGINAL)[;\\s\\-_\\(\\)A-Z0]*", std::regex::icase);
-static const std::regex re_o_opnp("^P&NP\\s*$", std::regex::icase); // CDC:Congo/2015
-static const std::regex re_l_lung("^(?:UNG|AB)[\\s\\-\\w]*", std::regex::icase);             // NIMR
-static const std::regex re_n_nose("^(?:OSE|ASO|ASA)[\\s\\-_A-Z]*", std::regex::icase); // NIMR
-static const std::regex re_t_throat("^HROAT SWAB", std::regex::icase);                 // NIMR
-static const std::regex re_s_swab("^(?:WAB|PECIMEN)", std::regex::icase);
-static const std::regex re_p_pm("^M LUNG", std::regex::icase); // NIMR
-static const std::regex re_b_or("^RONCH[\\s\\-_\\(\\)A-Z]*", std::regex::icase);
-static const std::regex re_paren_from("^FROM[\\sA-Z]+\\)", std::regex::icase);
-static const std::regex re_d_direct("^IRECT[\\sA-Z\\-]*$", std::regex::icase); // Public Health Agency of Sweden
-static const std::regex re_n_not_passaged("^OT? PASSAGED?\\s*$", std::regex::icase); // University of Michigan
-static const std::regex re_a_autopsy("^UTOPSY[\\s\\-_\\(\\)A-Z]*$", std::regex::icase);
-static const std::regex re_n_na("^(?:/A|ONE)\\s*$", std::regex::icase);
-static const std::regex re_i_initial("^NITIAL\\s*$", std::regex::icase);
+static const std::regex re_c_clinical("^(?:S(?:-ORI|\\(ORIGINAL\\))?|LINI?CAL[\\sA-Z]*(?:\\((?:TRACHEA|NASAL)[\\sA-Z]+\\))?)", acmacs::regex::icase);
+static const std::regex re_o_original("^(?:R|O?[RT]IGINAL)[;\\s\\-_\\(\\)A-Z0]*", acmacs::regex::icase);
+static const std::regex re_o_opnp("^P&NP\\s*$", acmacs::regex::icase); // CDC:Congo/2015
+static const std::regex re_l_lung("^(?:UNG|AB)[\\s\\-\\w]*", acmacs::regex::icase);             // NIMR
+static const std::regex re_n_nose("^(?:OSE|ASO|ASA)[\\s\\-_A-Z]*", acmacs::regex::icase); // NIMR
+static const std::regex re_t_throat("^HROAT SWAB", acmacs::regex::icase);                 // NIMR
+static const std::regex re_s_swab("^(?:WAB|PECIMEN)", acmacs::regex::icase);
+static const std::regex re_p_pm_lung("^M LUNG", acmacs::regex::icase); // NIMR
+static const std::regex re_b_or("^RONCH[\\s\\-_\\(\\)A-Z]*", acmacs::regex::icase);
+static const std::regex re_paren_from("^FROM[\\sA-Z]+\\)", acmacs::regex::icase);
+static const std::regex re_d_direct("^IRECT[\\sA-Z\\-]*$", acmacs::regex::icase); // Public Health Agency of Sweden
+static const std::regex re_n_not_passaged("^OT? PASSAGED?\\s*$", acmacs::regex::icase); // University of Michigan
+static const std::regex re_a_autopsy("^UTOPSY[\\s\\-_\\(\\)A-Z]*$", acmacs::regex::icase);
+static const std::regex re_n_na("^(?:/A|A|A\\s+EXTRACT|ONE)\\s*$", acmacs::regex::icase);
+static const std::regex re_n_no_pass("^O\\s+PASS(?:AGE?)?$", acmacs::regex::icase);
+static const std::regex re_i_initial("^NITIAL\\s*$", acmacs::regex::icase);
 
 // R R-MIX - R-mix tissure culture
-static const std::regex re_r_n("^(?:-?M[I1]?X)?[\\s\\-]*(\\d+)", std::regex::icase);
-static const std::regex re_r_x("^(?:-?M[I1]?X)?[\\s\\-]*[X\\?]?(?!\\w)", std::regex::icase);
-static const std::regex re_rii_n("^II[\\s\\-]*(\\d+)", std::regex::icase);
-static const std::regex re_rii_x("^II[X\\?]?(?!\\w)", std::regex::icase);
+static const std::regex re_r_n("^(?:-?M[I1]?X)?[\\s\\-]*(\\d+)", acmacs::regex::icase);
+static const std::regex re_r_x("^(?:-?M[I1]?X)?[\\s\\-]*[X\\?]?(?!\\w)", acmacs::regex::icase);
+static const std::regex re_rii_n("^II[\\s\\-]*(\\d+)", acmacs::regex::icase);
+static const std::regex re_rii_x("^II[X\\?]?(?!\\w)", acmacs::regex::icase);
 
 // AX4-PB2 cell line by Vetmed (Eileen A. Maher), used by NIID H3 FRA in 2018 as "AX-4 2"
-static const std::regex re_a_ax4_n("^(?:X-?4\\s+)?(\\d+)", std::regex::icase);
+static const std::regex re_a_ax4_n("^(?:X-?4\\s+)?(\\d+)", acmacs::regex::icase);
 
 //  Human Caucasian Colon Adenocarcinoma Cell line: CACO2 2 or CACO2
-static const std::regex re_c_caco_n("^ACO(?:-2\\s+)?(\\d+)", std::regex::icase);
+static const std::regex re_c_caco_n("^ACO(?:-2\\s+)?(\\d+)", acmacs::regex::icase);
 
 // Specific Pathogen Free Egg, CDC H3 2018
-static const std::regex re_s_spf_n("^PF(\\d+)", std::regex::icase);
+static const std::regex re_s_spf_n("^PF(\\d+)", acmacs::regex::icase);
 
 // D (egg?)
-static const std::regex re_d_d_n("^(\\d+)(?![\\.])", std::regex::icase); // no . afterwards to support D1.3 annotation (CDC)
+static const std::regex re_d_d_n("^(\\d+)(?![\\.])", acmacs::regex::icase); // no . afterwards to support D1.3 annotation (CDC)
 
 // Specific Pathogen Free Chicken Kidney Cell line
-static const std::regex re_s_spfck_n("^PFCK(\\d+)", std::regex::icase);
+static const std::regex re_s_spfck_n("^PFCK(\\d+)", acmacs::regex::icase);
 
 // X
-static const std::regex re_x_n("^(\\d+)", std::regex::icase);
-static const std::regex re_p_n("^(\\d+)", std::regex::icase);
+static const std::regex re_x_n("^(\\d+)", acmacs::regex::icase);
+static const std::regex re_p_n("^-?\\s*(\\d+)", acmacs::regex::icase);
 
 // 0
-static const std::regex re_0_original("^(?:R|O?[RT]IGINAL)[;\\s\\-_\\(\\)A-Z0]*", std::regex::icase);
+static const std::regex re_0_original("^(?:R|O?[RT]IGINAL)[;\\s\\-_\\(\\)A-Z0]*", acmacs::regex::icase);
 
 // ignore/remove
-static const std::regex re_c_ignore("^LONE-[A-Z\\d]+", std::regex::icase); // clone-C12 in gisaid from Netehralnds
-static const std::regex re_p_ignore("^ASSAGE[:\\-\\s]?(?:DETAILS:)?", std::regex::icase);
-static const std::regex re_dash_ori("^\\s*ORI\\s*$", std::regex::icase);
+static const std::regex re_c_ignore("^LONE-[A-Z\\d]+", acmacs::regex::icase); // clone-C12 in gisaid from Netehralnds
+static const std::regex re_p_ignore("^ASSAGE[:\\-\\s]?(?:DETAILS:)?", acmacs::regex::icase);
+static const std::regex re_dash_ori("^\\s*ORI\\s*$", acmacs::regex::icase);
 
 static const std::regex re_digits("^(\\d+)");
 static const std::regex re_paren_date("^(\\d\\d\\d\\d-\\d\\d-\\d\\d|\\d\\d/\\d\\d/\\d\\d\\d\\d)\\)");
@@ -219,13 +226,13 @@ static const std::map<char, callback_t> normalize_data{
              return parts_push_i(data, "MDCK", "?", first);
          if (std::regex_search(first, last, match, re_c_ignore))
              add_to_extra(data, 'C', match.str(0)); // CLONE-xxx is extra
-         else if (std::regex_search(first, last, match, re_c_c_n))
+         else if (std::regex_search(first, last, match, re_c_c_n_mdck) || std::regex_search(first, last, match, re_c_c_n))
              parts_push_i(data, "MDCK", match[1].str());
          else if (std::regex_search(first, last, match, re_c_clinical))
              parts_push_i(data, "OR");
          else if (std::regex_search(first, last, match, re_c_caco_n))
              parts_push_i(data, "CACO", match[1].str());
-         else if (std::regex_search(first, last, match, re_c_c_x))
+         else if (std::regex_search(first, last, match, re_c_c_x) || std::regex_search(first, last, match, re_c_canis_mdck))
              parts_push_i(data, "MDCK", "?");
          else
              throw parsing_failed{};
@@ -308,7 +315,7 @@ static const std::map<char, callback_t> normalize_data{
     {'N',
      [](processing_data_t& data, source_iter_t first, source_iter_t last) -> source_iter_t {
          std::cmatch match;
-         if (std::regex_search(first, last, match, re_n_nose) || std::regex_search(first, last, match, re_n_not_passaged) || std::regex_search(first, last, match, re_n_na))
+         if (std::regex_search(first, last, match, re_n_nose) || std::regex_search(first, last, match, re_n_not_passaged) || std::regex_search(first, last, match, re_n_na) || std::regex_search(first, last, match, re_n_no_pass))
              parts_push_i(data, "OR");
          else if (std::regex_search(first, last, match, re_n_nc_n))
              parts_push_i(data, "QMC", match[1].str());
@@ -332,7 +339,11 @@ static const std::map<char, callback_t> normalize_data{
              return parts_push_i(data, "X", match[1].str(), match[0].second);
          else if (std::regex_search(first, last, match, re_p_ignore))
              return match[0].second; // ignore PASSAGE-
-         else if (std::regex_search(first, last, match, re_p_pm))
+         else if (std::regex_search(first, last, match, re_p_pmk_n))
+             return parts_push_i(data, "PMK", {}, match[0].second);
+         else if (std::regex_search(first, last, match, re_p_prmk_n))
+             return parts_push_i(data, "PRMK", {}, match[0].second);
+         else if (std::regex_search(first, last, match, re_p_pm_lung))
              return parts_push_i(data, "OR", {}, match[0].second);
          else if (first != last && (*first == 'X' || *first == 'x'))
              return parts_push_i(data, "X", "?", first + 1);
@@ -368,7 +379,7 @@ static const std::map<char, callback_t> normalize_data{
     {'S',
      [](processing_data_t& data, source_iter_t first, source_iter_t last) -> source_iter_t {
          std::cmatch match;
-         if (std::regex_search(first, last, match, re_s_siat_n))
+         if (std::regex_search(first, last, match, re_s_siat1_passage_n) || std::regex_search(first, last, match, re_s_siat_n))
              parts_push_i(data, "SIAT", match[1].str());
          else if (std::regex_search(first, last, match, re_s_spfe_n))
              parts_push_i(data, "SPFE", match[1].str());
@@ -418,6 +429,15 @@ static const std::map<char, callback_t> normalize_data{
          std::cmatch match;
          if (std::regex_search(first, last, match, re_0_original))
              parts_push_i(data, "OR");
+         else
+             throw parsing_failed{};
+         return match[0].second;
+     }},
+    {'2',
+     [](processing_data_t& data, source_iter_t first, source_iter_t last) -> source_iter_t {
+         std::cmatch match;
+         if (std::regex_search(first, last, match, re_2_2nd_pass_mdck))
+             parts_push_i(data, "MDCK", "2");
          else
              throw parsing_failed{};
          return match[0].second;
@@ -521,7 +541,7 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
     using namespace acmacs::regex;
 #include "acmacs-base/global-constructors-push.hh"
     static const std::array remove_redundant_extra{
-        look_replace_t{std::regex("\\b(?:AND ORIGINAL ISOLATES|(?:chicken|quail|mouse\\s+)?ADAPTED)\\b", std::regex::icase), {"$` $'"}},
+        look_replace_t{std::regex("\\b(?:AND ORIGINAL ISOLATES|(?:chicken|quail|mouse\\s+)?ADAPTED)\\b", acmacs::regex::icase), {"$` $'"}},
     };
 #include "acmacs-base/diagnostics-pop.hh"
     if (const auto extra_fixed = scan_replace(extra, remove_redundant_extra); extra_fixed.has_value())
