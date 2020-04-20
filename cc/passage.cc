@@ -521,7 +521,7 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
     using namespace acmacs::regex;
 #include "acmacs-base/global-constructors-push.hh"
     static const std::array remove_redundant_extra{
-        look_replace_t{std::regex("\\b(?:AND ORIGINAL ISOLATES|ADAPTED)\\b", std::regex::icase), {"$` $'"}},
+        look_replace_t{std::regex("\\b(?:AND ORIGINAL ISOLATES|(?:chicken|quail|mouse\\s+)?ADAPTED)\\b", std::regex::icase), {"$` $'"}},
     };
 #include "acmacs-base/diagnostics-pop.hh"
     if (const auto extra_fixed = scan_replace(extra, remove_redundant_extra); extra_fixed.has_value())

@@ -33,13 +33,9 @@ std::tuple<acmacs::virus::Reassortant, std::string> acmacs::virus::parse_reassor
     static const std::array normalize_data{
         look_replace_t{std::regex(PR_PREFIX_1 PR_NYMC, std::regex::icase), {"NYMC-$1", "$` $'"}},
         // look_replace_t{std::regex(PR_AB PR_NYMCX, std::regex::icase), {"NYMC-$1", "$'"}},
-
-        look_replace_t{std::regex(PR_PREFIX_1 PR_IDCDC, std::regex::icase), {"RG-$1", "$` $'"}},
-
         look_replace_t{std::regex(PR_PREFIX_1 PR_NIB, std::regex::icase), {"NIB-$1", "$` $'"}},
-
+        look_replace_t{std::regex(PR_PREFIX_1 PR_IDCDC, std::regex::icase), {"RG-$1", "$` $'"}},
         look_replace_t{std::regex(PR_PREFIX_1 PR_CBER, std::regex::icase), {"CBER-$1", "$` $'"}},
-
         look_replace_t{std::regex(PR_PREFIX_1 PR_IVR, std::regex::icase), {"$1-$2", "$` $'"}},
 
         // CDC-LV is annotation, it is extra in the c2 excel parser // look_replace_t{std::regex("\\b(CDC)-?(LV\\d+[AB]?)\\b", std::regex::icase), "$1-$2"}, "$` $'",
