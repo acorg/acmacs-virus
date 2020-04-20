@@ -17,9 +17,10 @@ std::tuple<acmacs::virus::Reassortant, std::string> acmacs::virus::parse_reassor
 #define PR_LOOKAHEAD_NOT_PAREN_SPACE_DASH "(?=[^\\(\\s\\-])"
 #define PR_LOOKAHEAD_NOT_PAREN_SPACE "(?=[^\\(\\s])"
 #define PR_AB_REASSORTANT "[AB]/REASSORTANT/"
+#define PR_HG_REASSORTANT "HIGHGROWTH\\s+REASSORTANT\\s+"
 #define PR_AB "[AB]/"
 
-#define PR_PREFIX_1 "(?:" PR_BOL "|" PR_BOL PR_AB_REASSORTANT "|" PR_BOL PR_AB "|" PR_LOOKAHEAD_NOT_PAREN_SPACE_DASH ")"
+#define PR_PREFIX_1 "(?:" PR_BOL "|" PR_BOL PR_AB_REASSORTANT "|" PR_BOL PR_AB "|" PR_HG_REASSORTANT "|" PR_LOOKAHEAD_NOT_PAREN_SPACE_DASH ")"
 // #define PREFIX_2 "(?:" BOL "|" BOL AB_REASSORTANT "|" LOOKAHEAD_NOT_PAREN_SPACE ")"
 
 #define PR_NYMC "(?:NYMC[\\s\\-]B?X|B?X|NYMC)[\\-\\s]?(\\d+[A-Z\\d\\-]*)\\b"

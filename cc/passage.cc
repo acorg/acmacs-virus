@@ -7,6 +7,7 @@
 #include "acmacs-base/string-join.hh"
 #include "acmacs-base/string-strip.hh"
 #include "acmacs-base/date.hh"
+#include "acmacs-base/regex.hh"
 #include "acmacs-virus/passage.hh"
 
 // ----------------------------------------------------------------------
@@ -514,8 +515,20 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
             ++first;
         }
     }
-    // fmt::print(stderr, "parse_passage \"{}\" --> \"{}\"\n", source, data.parts);
-    return {Passage{string::join("", data.parts)}, ::string::upper(acmacs::string::strip(data.extra))};
+
+    auto extra = ::string::upper(acmacs::string::strip(data.extra));
+
+    using namespace acmacs::regex;
+#include "acmacs-base/global-constructors-push.hh"
+    static const std::array remove_redundant_extra{
+        look_replace_t{std::regex("\\b(?:AND ORIGINAL ISOLATES|ADAPTED)\\b", std::regex::icase), {"$` $'"}},
+    };
+#include "acmacs-base/diagnostics-pop.hh"
+    if (const auto extra_fixed = scan_replace(extra, remove_redundant_extra); extra_fixed.has_value())
+        extra = ::string::collapse_spaces(acmacs::string::strip(extra_fixed->back()));
+
+    // AD_DEBUG("parse_passage \"{}\" --> \"{}\" extra:\"{}\"", source, data.parts, extra);
+    return {Passage{string::join("", data.parts)}, extra};
 
 } // acmacs::virus::parse_passage
 
