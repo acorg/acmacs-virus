@@ -16,9 +16,9 @@ namespace virus_name
     struct Name
     {
         Name(std::string_view source);
-        std::string name() const { return acmacs::string::join("/", virus_type, host, location, isolation, year); }
-        std::string name_extra() const { return acmacs::string::join(" ", name(), extra); }
-        std::string full() const { return acmacs::string::join(" ", name(), reassortant, extra); }
+        std::string name() const { return acmacs::string::join(acmacs::string::join_slash, virus_type, host, location, isolation, year); }
+        std::string name_extra() const { return acmacs::string::join(acmacs::string::join_space, name(), extra); }
+        std::string full() const { return acmacs::string::join(acmacs::string::join_space, name(), reassortant, extra); }
 
         enum class report_extra { no, yes };
         void fix_extra(report_extra rep = report_extra::yes);

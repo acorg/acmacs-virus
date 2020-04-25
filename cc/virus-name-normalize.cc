@@ -17,7 +17,7 @@
 acmacs::virus::name_t acmacs::virus::name::parsed_fields_t::name() const noexcept
 {
     if (good())
-        return name_t{acmacs::string::join("/", subtype, host, location, isolation, year)};
+        return name_t{acmacs::string::join(acmacs::string::join_slash, subtype, host, location, isolation, year)};
     else if (subtype.empty() && host.empty() && location.empty() && isolation.empty() && year.empty() && !reassortant.empty() && extra.empty())
         return name_t{*reassortant};
     else
@@ -30,7 +30,7 @@ acmacs::virus::name_t acmacs::virus::name::parsed_fields_t::name() const noexcep
 std::string acmacs::virus::name::parsed_fields_t::full_name() const noexcept
 {
     if (good())
-        return acmacs::string::join(" ", name(), reassortant, extra, passage);
+        return acmacs::string::join(acmacs::string::join_space, name(), reassortant, extra, passage);
     else
         return raw;
 
@@ -301,7 +301,7 @@ void acmacs::virus::name::no_location_parts(std::vector<std::string_view>& parts
         }
     }
     catch (std::exception&) {
-        output.messages.emplace_back(acmacs::messages::key::location_field_not_found, acmacs::string::join("/", parts), MESSAGE_CODE_POSITION);
+        output.messages.emplace_back(acmacs::messages::key::location_field_not_found, acmacs::string::join(acmacs::string::join_slash, parts), MESSAGE_CODE_POSITION);
     }
 
 } // acmacs::virus::name::no_location_parts
@@ -377,12 +377,12 @@ void acmacs::virus::name::one_location_part_at_1(std::vector<std::string_view>& 
                 break;
             case 5:
                 if (check_year(parts[4], output, make_message::no)) {
-                    if (auto location_data = location_lookup(string::join(" ", parts[1], parts[2])); location_data.has_value()) { // A/Lyon/CHU/R19.03.77/2019
+                    if (auto location_data = location_lookup(string::join(acmacs::string::join_space, parts[1], parts[2])); location_data.has_value()) { // A/Lyon/CHU/R19.03.77/2019
                         set_location(output, std::move(*location_data));
                         if (!check_subtype(parts[0], output) || !check_isolation(parts[3], output)) // A/Algeria/G0164/15/2015 :h1n1
                             throw std::exception{};
                     }
-                    else if (!check_subtype(parts[0], output) || !check_isolation(string::join("-", parts[2], parts[3]), output)) // A/Algeria/G0164/15/2015 :h1n1
+                    else if (!check_subtype(parts[0], output) || !check_isolation(string::join(acmacs::string::join_dash, parts[2], parts[3]), output)) // A/Algeria/G0164/15/2015 :h1n1
                         throw std::exception{};
                 }
                 else if (check_nibsc_extra(parts) && parts.size() == 4 /* check_nibsc_extra removed last part */) { // "A/Beijing/2019-15554/2018  CNIC-1902  (19/148)"
@@ -447,13 +447,13 @@ void acmacs::virus::name::one_location_part_at_2(std::vector<std::string_view>& 
                 break;
             case 6:
                 if (check_year(parts[5], output, make_message::no)) {
-                    if (auto location_data = location_lookup(string::join(" ", parts[2], parts[3])); location_data.has_value()) { // A/swine/Lyon/CHU/R19.03.77/2019
+                    if (auto location_data = location_lookup(string::join(acmacs::string::join_space, parts[2], parts[3])); location_data.has_value()) { // A/swine/Lyon/CHU/R19.03.77/2019
                         set_location(output, std::move(*location_data));
                         if (!check_subtype(parts[0], output) || !check_host(parts[1], output) || !check_isolation(parts[4], output))
                             throw std::exception{};
                     }
                     else if (!check_subtype(parts[0], output) || !check_host(parts[1], output) ||
-                             !check_isolation(string::join("-", parts[3], parts[4]), output)) // A/chicken/CentralJava/Solo/VSN331/2013
+                             !check_isolation(string::join(acmacs::string::join_dash, parts[3], parts[4]), output)) // A/chicken/CentralJava/Solo/VSN331/2013
                         throw std::exception{};
                 }
                 else if (check_nibsc_extra(parts) && parts.size() == 5 /* check_nibsc_extra removed last part */) { // A/duck/Vietnam/NCVD1584/2012 NIBRG-301 (18/134)
@@ -477,7 +477,7 @@ void acmacs::virus::name::one_location_part_at_2(std::vector<std::string_view>& 
 void acmacs::virus::name::two_location_parts(std::vector<std::string_view>& parts, location_parts_t&& location_parts, parsed_fields_t& output)
 {
     const auto double_location = [&](const acmacs::messages::code_position_t& code_pos) {
-        output.messages.emplace_back("double-location", fmt::format("{} \"{}\"", location_parts, acmacs::string::join("/", parts)), code_pos);
+        output.messages.emplace_back("double-location", fmt::format("{} \"{}\"", location_parts, acmacs::string::join(acmacs::string::join_slash, parts)), code_pos);
     };
 
     if ((location_parts[0].part_no + 1) != location_parts[1].part_no) {
@@ -495,7 +495,7 @@ void acmacs::virus::name::two_location_parts(std::vector<std::string_view>& part
         one_location_part(parts, std::move(location_parts[0]), output);
     }
     else if (location_parts[0].location.country == location_parts[1].location.country) { // "B/Mount_Lebanon/Ain_W_zein/3/2019" -> "B/Mount Lebanon Ain W zein/3/2019"
-        check_location(string::join(" ", location_parts[0].location.name, location_parts[1].location.name), output);
+        check_location(string::join(acmacs::string::join_space, location_parts[0].location.name, location_parts[1].location.name), output);
         parts.erase(std::next(parts.begin(), static_cast<ssize_t>(location_parts[1].part_no)));
         one_location_part(parts, location_part_t{.part_no=location_parts[0].part_no}, output);
     }

@@ -548,7 +548,7 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
         extra = ::string::collapse_spaces(acmacs::string::strip(extra_fixed->back()));
 
     // AD_DEBUG("parse_passage \"{}\" --> \"{}\" extra:\"{}\"", source, data.parts, extra);
-    return {Passage{string::join("", data.parts)}, extra};
+    return {Passage{string::join(acmacs::string::join_concat, data.parts)}, extra};
 
 } // acmacs::virus::parse_passage
 

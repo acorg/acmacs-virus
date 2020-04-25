@@ -221,7 +221,7 @@ namespace virus_name
             location = acmacs::string::strip(m[3].str());
             isolation = acmacs::string::strip(m[4].str());
             year = _internal::make_year(m);
-            extra = acmacs::string::join(" ", acmacs::string::strip(m.prefix().str()), acmacs::string::strip(m[7].str()));
+            extra = acmacs::string::join(acmacs::string::join_space, acmacs::string::strip(m.prefix().str()), acmacs::string::strip(m[7].str()));
         }
         else
             throw Unrecognized(fmt::format("Cannot split {}", name));
@@ -241,7 +241,7 @@ namespace virus_name
                 location = m[3].str();
                 isolation = m[4].str();
                 year = _internal::make_year(m);
-                extra = acmacs::string::join(" ", m.prefix().str(), m[7].str());
+                extra = acmacs::string::join(acmacs::string::join_space, m.prefix().str(), m[7].str());
             }
             else
                 throw Unrecognized(fmt::format("Cannot split {}", name));
@@ -278,7 +278,7 @@ namespace virus_name
             std::smatch mat;
             if (std::regex_search(extra, mat, std::get<std::regex>(re_entry))) {
                 reassortant = mat.format(std::get<const char*>(re_entry));
-                extra = acmacs::string::join(" ", acmacs::string::strip(mat.format("$`")), acmacs::string::strip(mat.format("$'")));
+                extra = acmacs::string::join(acmacs::string::join_space, acmacs::string::strip(mat.format("$`")), acmacs::string::strip(mat.format("$'")));
             }
         }
         if (!extra.empty() && rep == report_extra::yes)
@@ -302,9 +302,9 @@ namespace virus_name
     //         year = acmacs::string::strip(year);
     //         passage = acmacs::string::strip(passage);
     //         if (host.empty())
-    //             result = acmacs::string::join("/", virus_type, location, isolation, year);
+    //             result = acmacs::string::join(acmacs::string::join_slash, virus_type, location, isolation, year);
     //         else
-    //             result = acmacs::string::join("/", virus_type, host, location, isolation, year);
+    //             result = acmacs::string::join(acmacs::string::join_slash, virus_type, host, location, isolation, year);
     //         if (!passage.empty()) {
     //             std::cerr << "WARNING: name contains extra: \"" << name << '"' << std::endl;
     //             result.append(1, ' ');
