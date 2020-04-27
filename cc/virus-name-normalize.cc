@@ -750,7 +750,8 @@ std::string acmacs::virus::name::check_reassortant_in_front(std::string_view sou
 
     if (!result.empty() && result[0] == '(') { // "(Johannesburg/33/1994)(H3N2)" -> "Johannesburg/33/1994" + "(H3N2)"
         const std::string inside{acmacs::string::prefix_in_parentheses(result)};
-        rest.assign(result.data() + inside.size() + 2, result.size() - inside.size() - 2);
+        if ((inside.size() + 2) <= result.size())
+            rest.assign(result.data() + inside.size() + 2, result.size() - inside.size() - 2);
         result.assign(inside);
     }
 
