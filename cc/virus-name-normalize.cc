@@ -745,11 +745,14 @@ bool acmacs::virus::name::check_year(std::string_view source, parsed_fields_t& o
 
 std::string acmacs::virus::name::check_reassortant_in_front(std::string_view source, parsed_fields_t& output)
 {
-    std::string result;
+    std::string result, rest;
     std::tie(output.reassortant, result) = parse_reassortant(source);
 
-    // if (!output.reassortant.empty())
-    //     AD_DEBUG("REASS {}", source);
+    if (!result.empty() && result[0] == '(') { // "(Johannesburg/33/1994)(H3N2)" -> "Johannesburg/33/1994" + "(H3N2)"
+        const std::string inside{acmacs::string::prefix_in_parentheses(result)};
+        rest.assign(result.data() + inside.size() + 2, result.size() - inside.size() - 2);
+        result.assign(inside);
+    }
 
     if (!result.empty()) {
         if (result.front() == '(' && result.back() == ')') {
@@ -764,13 +767,15 @@ std::string acmacs::virus::name::check_reassortant_in_front(std::string_view sou
             result.erase(result.begin(), std::next(result.begin(), 3));
 
         // remove common reassortant parts to allow parsing the main virus name
-        if (!result.empty() && !output.reassortant.empty())
+        if (!result.empty() && !output.reassortant.empty()) {
             result = remove_reassortant_second_name(result);
-        // AD_DEBUG("check_reassortant_in_front \"{}\" <-- \"{}\"", result, source);
+            // AD_DEBUG("check_reassortant_in_front \"{}\" <-- \"{}\"", result, source);
+        }
 
-        if ((source[0] == 'A' || source[0] == 'B') && source[1] == '/' && result[1] != '/')
+        if ((source[0] == 'A' || source[0] == 'B') && source[1] == '/' && result[1] != '/') {
             result.insert(0, source.substr(0, 2));
-        // AD_DEBUG("reass in front \"{}\" <-- \"{}\" '{}' '{}' '{}'", result, source, source[0], source[1], result[1]);
+            // AD_DEBUG("reass in front \"{}\" <-- \"{}\" '{}' '{}' '{}'", result, source, source[0], source[1], result[1]);
+        }
     }
 
     if (result.empty() && !output.reassortant.empty())
@@ -778,7 +783,7 @@ std::string acmacs::virus::name::check_reassortant_in_front(std::string_view sou
 
     // AD_DEBUG("check_reassortant_in_front \"{}\" -> \"{}\" R:\"{}\"", source, result, *output.reassortant);
 
-    return result;
+    return fmt::format("{}{}", result, rest);
 
 } // acmacs::virus::name::check_reassortant_in_front
 
@@ -809,12 +814,17 @@ std::string acmacs::virus::name::remove_reassortant_second_name(std::string_view
                                   RRSN_SXS RRSN_TX77                   "|"
                                   RRSN_SXS RRSN_AA60                   "|"
                                   RRSN_NYMC RRSN_SXS
-                                  ")", std::regex::icase), {"$` $'"}}
+                                  ")", std::regex::icase), {"$`", "$'"}}
     };
 #include "acmacs-base/diagnostics-pop.hh"
 
-    if (const auto res = scan_replace(source, common_reassortant_names); res.has_value())
-        return std::string{acmacs::string::strip(res->front())};
+    if (const auto res = scan_replace(source, common_reassortant_names); res.has_value()) {
+        const auto pre = acmacs::string::strip(res->front()), post = acmacs::string::strip(res->back());
+        if (!post.empty() && post[0] == ')' && pre.find('(') == std::string::npos)
+            return fmt::format("{}{}", pre, post.substr(1));
+        else
+            return fmt::format("{} {}", pre, post);
+    }
     else
         return std::string{source};
 
