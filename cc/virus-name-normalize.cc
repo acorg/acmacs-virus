@@ -796,6 +796,7 @@ std::string acmacs::virus::name::remove_reassortant_second_name(std::string_view
 #define RRSN_LEE40 "(?:B/)?Lee/(?:19)40"
 #define RRSN_TX77  "Texas/1/(?:19)?77"
 #define RRSN_AA60  "Ann Arbor/6/(?:19)?60"
+#define RRSN_PN90  "Panama/45/(?:19)?90"
 #define RRSN_NYMC "(?:(?:NYMC )?B?X-\\d+[A-Z]+|NYMC-\\d+[A-Z]+)"
 
 #define RRSN_SXS " x "
@@ -813,6 +814,7 @@ std::string acmacs::virus::name::remove_reassortant_second_name(std::string_view
                                   RRSN_SXS RRSN_NYMC                   "|"
                                   RRSN_SXS RRSN_TX77                   "|"
                                   RRSN_SXS RRSN_AA60                   "|"
+                                  RRSN_PN90 RRSN_SXS                   "|"
                                   RRSN_NYMC RRSN_SXS
                                   ")", std::regex::icase), {"$`", "$'"}}
     };
