@@ -7,7 +7,6 @@
 #include "acmacs-base/string-join.hh"
 #include "acmacs-base/string-strip.hh"
 #include "acmacs-base/date.hh"
-#include "acmacs-base/regex.hh"
 #include "acmacs-virus/passage.hh"
 
 // ----------------------------------------------------------------------

@@ -1,9 +1,7 @@
 #pragma once
 
-#include <iostream>
-#include <regex>
-
 #include "acmacs-base/named-type.hh"
+#include "acmacs-base/regex.hh"
 
 // ----------------------------------------------------------------------
 
@@ -19,6 +17,9 @@ namespace acmacs::virus
         std::string without_date() const;
         const char* passage_type() const { return is_egg() ? "egg" : "cell"; }
 
+        size_t find(std::string_view look_for) const { return get().find(look_for); }
+        bool search(const std::regex& re) const { return std::regex_search(get(), re); }
+
     }; // class Passage
 
     using parse_passage_t = std::tuple<Passage, std::string>;
@@ -32,13 +33,6 @@ namespace acmacs::virus
     }
 
 } // namespace acmacs::virus
-
-// ----------------------------------------------------------------------
-
-namespace acmacs
-{
-    inline std::string to_string(const acmacs::virus::Passage& passage) { return *passage; }
-}
 
 // ----------------------------------------------------------------------
 /// Local Variables:
