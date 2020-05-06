@@ -25,10 +25,10 @@ std::tuple<acmacs::virus::Reassortant, std::string> acmacs::virus::parse_reassor
 
 #define PR_NYMC "(?:NYMC[\\s\\-]B?X|B?X|NYMC)[\\-\\s]?(\\d+[A-Z\\d\\-]*)\\b"
 //#define PR_NYMCX "X-(\\d+[A-Z\\d\\-]*)"
-#define PR_CBER "(?:CBER|BVR)[_\\-\\s]?(\\d+[A-Z]*)\\b"
+#define PR_CBER "(?:CBER|BVR)[_\\-\\s]?(\\d+[A-Z]*)\\b" // Center for Biologics Evaluation and Research https://www.fda.gov/about-fda/fda-organization/center-biologics-evaluation-and-research-cber
 #define PR_IDCDC "(?:PR8[\\- ]*IDCDC[\\- _]*|I[DB]CDC-)?RG[\\- ]*([\\dA-Z\\.]+)"
 #define PR_NIB "NIB(?:SC|RG)?[\\-\\s]?([\\dA-Z]+)\\b"
-#define PR_IVR "(IVR)[\\-\\s]*(\\d+[A-Z]*)\\b"
+#define PR_IVR "(IVR|CVR)[\\-\\s]*(\\d+[A-Z]*)\\b" // IVR-153 (A(H1N1)/California/7/2009) is by CSL, CVR - by CSL/Seqirus
 
     static const std::array normalize_data{
         look_replace_t{std::regex(PR_PREFIX_1 PR_NYMC, std::regex::icase), {"NYMC-$1", "$` $'"}},
