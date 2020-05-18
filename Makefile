@@ -37,10 +37,9 @@ test: install | $(TARGETS)
 
 # ----------------------------------------------------------------------
 
-install: $(TARGETS)
+install: make-installation-dirs $(TARGETS)
 	$(call install_lib,$(ACMACS_VIRUS_LIB))
 	$(call symbolic_link_wildcard,$(DIST)/virus-*,$(AD_BIN))
-	if [ ! -d $(AD_INCLUDE)/acmacs-virus ]; then mkdir $(AD_INCLUDE)/acmacs-virus; fi
 	ln -sf $(abspath cc)/*.hh $(AD_INCLUDE)/acmacs-virus
 
 .PHONY: install test
