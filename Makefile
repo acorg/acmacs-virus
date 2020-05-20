@@ -15,11 +15,14 @@ include $(ACMACSD_ROOT)/share/Makefile.config
 
 SRC_DIR = $(abspath $(ACMACSD_ROOT)/sources)
 
-ACMACS_VIRUS_SOURCES = \
-  virus-name-fields.cc virus-name-v1.cc \
-  virus-name-normalize.cc parsing-message.cc \
-  virus-name.cc \
-  host.cc passage.cc reassortant.cc
+ACMACS_VIRUS_SOURCES =    \
+  passage.cc              \
+  virus-name-normalize.cc \
+  virus-name-v1.cc        \
+  reassortant.cc          \
+  virus-name-fields.cc    \
+  parsing-message.cc      \
+  host.cc
 
 # ----------------------------------------------------------------------
 
