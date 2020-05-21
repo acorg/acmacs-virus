@@ -53,7 +53,7 @@ inline auto operator==(const acmacs::virus::name::parsed_fields_t& parsed, const
 }
 inline auto operator!=(const acmacs::virus::name::parsed_fields_t& parsed, const to_compare_t& expected) { return !operator==(parsed, expected); }
 
-template <> struct fmt::formatter<to_compare_t> : public fmt::formatter<acmacs::fmt_default_formatter>
+template <> struct fmt::formatter<to_compare_t> : public fmt::formatter<acmacs::fmt_helper::default_formatter>
 {
     template <typename FormatContext> auto format(const to_compare_t& fields, FormatContext& ctx)
     {
