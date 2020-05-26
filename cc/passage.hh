@@ -15,7 +15,15 @@ namespace acmacs::virus
         bool is_egg() const;
         bool is_cell() const;
         std::string without_date() const;
-        const char* passage_type() const { return is_egg() ? "egg" : "cell"; }
+
+        std::string_view passage_type() const
+        {
+            using namespace std::string_view_literals;
+            if (is_egg())
+                return "egg"sv;
+            else
+                return "cell"sv;
+        }
 
         size_t find(std::string_view look_for) const { return get().find(look_for); }
         bool search(const std::regex& re) const { return std::regex_search(get(), re); }
