@@ -876,7 +876,7 @@ void acmacs::virus::name::check_extra(parsed_fields_t& output)
                                   "\\??"
                                   ")"
                                   "[\\)\\?]", acmacs::regex::icase), {"$` $'", "$1"}}, // (H3N2) (H3N?) (H1N2V) (H1N1?) (H3) (H11N) ?H5N6? - subtype (in ? in gisaid)
-        look_replace_t{std::regex("^(?:-LIKE)$", acmacs::regex::icase), {"$` $'"}}, // remove few common annotations (meaningless for us)
+        look_replace_t{std::regex("^(?:-LIKE|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)$", acmacs::regex::icase), {"$` $'"}}, // remove few common annotations (meaningless for us)
         look_replace_t{std::regex("^[_\\-\\s,\\.]+", acmacs::regex::icase), {"$'"}}, // remove meaningless prefixes used as separators in the name
         look_replace_t{std::regex("^[\\(\\)_\\-\\s,\\.]+$", acmacs::regex::icase), {"$` $'"}}, // remove artefacts
     };
