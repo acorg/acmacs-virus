@@ -2,6 +2,7 @@
 #include "acmacs-base/counter.hh"
 #include "acmacs-base/read-file.hh"
 #include "acmacs-base/string-split.hh"
+#include "acmacs-virus/log.hh"
 #include "acmacs-virus/virus-name-normalize.hh"
 
 // ----------------------------------------------------------------------
@@ -15,6 +16,7 @@ struct Options : public argv
     option<bool> print_messages{*this, 'm', desc{"print messages (when reading from file)"}};
     option<bool> print_hosts{*this, "hosts", desc{"print all hosts found (when reading from file)"}};
     option<bool> print_bad{*this, 'b', "bad", desc{"print names which were not parsed (when reading from file)"}};
+    option<str_array> verbose{*this, 'v', "verbose", desc{"comma separated list (or multiple switches) of enablers"}};
 
     argument<str_array> names{*this, arg_name{"name"}};
 };
@@ -27,7 +29,9 @@ int main(int argc, const char* const* argv)
 {
     int exit_code = 0;
     try {
+        acmacs::log::register_enabler_acmacs_virus();
         Options opt(argc, argv);
+        acmacs::log::enable(opt.verbose);
         if (opt.from_file) {
             names_from_file(opt);
         }

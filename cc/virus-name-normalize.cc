@@ -11,6 +11,7 @@
 #include "acmacs-virus/virus-name-normalize.hh"
 #include "acmacs-virus/host.hh"
 #include "acmacs-virus/passage.hh"
+#include "acmacs-virus/log.hh"
 
 // ----------------------------------------------------------------------
 
@@ -267,6 +268,8 @@ acmacs::virus::name::parsed_fields_t acmacs::virus::name::parse(std::string_view
 
 void acmacs::virus::name::no_location_parts(std::vector<std::string_view>& parts, parsed_fields_t& output)
 {
+    AD_LOG(acmacs::log::name_parsing, "no_location_parts {}", parts);
+
     const auto set_unknown_location = [&output](std::string_view name) {
         output.location = ::string::upper(name);
         output.messages.emplace_back(acmacs::messages::key::location_not_found, name, MESSAGE_CODE_POSITION);
@@ -277,7 +280,8 @@ void acmacs::virus::name::no_location_parts(std::vector<std::string_view>& parts
             case 3:
                 if (!std::isdigit(parts[1][0]) && check_subtype(parts[0], output, make_message::no) && check_year(parts[2], output, make_message::no) && location_as_prefix(parts, 1, output))
                     ; // A/Baylor1A/81
-                else if (acmacs::string::non_digit_prefix(parts[1]).size() == parts[1].size() && !is_host(parts[1]) && check_subtype(parts[0], output, make_message::no) && check_year(parts[2], output, make_message::no) && check_isolation(unknown_isolation, output))
+                else if (acmacs::string::non_digit_prefix(parts[1]).size() == parts[1].size() && !is_host(parts[1]) && check_subtype(parts[0], output, make_message::no) &&
+                         check_year(parts[2], output, make_message::no) && check_isolation(unknown_isolation, output))
                     set_unknown_location(parts[1]); // A/unrecognized location/57(H2N2) -> A(H2N2)/unrecognized location/UNKNWON/1957
                 else
                     throw std::exception{};
@@ -285,13 +289,15 @@ void acmacs::virus::name::no_location_parts(std::vector<std::string_view>& parts
             case 4:
                 if ((std::isdigit(parts[2][0]) && location_as_prefix(parts, 1, output)) || location_as_prefix(parts, 2, output)) // "A/BiliranTB5/0423/2015" "A/chicken/Iran221/2001"
                     ;
-                else if (!is_host(parts[1]) && check_subtype(parts[0], output, make_message::no) && check_isolation(parts[2], output) && check_year(parts[3], output, make_message::no))     // A/Medellin/FLU8292/2007(H3) - Medellin  is unknown location
+                else if (!is_host(parts[1]) && check_subtype(parts[0], output, make_message::no) && check_isolation(parts[2], output) &&
+                         check_year(parts[3], output, make_message::no)) // A/Medellin/FLU8292/2007(H3) - Medellin  is unknown location
                     set_unknown_location(parts[1]);
                 else
                     throw std::exception{};
                 break;
             case 5:
-                if (!is_host(parts[2]) && check_subtype(parts[0], output, make_message::no) && check_host(parts[1], output) && check_isolation(parts[3], output) && check_year(parts[4], output, make_message::no)) // A/QUAIL/DELISERDANG/01160025/2016(H5N1) - DELISERDANG is unknown location, QUAIL is known host
+                if (!is_host(parts[2]) && check_subtype(parts[0], output, make_message::no) && check_host(parts[1], output) && check_isolation(parts[3], output) &&
+                    check_year(parts[4], output, make_message::no)) // A/QUAIL/DELISERDANG/01160025/2016(H5N1) - DELISERDANG is unknown location, QUAIL is known host
                     set_unknown_location(parts[2]);
                 else
                     throw std::exception{};
@@ -335,6 +341,8 @@ bool acmacs::virus::name::location_as_prefix(std::vector<std::string_view>& part
 
 void acmacs::virus::name::one_location_part(std::vector<std::string_view>& parts, location_part_t&& location_part, parsed_fields_t& output)
 {
+    AD_LOG(acmacs::log::name_parsing, "ONE location part {}", parts);
+
     if (location_part.valid())
         set_location(output, std::move(location_part));
     switch (location_part.part_no) {
@@ -389,11 +397,19 @@ void acmacs::virus::name::one_location_part_at_1(std::vector<std::string_view>& 
                     // AD_DEBUG("nisbc extra {}", parts);
                     one_location_part_at_1(parts, output);
                 }
-                else
+                else if (!check_subtype(parts[0], output) || !check_year(parts[3], output))
                     throw std::exception{};
+                else
+                    add_extra(output, parts[4]);
                 break;
             default:
-                throw std::exception{};
+                if (!check_subtype(parts[0], output) || !check_year(parts[3], output))
+                    throw std::exception{};
+                if (parts.size() > 4) {
+                    for (auto part{std::next(std::begin(parts), 4)}; part != std::end(parts); ++part)
+                        add_extra(output, *part);
+                }
+                break;
         }
     }
     catch (std::exception&) {
@@ -476,6 +492,8 @@ void acmacs::virus::name::one_location_part_at_2(std::vector<std::string_view>& 
 
 void acmacs::virus::name::two_location_parts(std::vector<std::string_view>& parts, location_parts_t&& location_parts, parsed_fields_t& output)
 {
+    AD_LOG(acmacs::log::name_parsing, "TWO location part {}", parts);
+
     const auto double_location = [&](const acmacs::messages::code_position_t& code_pos) {
         output.messages.emplace_back("double-location", fmt::format("{} \"{}\"", location_parts, acmacs::string::join(acmacs::string::join_slash, parts)), code_pos);
     };
@@ -854,8 +872,12 @@ void acmacs::virus::name::check_extra(parsed_fields_t& output)
 {
     using namespace acmacs::regex;
 
+    AD_LOG(acmacs::log::name_parsing, "check_extra \"{}\"", output.extra);
+
     if (!output.extra.empty() && output.reassortant.empty())
         std::tie(output.reassortant, output.extra) = parse_reassortant(output.extra);
+
+    AD_LOG(acmacs::log::name_parsing, "check_extra after extracting reassortant \"{}\"", output.extra);
 
     if (!output.extra.empty() && output.passage.empty())
         std::tie(output.passage, output.extra) = parse_passage(output.extra, passage_only::no);
