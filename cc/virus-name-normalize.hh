@@ -44,11 +44,11 @@ template <> struct fmt::formatter<acmacs::virus::name::parsed_fields_t> : public
     {
         format_to(ctx.out(), "{{\"{}\" \"{}\" \"{}\" \"{}\" \"{}\"", fields.subtype, fields.host, fields.location, fields.isolation, fields.year);
         if (!fields.extra.empty())
-            format_to(ctx.out(), " <{}>", fields.extra);
+            format_to(ctx.out(), " A:\"{}\"", fields.extra);
         if (!fields.reassortant.empty())
-            format_to(ctx.out(), " \"{}\"", fields.reassortant);
+            format_to(ctx.out(), " R:\"{}\"", fields.reassortant);
         if (!fields.passage.empty())
-            format_to(ctx.out(), " \"{}\"", fields.passage);
+            format_to(ctx.out(), " P:\"{}\"", fields.passage);
         if (!fields.country.empty())
             format_to(ctx.out(), " {{\"{}\" {}}}", fields.country, fields.continent);
         return format_to(ctx.out(), "}}");
