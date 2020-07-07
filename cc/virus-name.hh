@@ -20,6 +20,8 @@ namespace acmacs::virus::inline v2
     using name_t = acmacs::uppercased<struct virus_name_tag>;
     using host_t = acmacs::uppercased<struct host_t_tag>;
     using lineage_t = acmacs::uppercased<struct lineage_tag>;
+    using mutation_t = acmacs::uppercased<struct mutation_tag>;
+    using mutations_t = std::vector<mutation_t>;
 
     // ----------------------------------------------------------------------
 

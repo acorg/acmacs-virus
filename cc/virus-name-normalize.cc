@@ -171,6 +171,35 @@ namespace acmacs::virus::inline v2::name
             output.extra += fmt::format(" {}", to_add);
     }
 
+    // ----------------------------------------------------------------------
+
+    inline std::tuple<acmacs::virus::mutations_t, std::string> parse_mutatations(std::string_view source)
+    {
+        using namespace acmacs::regex;
+
+#include "acmacs-base/global-constructors-push.hh"
+
+#define PM_AMINO_ACID "[ACDEFGHIKLMNPQRSTVWY]"
+
+        static const std::array normalize_data{
+            look_replace_t{std::regex("HA[-_](" PM_AMINO_ACID "?\\d{1,3}" PM_AMINO_ACID ")", std::regex::icase), {"HA-$1", "$` $'"}},
+            look_replace_t{std::regex("(" PM_AMINO_ACID "\\d{1,3}" PM_AMINO_ACID ")", std::regex::icase), {"$1", "$` $'"}},
+        };
+#include "acmacs-base/diagnostics-pop.hh"
+
+        mutations_t mutations;
+        std::string look_in{source};
+        while (true) {
+            if (auto mutation_rest = scan_replace(look_in, normalize_data); mutation_rest.has_value()) {
+                mutations.push_back(mutation_t{mutation_rest->front()});
+                look_in = ::string::collapse_spaces(acmacs::string::strip(mutation_rest->back()));
+            }
+            else
+                break;
+        }
+        return {std::move(mutations), std::move(look_in)};
+    }
+
 } // namespace acmacs::virus::inline v2::name
 
 template <> struct fmt::formatter<acmacs::virus::name::location_parts_t> : public fmt::formatter<acmacs::fmt_helper::default_formatter>
@@ -878,6 +907,11 @@ void acmacs::virus::name::check_extra(parsed_fields_t& output)
         std::tie(output.reassortant, output.extra) = parse_reassortant(output.extra);
 
     AD_LOG(acmacs::log::name_parsing, "check_extra after extracting reassortant \"{}\"", output.extra);
+
+    if (!output.extra.empty() && output.mutations.empty())
+        std::tie(output.mutations, output.extra) = parse_mutatations(output.extra);
+
+    AD_LOG(acmacs::log::name_parsing, "check_extra after extracting mutations \"{}\"", output.extra);
 
     if (!output.extra.empty() && output.passage.empty())
         std::tie(output.passage, output.extra) = parse_passage(output.extra, passage_only::no);

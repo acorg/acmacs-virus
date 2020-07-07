@@ -17,6 +17,7 @@ namespace acmacs::virus::inline v2::name
         std::string year;
         Reassortant reassortant;
         Passage passage;
+        mutations_t mutations;
         // aa_substitutions
         std::string extra;
         std::string country;
@@ -49,6 +50,18 @@ template <> struct fmt::formatter<acmacs::virus::name::parsed_fields_t> : public
             format_to(ctx.out(), " R:\"{}\"", fields.reassortant);
         if (!fields.passage.empty())
             format_to(ctx.out(), " P:\"{}\"", fields.passage);
+        if (!fields.mutations.empty()) {
+            format_to(ctx.out(), " M:[", fields.mutations);
+            bool first{true};
+            for (const auto& mut : fields.mutations) {
+                if (first)
+                    first = false;
+                else
+                    format_to(ctx.out(), ", ");
+                format_to(ctx.out(), "\"{}\"", mut);
+            }
+            format_to(ctx.out(), "]");
+        }
         if (!fields.country.empty())
             format_to(ctx.out(), " {{\"{}\" {}}}", fields.country, fields.continent);
         return format_to(ctx.out(), "}}");
