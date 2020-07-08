@@ -182,8 +182,8 @@ namespace acmacs::virus::inline v2::name
 #define PM_AMINO_ACID "[ACDEFGHIKLMNPQRSTVWY]"
 
         static const std::array normalize_data{
-            look_replace_t{std::regex("HA[-_](" PM_AMINO_ACID "?\\d{1,3}" PM_AMINO_ACID ")", std::regex::icase), {"HA-$1", "$` $'"}},
-            look_replace_t{std::regex("(" PM_AMINO_ACID "\\d{1,3}" PM_AMINO_ACID ")", std::regex::icase), {"$1", "$` $'"}},
+            look_replace_t{std::regex("HA[-_](" PM_AMINO_ACID "?\\d{1,3}" PM_AMINO_ACID ")(?![A-Z0-9\\?])", std::regex::icase), {"HA-$1", "$` $'"}},
+            look_replace_t{std::regex("\\b(" PM_AMINO_ACID "\\d{1,3}" PM_AMINO_ACID ")(?![A-Z0-9\\?\\)])", std::regex::icase), {"$1", "$` $'"}}, // <letter><number><letter> not followed by letter/number/?/) to avoid matching subpyte spec
         };
 #include "acmacs-base/diagnostics-pop.hh"
 
@@ -399,7 +399,7 @@ void acmacs::virus::name::one_location_part(std::vector<std::string_view>& parts
 void acmacs::virus::name::one_location_part_at_1(std::vector<std::string_view>& parts, parsed_fields_t& output)
 {
     try {
-        // AD_DEBUG("one_location_part_at_1: {}", parts);
+        AD_LOG(acmacs::log::name_parsing, "ONE location part at 1 and {} parts: {}", parts.size(), parts);
         switch (parts.size()) {
             case 3: // A/Alaska/1935
                 if (!check_subtype(parts[0], output) || !check_year(parts[2], output) || !check_isolation(unknown_isolation, output))
@@ -426,13 +426,13 @@ void acmacs::virus::name::one_location_part_at_1(std::vector<std::string_view>& 
                     // AD_DEBUG("nisbc extra {}", parts);
                     one_location_part_at_1(parts, output);
                 }
-                else if (!check_subtype(parts[0], output) || !check_year(parts[3], output))
+                else if (!check_subtype(parts[0], output) || !check_isolation(parts[2], output) || !check_year(parts[3], output))
                     throw std::exception{};
                 else
                     add_extra(output, parts[4]);
                 break;
             default:
-                if (!check_subtype(parts[0], output) || !check_year(parts[3], output))
+                if (!check_subtype(parts[0], output) || !check_isolation(parts[2], output) || !check_year(parts[3], output))
                     throw std::exception{};
                 if (parts.size() > 4) {
                     for (auto part{std::next(std::begin(parts), 4)}; part != std::end(parts); ++part)
