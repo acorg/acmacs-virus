@@ -431,6 +431,10 @@ void acmacs::virus::name::one_location_part_at_1(std::vector<std::string_view>& 
                 else
                     add_extra(output, parts[4]);
                 break;
+            case 0:
+            case 1:
+            case 2:
+                throw std::exception{};
             default:
                 if (!check_subtype(parts[0], output) || !check_isolation(parts[2], output) || !check_year(parts[3], output))
                     throw std::exception{};
