@@ -107,12 +107,16 @@ static const std::regex re_m_mdck_siat_n("^DCKX?-SIAT[\\s\\-]*(\\d+)", acmacs::r
 static const std::regex re_m_mdck_siat1_n("^DCK-SIAT1[\\s\\-](\\d+)", acmacs::regex::icase);
 static const std::regex re_m_mdck_mix_n("^DCK-MIX(\\d+)", acmacs::regex::icase);
 static const std::regex re_2_2nd_pass_mdck("^ND\\s+PASS\\s+MDCK", acmacs::regex::icase);
+// P1 MDCK (MELB)
+static const std::regex re_p_mdck("^(\\d+)\\s*MDCK(?!\\d)", acmacs::regex::icase);
 
 // SIAT S
 static const std::regex re_s_s_x("^[X\\?]", acmacs::regex::icase);
 static const std::regex re_s_siat_x("^IAT?[\\s\\-]*[X\\?]?", acmacs::regex::icase);
 static const std::regex re_s_siat_n("^(?:IAT)?[\\s\\-]*(\\d+)", acmacs::regex::icase);
 static const std::regex re_s_siat1_passage_n("^IAT1/\\s*PASSAGE?(\\d+)", acmacs::regex::icase);
+// P1 SIAT (MELB)
+static const std::regex re_p_siat("^(\\d+)\\s*SIAT(?!\\d)", acmacs::regex::icase);
 
 // QMC Seqirus (Novartis) qualified MDCK cells. Previously the cell line called "NC"
 static const std::regex re_q_qmc_x("^MC[\\s\\-]*[X\\?]?", acmacs::regex::icase);
@@ -334,7 +338,11 @@ static const std::map<char, callback_t> normalize_data{
     {'P',
      [](processing_data_t& data, source_iter_t first, source_iter_t last) -> source_iter_t {
          std::cmatch match;
-         if (std::regex_search(first, last, match, re_p_n))
+         if (std::regex_search(first, last, match, re_p_mdck))
+             return parts_push_i(data, "MDCK", match[1].str(), match[0].second);
+         else if (std::regex_search(first, last, match, re_p_siat))
+             return parts_push_i(data, "SIAT", match[1].str(), match[0].second);
+         else if (std::regex_search(first, last, match, re_p_n))
              return parts_push_i(data, "X", match[1].str(), match[0].second);
          else if (std::regex_search(first, last, match, re_p_ignore))
              return match[0].second; // ignore PASSAGE-

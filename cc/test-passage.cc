@@ -54,6 +54,10 @@ void test_builtin()
         TestData{"SIAT1", parse_passage_result_t{Passage{"SIAT1"}, ""}},
         TestData{"SIATX", parse_passage_result_t{Passage{"SIAT?"}, ""}},
         TestData{"SIAT?", parse_passage_result_t{Passage{"SIAT?"}, ""}},
+        TestData{"P1 SIAT", parse_passage_result_t{Passage{"SIAT1"}, ""}}, // MELB
+        TestData{"P1SIAT", parse_passage_result_t{Passage{"SIAT1"}, ""}}, // MELB
+        TestData{"P1 MDCK", parse_passage_result_t{Passage{"MDCK1"}, ""}}, // MELB
+        TestData{"P1MDCK", parse_passage_result_t{Passage{"MDCK1"}, ""}}, // MELB
         TestData{"S2", parse_passage_result_t{Passage{"SIAT2"}, ""}},
         TestData{"SX", parse_passage_result_t{Passage{"SIAT?"}, ""}},
         TestData{"QMC1", parse_passage_result_t{Passage{"QMC1"}, ""}},
