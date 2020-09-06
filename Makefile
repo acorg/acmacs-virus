@@ -4,6 +4,7 @@
 TARGETS = \
   $(ACMACS_VIRUS_LIB) \
   $(DIST)/virus-name \
+  $(DIST)/virus-passage \
   $(DIST)/test-virus-name \
   $(DIST)/test-passage
 
