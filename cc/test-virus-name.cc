@@ -144,6 +144,7 @@ void test_builtin()
         TestData{"A/Michigan/1/2010(HON1)",                         to_compare_t{typ{"A(N1)"},    H, "MICHIGAN", "1", "2010", R, P, E}},
         TestData{"A/some location/57(H2N2)",                        to_compare_t{typ{"A(H2N2)"},  H, "SOME LOCATION", "UNKNOWN", "1957", R, P, E}},
         TestData{"A/California/07/2009 NIBRG-121xp (09/268)",       to_compare_t{A,               H, "CALIFORNIA", "7", "2009", Reassortant{"NIB-121xp"}, P, E}},
+        TestData{"A/turkey/Bulgaria/Haskovo/336/2018",              to_compare_t{A,               hst{"TURKEY"}, "HASKOVO", "336", "2018", R, P, E}},
 
         TestData{"A/BONN/2/2020_PR8-HY-HA-R142G-HA-K92R/Y159F/K189N",       to_compare_t{A,               H, "BONN", "2", "2020", Reassortant{"PR8"}, P, E}},
 
