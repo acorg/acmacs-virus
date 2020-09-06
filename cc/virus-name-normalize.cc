@@ -370,7 +370,7 @@ bool acmacs::virus::name::location_as_prefix(std::vector<std::string_view>& part
 
 void acmacs::virus::name::one_location_part(std::vector<std::string_view>& parts, location_part_t&& location_part, parsed_fields_t& output)
 {
-    AD_LOG(acmacs::log::name_parsing, "ONE location part {}", parts);
+    AD_LOG(acmacs::log::name_parsing, "ONE location part {} \"{}\" in {}", location_part.part_no, parts[location_part.part_no], parts);
 
     if (location_part.valid())
         set_location(output, std::move(location_part));
@@ -539,7 +539,7 @@ void acmacs::virus::name::two_location_parts(std::vector<std::string_view>& part
     }
     else if (location_parts[0].location.name == location_parts[1].location.country) { // A/India/Delhi/DB106/2009 -> A/Delhi/DB106/2009
         parts.erase(std::next(parts.begin(), static_cast<ssize_t>(location_parts[0].part_no)));
-        one_location_part(parts, std::move(location_parts[0]), output);
+        one_location_part(parts, {location_parts[1].part_no - 1, std::move(location_parts[1].location)}, output);
     }
     else if (location_parts[0].location.country == location_parts[1].location.name) { // A/Cologne/Germany/01/2009 -> A/Cologne/01/2009
         parts.erase(std::next(parts.begin(), static_cast<ssize_t>(location_parts[1].part_no)));
