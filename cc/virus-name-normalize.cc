@@ -719,6 +719,9 @@ acmacs::virus::name::location_parts_t acmacs::virus::name::find_location_parts(s
             return {};          // location is most probably next part, but locdb cannot detect it
     }
 
+    if (location_parts.size() > 2 && is_host(location_parts[0].location.name)) // A/Turkey/Bulgaria/Haskovo/336/2018
+        location_parts.erase(location_parts.begin());
+
     return location_parts;
 
 } // acmacs::virus::name::find_location_parts
