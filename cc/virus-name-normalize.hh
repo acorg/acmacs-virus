@@ -51,7 +51,7 @@ template <> struct fmt::formatter<acmacs::virus::name::parsed_fields_t> : public
         if (!fields.passage.empty())
             format_to(ctx.out(), " P:\"{}\"", fields.passage);
         if (!fields.mutations.empty()) {
-            format_to(ctx.out(), " M:[", fields.mutations);
+            format_to(ctx.out(), " M:[");
             bool first{true};
             for (const auto& mut : fields.mutations) {
                 if (first)
