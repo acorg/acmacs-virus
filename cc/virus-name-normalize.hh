@@ -10,19 +10,19 @@ namespace acmacs::virus::inline v2::name
     struct parsed_fields_t
     {
         std::string raw;
-        type_subtype_t subtype;
-        host_t host;
-        std::string location;
-        std::string isolation;
-        std::string year;
-        Reassortant reassortant;
-        Passage passage;
-        mutations_t mutations;
+        type_subtype_t subtype{};
+        host_t host{};
+        std::string location{};
+        std::string isolation{};
+        std::string year{};
+        Reassortant reassortant{};
+        Passage passage{};
+        mutations_t mutations{};
         // aa_substitutions
-        std::string extra;
-        std::string country;
-        std::string continent;
-        acmacs::messages::messages_t messages;
+        std::string extra{};
+        std::string country{};
+        std::string continent{};
+        acmacs::messages::messages_t messages{};
 
         bool good() const noexcept { return !location.empty() && !isolation.empty() && year.size() == 4; }
         bool not_so_good() const noexcept { return good() && country.empty(); }

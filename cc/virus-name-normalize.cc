@@ -66,7 +66,7 @@ namespace acmacs::virus::inline v2::name
     struct location_part_t
     {
         size_t part_no{1000};
-        location_data_t location;
+        location_data_t location{};
 
         bool valid() const { return !location.name.empty(); }
     };
