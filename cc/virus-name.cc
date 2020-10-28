@@ -29,7 +29,6 @@ int main(int argc, const char* const* argv)
 {
     int exit_code = 0;
     try {
-        acmacs::log::register_enabler_acmacs_virus();
         Options opt(argc, argv);
         acmacs::log::enable(opt.verbose);
         if (opt.from_file) {

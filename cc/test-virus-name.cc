@@ -1,7 +1,7 @@
 #include <array>
 #include <tuple>
 
-#include "acmacs-base/debug.hh"
+#include "acmacs-base/log.hh"
 #include "acmacs-virus/virus-name-normalize.hh"
 
 static void test_from_command_line(int argc, const char* const* argv);

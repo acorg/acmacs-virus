@@ -1,6 +1,6 @@
 #include <numeric>
 
-#include "acmacs-base/debug.hh"
+#include "acmacs-base/log.hh"
 #include "acmacs-base/string-split.hh"
 #include "acmacs-base/string-join.hh"
 #include "acmacs-base/string-digits.hh"

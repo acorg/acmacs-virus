@@ -3,7 +3,7 @@
 #include <vector>
 #include <optional>
 
-#include "acmacs-base/debug.hh"
+#include "acmacs-base/log.hh"
 #include "acmacs-base/uppercase.hh"
 #include "acmacs-virus/virus.hh"
 #include "acmacs-virus/type-subtype.hh"

@@ -1,21 +1,13 @@
 #pragma once
 
-#include "acmacs-base/debug.hh"
+#include "acmacs-base/log.hh"
 
 // ----------------------------------------------------------------------
 
-namespace acmacs::log
+namespace acmacs::log::inline v1
 {
-    enum {
-        name_parsing = 5,
-    };
+    constexpr log_key_t name_parsing{"name"};
 
-    inline void register_enabler_acmacs_virus()
-    {
-        using namespace std::string_view_literals;
-        register_enabler_acmacs_base();
-        register_enabler("name"sv, name_parsing);
-    }
 }
 
 // ----------------------------------------------------------------------
