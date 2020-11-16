@@ -16,7 +16,7 @@ struct Options : public argv
     option<bool> print_messages{*this, 'm', desc{"print messages (when reading from file)"}};
     option<bool> print_hosts{*this, "hosts", desc{"print all hosts found (when reading from file)"}};
     option<bool> print_bad{*this, 'b', "bad", desc{"print names which were not parsed (when reading from file)"}};
-    option<str_array> verbose{*this, 'v', "verbose", desc{"comma separated list (or multiple switches) of enablers"}};
+    option<str_array> verbose{*this, 'v', "verbose", desc{"comma separated list (or multiple switches) of log enablers"}};
 
     argument<str_array> names{*this, arg_name{"name"}};
 };
@@ -46,7 +46,7 @@ int main(int argc, const char* const* argv)
             throw std::runtime_error{fmt::format("Usage: {} [-h] [-f <filename>] [<name> ...]", argv[0])};
     }
     catch (std::exception& err) {
-        fmt::print(stderr, "ERROR: {}\n", err);
+        AD_ERROR("{}", err);
         exit_code = 1;
     }
     return exit_code;
