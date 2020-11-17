@@ -8,6 +8,7 @@
 #include "acmacs-base/string-strip.hh"
 #include "acmacs-base/date.hh"
 #include "acmacs-virus/passage.hh"
+#include "acmacs-virus/log.hh"
 
 // ----------------------------------------------------------------------
 
@@ -126,7 +127,7 @@ static const std::regex re_n_nc_n("^C[\\s\\-]*(\\d+)", acmacs::regex::icase);
 // E EGG
 static const std::regex re_e_e_x("^[\\s\\-]*[X\\?]", acmacs::regex::icase); // may followed by letters, e.g. EXMDCKX (MELB)
 static const std::regex re_e_egg_x("^GG[\\s\\-]*(?:PASSAGED?|GROWN)?[X\\?]?(?!\\w)", acmacs::regex::icase);
-static const std::regex re_e_egg_n("^(?:GG(?:[\\s\\-]+PASSAGED?)?)?[\\s\\-]*(\\d+)", acmacs::regex::icase);
+static const std::regex re_e_egg_n("^(?:GG(?:[\\s\\-]+PASSAGED?)?)?[\\s\\-]*(\\d+)(?!\\d*-\\d+)", acmacs::regex::icase); // does not match EGG 10-4 where 10-4 is concentration
 static const std::regex re_s_spfe_n("^PFC?E[\\s\\-]*(\\d+)", acmacs::regex::icase);
 static const std::regex re_s_spfe_x("^PFC?E[X\\?]", acmacs::regex::icase);
 static const std::regex re_s_spfe("^PFC?E$", acmacs::regex::icase);
@@ -498,6 +499,9 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
 {
     processing_data_t data;
 
+    AD_LOG(acmacs::log::passage_parsing, "src: \"{}\"", source);
+    AD_LOG_INDENT;
+
     for (auto first = source.begin(); first != source.end();) {
         if (*first != ' ') {
             bool skip = false;
@@ -541,6 +545,7 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
                 data.extra.append(1, ' ');
             ++first;
         }
+        AD_LOG(acmacs::log::passage_parsing, "src:\"{}\" passage:{}  extra:\"{}\"", std::string_view(&*first, static_cast<size_t>(source.end() - first)), data.parts, data.extra);
     }
 
     auto extra = ::string::upper(acmacs::string::strip(data.extra));
@@ -554,8 +559,9 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
     if (const auto extra_fixed = scan_replace(extra, remove_redundant_extra); extra_fixed.has_value())
         extra = ::string::collapse_spaces(acmacs::string::strip(extra_fixed->back()));
 
-    // AD_DEBUG("parse_passage \"{}\" --> \"{}\" extra:\"{}\"", source, data.parts, extra);
-    return {Passage{string::join(acmacs::string::join_concat, data.parts)}, extra};
+    Passage result{string::join(acmacs::string::join_concat, data.parts)};
+    AD_LOG(acmacs::log::passage_parsing, "resulting passage:\"{}\"  extra:\"{}\"", result, extra);
+    return {std::move(result), extra};
 
 } // acmacs::virus::parse_passage
 

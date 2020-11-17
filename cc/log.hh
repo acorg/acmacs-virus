@@ -7,7 +7,7 @@
 namespace acmacs::log::inline v1
 {
     constexpr log_key_t name_parsing{"name"};
-
+    constexpr log_key_t passage_parsing{"passage"};
 }
 
 // ----------------------------------------------------------------------

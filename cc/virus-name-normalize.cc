@@ -909,61 +909,67 @@ void acmacs::virus::name::check_extra(parsed_fields_t& output)
     using namespace acmacs::regex;
 
     AD_LOG(acmacs::log::name_parsing, "check_extra \"{}\"", output.extra);
+    if (!output.extra.empty()) {
+        AD_LOG_INDENT;
 
-    if (!output.extra.empty() && output.reassortant.empty())
-        std::tie(output.reassortant, output.extra) = parse_reassortant(output.extra);
+        if (!output.extra.empty() && output.reassortant.empty())
+            std::tie(output.reassortant, output.extra) = parse_reassortant(output.extra);
 
-    AD_LOG(acmacs::log::name_parsing, "check_extra after extracting reassortant \"{}\"", output.extra);
+        AD_LOG(acmacs::log::name_parsing, "check_extra after extracting reassortant \"{}\"", output.extra);
 
-    if (!output.extra.empty() && output.mutations.empty())
-        std::tie(output.mutations, output.extra) = parse_mutatations(output.extra);
+        if (!output.extra.empty() && output.mutations.empty())
+            std::tie(output.mutations, output.extra) = parse_mutatations(output.extra);
 
-    AD_LOG(acmacs::log::name_parsing, "check_extra after extracting mutations \"{}\"", output.extra);
+        AD_LOG(acmacs::log::name_parsing, "check_extra after extracting mutations \"{}\"", output.extra);
 
-    if (!output.extra.empty() && output.passage.empty())
-        std::tie(output.passage, output.extra) = parse_passage(output.extra, passage_only::no);
+        if (!output.extra.empty() && output.passage.empty())
+            std::tie(output.passage, output.extra) = parse_passage(output.extra, passage_only::no);
 
-    AD_LOG(acmacs::log::name_parsing, "check_extra after extracting passage \"{}\"", output.extra);
+        AD_LOG(acmacs::log::name_parsing, "check_extra after extracting passage \"{}\"", output.extra);
 
 #include "acmacs-base/global-constructors-push.hh"
-    static const std::array normalize_data{
-        look_replace_t{std::regex("(?:"
-                                  "\\b(?:NEW)\\b"
-                                  "|"
-                                  "\\(MIXED(?:[\\.,][HN\\d]+)?\\)"
-                                  ")",
-                                  acmacs::regex::icase),
-                       {"$` $'"}},                                                                              // NEW, (MIXED) - remove
-        look_replace_t{std::regex("[\\(\\?]"
-                                  "("
-                                  "(?:H(?:\\d{1,2}|[XO\\?\\-]))?"
-                                  "(?:[HN](?:\\d{1,2}|[X\\?\\-])?V?)?"
-                                  "\\??"
-                                  ")"
-                                  "[\\)\\?]", acmacs::regex::icase), {"$` $'", "$1"}}, // (H3N2) (H3N?) (H1N2V) (H1N1?) (H3) (H11N) ?H5N6? - subtype (in ? in gisaid)
-        look_replace_t{std::regex("^(?:-LIKE|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)$", acmacs::regex::icase), {"$` $'"}}, // remove few common annotations (meaningless for us)
-        look_replace_t{std::regex("^[_\\-\\s,\\.]+", acmacs::regex::icase), {"$'"}}, // remove meaningless prefixes used as separators in the name
-        look_replace_t{std::regex("^[\\(\\)_\\-\\s,\\.]+$", acmacs::regex::icase), {"$` $'"}}, // remove artefacts
-        look_replace_t{std::regex("^\\((.+)\\)$", acmacs::regex::icase), {"$1"}}, // remove parentheses that enclose entire extra
-    };
+        static const std::array normalize_data{
+            look_replace_t{std::regex("(?:"
+                                      "\\b(?:NEW)\\b"
+                                      "|"
+                                      "\\(MIXED(?:[\\.,][HN\\d]+)?\\)"
+                                      ")",
+                                      acmacs::regex::icase),
+                           {"$` $'"}}, // NEW, (MIXED) - remove
+            look_replace_t{std::regex("[\\(\\?]"
+                                      "("
+                                      "(?:H(?:\\d{1,2}|[XO\\?\\-]))?"
+                                      "(?:[HN](?:\\d{1,2}|[X\\?\\-])?V?)?"
+                                      "\\??"
+                                      ")"
+                                      "[\\)\\?]",
+                                      acmacs::regex::icase),
+                           {"$` $'", "$1"}}, // (H3N2) (H3N?) (H1N2V) (H1N1?) (H3) (H11N) ?H5N6? - subtype (in ? in gisaid)
+            look_replace_t{std::regex("^(?:-LIKE|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)$", acmacs::regex::icase),
+                           {"$` $'"}},                                                             // remove few common annotations (meaningless for us)
+            look_replace_t{std::regex("^[_\\-\\s,\\.]+", acmacs::regex::icase), {"$'"}},           // remove meaningless prefixes used as separators in the name
+            look_replace_t{std::regex("^[\\(\\)_\\-\\s,\\.]+$", acmacs::regex::icase), {"$` $'"}}, // remove artefacts
+            look_replace_t{std::regex("^\\((.+)\\)$", acmacs::regex::icase), {"$1"}},              // remove parentheses that enclose entire extra
+        };
 
 #include "acmacs-base/diagnostics-pop.hh"
 
-    while (!output.extra.empty()) {
-        if (const auto res = scan_replace(output.extra, normalize_data); res.has_value()) {
-            // AD_DEBUG("check_extra {} {}", *res, output);
-            output.extra = acmacs::string::strip(res->front());
-            if (res->size() > 1 && !(*res)[1].empty()) { // subtype
-                // AD_DEBUG("check_extra {} {}", *res, output.subtype);
-                if (output.subtype == type_subtype_t{"A"})
-                    check_subtype(fmt::format("A({})", (*res)[1]), output);
+        while (!output.extra.empty()) {
+            if (const auto res = scan_replace(output.extra, normalize_data); res.has_value()) {
+                // AD_DEBUG("check_extra {} {}", *res, output);
+                output.extra = acmacs::string::strip(res->front());
+                if (res->size() > 1 && !(*res)[1].empty()) { // subtype
+                    // AD_DEBUG("check_extra {} {}", *res, output.subtype);
+                    if (output.subtype == type_subtype_t{"A"})
+                        check_subtype(fmt::format("A({})", (*res)[1]), output);
+                }
             }
+            else
+                break;
         }
-        else
-            break;
-    }
 
-    AD_LOG(acmacs::log::name_parsing, "check_extra done \"{}\"", output.extra);
+        AD_LOG(acmacs::log::name_parsing, "check_extra done \"{}\"", output.extra);
+    }
 
 } // acmacs::virus::name::check_extra
 
