@@ -35,6 +35,8 @@ namespace acmacs::virus::inline v2::name
     parsed_fields_t parse(std::string_view source, warn_on_empty woe = warn_on_empty::yes);
     // std::vector<std::string> possible_locations_in_name(std::string_view source);
 
+    inline bool is_good(std::string_view source) { return parse(source, warn_on_empty::no).good(); }
+
 } // namespace acmacs::virus::inline v2
 
 // ----------------------------------------------------------------------
