@@ -923,6 +923,8 @@ void acmacs::virus::name::check_extra(parsed_fields_t& output)
     if (!output.extra.empty() && output.passage.empty())
         std::tie(output.passage, output.extra) = parse_passage(output.extra, passage_only::no);
 
+    AD_LOG(acmacs::log::name_parsing, "check_extra after extracting passage \"{}\"", output.extra);
+
 #include "acmacs-base/global-constructors-push.hh"
     static const std::array normalize_data{
         look_replace_t{std::regex("(?:"
@@ -942,6 +944,7 @@ void acmacs::virus::name::check_extra(parsed_fields_t& output)
         look_replace_t{std::regex("^(?:-LIKE|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)$", acmacs::regex::icase), {"$` $'"}}, // remove few common annotations (meaningless for us)
         look_replace_t{std::regex("^[_\\-\\s,\\.]+", acmacs::regex::icase), {"$'"}}, // remove meaningless prefixes used as separators in the name
         look_replace_t{std::regex("^[\\(\\)_\\-\\s,\\.]+$", acmacs::regex::icase), {"$` $'"}}, // remove artefacts
+        look_replace_t{std::regex("^\\((.+)\\)$", acmacs::regex::icase), {"$1"}}, // remove parentheses that enclose entire extra
     };
 
 #include "acmacs-base/diagnostics-pop.hh"
@@ -959,6 +962,8 @@ void acmacs::virus::name::check_extra(parsed_fields_t& output)
         else
             break;
     }
+
+    AD_LOG(acmacs::log::name_parsing, "check_extra done \"{}\"", output.extra);
 
 } // acmacs::virus::name::check_extra
 
