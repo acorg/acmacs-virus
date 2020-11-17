@@ -14,7 +14,7 @@
 
 constexpr const char* re_egg = R"#(((E|D|SPF(CE)?|SPE)(\?|[0-9][0-9]?)|EGG))#";
 constexpr const char* re_cell = R"#((MDCK|SIAT|QMC|HCK|MK|MEK|CKC|CEK|CACO|LLC|LLK|PRMK|MEK|C|SPFCK|R|RII)(\?|[0-9][0-9]?))#";
-constexpr const char* re_crick_am_al = R"#((\(AM\dAL\d\)(C\d+(-\d+)?)?)?)#"; // Crick E8(Am3Al5)c11-10 in H3 PRN
+constexpr const char* re_crick_am_al = R"#((\(AM\d/?AL\d\)(C\d+(-\d+)?)?)?)#"; // Crick E8(Am3Al5)c11-10 in H3 PRN
 constexpr const char* re_crick_isolate = R"#(( (ISOLATE|CLONE) [0-9\-]+)*)#"; // CRICK isolate and/or clone, CRICK H1pdm has CLONE 38-32
 constexpr const char* re_niid_plus_number = R"#(( *\+[1-9])?)#"; // NIID has +1 at the end of passage
 constexpr const char* re_passage_date = R"#(( \([12][0129][0-9][0-9]-[01][0-9]-[0-3][0-9]\))?)#"; // passage date
@@ -128,7 +128,7 @@ static const std::regex re_n_nc_n("^C[\\s\\-]*(\\d+)", acmacs::regex::icase);
 // E EGG
 static const std::regex re_e_e_x("^[\\s\\-]*[X\\?]", acmacs::regex::icase); // may followed by letters, e.g. EXMDCKX (MELB)
 static const std::regex re_e_egg_x("^GG[\\s\\-]*(?:PASSAGED?|GROWN)?[X\\?]?(?!\\w)", acmacs::regex::icase);
-static const std::regex re_e_am_al("^(\\d+\\(AM\\dAL\\d\\)(?:C\\d+(?:-\\d+)?)?)", acmacs::regex::icase); // Crick PRN 2018 tables: E8(Am3Al5)c11-10
+static const std::regex re_e_am_al(R"#(^(\d+)\s*\((AM\d)/?(AL\d)\)(C\d+(?:-\d+)?)?)#", acmacs::regex::icase); // Crick PRN 2018 tables: "E8(Am3Al5)c11-10" "E6 (Am3/Al3)"
 static const std::regex re_e_egg_n("^(?:GG(?:[\\s\\-]+PASSAGED?)?)?[\\s\\-]*(\\d+)(?!\\d*-\\d+)", acmacs::regex::icase); // does not match EGG 10-4 where 10-4 is concentration
 static const std::regex re_s_spfe_n("^PFC?E[\\s\\-]*(\\d+)", acmacs::regex::icase);
 static const std::regex re_s_spfe_x("^PFC?E[X\\?]", acmacs::regex::icase);
@@ -259,7 +259,7 @@ static const std::map<char, callback_t> normalize_data{
          if (first == last)     // just E
              return parts_push_i(data, "E", "?", first);
          if (std::regex_search(first, last, match, re_e_am_al))
-             parts_push_i(data, "E", match[1].str());
+             parts_push_i(data, "E", match.format("$1($2$3)$4"));
          else if (std::regex_search(first, last, match, re_e_egg_n))
              parts_push_i(data, "E", match[1].str());
          else if (std::regex_search(first, last, match, re_e_egg_x) || std::regex_search(first, last, match, re_e_e_x))
