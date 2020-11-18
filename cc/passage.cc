@@ -563,7 +563,7 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
     if (const auto extra_fixed = scan_replace(extra, remove_redundant_extra); extra_fixed.has_value())
         extra = ::string::collapse_spaces(acmacs::string::strip(extra_fixed->back()));
 
-    Passage result{string::join(acmacs::string::join_concat, data.parts)};
+    Passage result{::string::upper(string::join(acmacs::string::join_concat, data.parts))};
     AD_LOG(acmacs::log::passage_parsing, "resulting passage:\"{}\"  extra:\"{}\"", result, extra);
     return {std::move(result), extra};
 
