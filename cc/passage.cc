@@ -114,6 +114,7 @@ static const std::regex re_p_mdck("^(\\d+)\\s*MDCK(?!\\d)", acmacs::regex::icase
 
 // SIAT S
 static const std::regex re_s_s_x("^[X\\?]", acmacs::regex::icase);
+static const std::regex re_s_s_n("^(\\d+)", acmacs::regex::icase); // CDC H1
 static const std::regex re_s_siat_x("^IAT?[\\s\\-]*[X\\?]?", acmacs::regex::icase);
 static const std::regex re_s_siat_n("^(?:IAT)?[\\s\\-]*(\\d+)", acmacs::regex::icase);
 static const std::regex re_s_siat1_passage_n("^IAT1/\\s*PASSAGE?(\\d+)", acmacs::regex::icase);
@@ -391,7 +392,7 @@ static const std::map<char, callback_t> normalize_data{
     {'S',
      [](processing_data_t& data, source_iter_t first, source_iter_t last) -> source_iter_t {
          std::cmatch match;
-         if (std::regex_search(first, last, match, re_s_siat1_passage_n) || std::regex_search(first, last, match, re_s_siat_n))
+         if (std::regex_search(first, last, match, re_s_siat1_passage_n) || std::regex_search(first, last, match, re_s_siat_n) || std::regex_search(first, last, match, re_s_s_n))
              parts_push_i(data, "SIAT", match[1].str());
          else if (std::regex_search(first, last, match, re_s_spfe_n))
              parts_push_i(data, "SPFE", match[1].str());
