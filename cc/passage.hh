@@ -40,6 +40,12 @@ namespace acmacs::virus
         return p1.is_egg() == p2.is_egg();
     }
 
+    inline bool is_good_passage(std::string_view source)
+    {
+        const auto [passage, extra] = parse_passage(source, passage_only::no);
+        return !passage->empty() && extra.empty();
+    }
+
 } // namespace acmacs::virus
 
 // ----------------------------------------------------------------------
