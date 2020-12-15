@@ -68,21 +68,23 @@ struct parsing_failed : public std::exception { using std::exception::exception;
 
 using callback_t = source_iter_t (*)(processing_data_t& data, source_iter_t first, source_iter_t last); // returns new first value, throws parsing_failed
 
-static inline source_iter_t parts_push_i(processing_data_t& data, const char* p1, const std::string& p2={}, source_iter_t result={})
-{
-    data.parts.push_back(p1);
-    data.last_passage_type = p1;
-    if (!p2.empty())
-        data.parts.push_back(p2);
-    return result;
-}
-
 static inline source_iter_t push_lab_separator(processing_data_t& data, char orig_symbol, source_iter_t result={})
 {
     if (data.parts.empty())
         data.extra.append(1, orig_symbol);
     else
         data.parts.push_back("/");
+    return result;
+}
+
+static inline source_iter_t parts_push_i(processing_data_t& data, const char* p1, const std::string& p2={}, source_iter_t result={})
+{
+    if (data.last_passage_type == p1 && !data.parts.empty() && !data.parts.back().empty() && data.parts.back().back() != '/')
+        data.parts.push_back("/");
+    data.parts.push_back(p1);
+    data.last_passage_type = p1;
+    if (!p2.empty())
+        data.parts.push_back(p2);
     return result;
 }
 
@@ -487,7 +489,7 @@ static const std::map<char, callback_t> normalize_data{
          if (std::cmatch match; !data.parts.empty() && std::regex_search(first, last, match, re_paren_from))
              return match[0].second; // ignore
          else if (!data.parts.empty() && std::regex_search(first, last, match, re_paren_date)) {
-             data.parts.push_back(fmt::format(" ({})", date::from_string(match[1].str())));
+             data.parts.push_back(fmt::format(" ({})", date::from_string(match[1].str(), date::allow_incomplete::no, date::throw_on_error::yes, date::month_first::yes))); // passage date is CDC property -> month-first
              data.last_passage_type.clear();
              return match[0].second;
          }
@@ -550,7 +552,7 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
                 data.extra.append(1, ' ');
             ++first;
         }
-        AD_LOG(acmacs::log::passage_parsing, "src:\"{}\" passage:{}  extra:\"{}\"", std::string_view(&*first, static_cast<size_t>(source.end() - first)), data.parts, data.extra);
+        AD_LOG(acmacs::log::passage_parsing, "src:\"{}\" passage:{} last_passage_type:{} extra:\"{}\"", std::string_view(&*first, static_cast<size_t>(source.end() - first)), data.parts, data.last_passage_type, data.extra);
     }
 
     auto extra = ::string::upper(acmacs::string::strip(data.extra));
