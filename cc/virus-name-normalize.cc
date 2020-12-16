@@ -376,8 +376,9 @@ void acmacs::virus::name::one_location_part(std::vector<std::string_view>& parts
         set_location(output, std::move(location_part));
     switch (location_part.part_no) {
         case 0:
-            if (parts.size() == 3 && check_year(parts[2], output) && check_isolation(parts[1], output))
-                ;
+            if (parts.size() == 3 && check_year(parts[2], output) && check_isolation(parts[1], output)) {
+                // empty
+            }
             // else
             //     AD_DEBUG("location in part 0 {}", parts);
             break;
