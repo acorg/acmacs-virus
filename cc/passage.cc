@@ -141,6 +141,9 @@ static const std::regex re_s_spfe("^PFC?E$", acmacs::regex::icase);
 static const std::regex re_h_hck_n("^CK?[\\s\\-]*(\\d+)", acmacs::regex::icase);
 static const std::regex re_h_hck_x("^CK?[\\s\\-]*[X\\?]", acmacs::regex::icase);
 
+// LOT - not a passage
+static const std::regex re_l_lot(R"(^(OT)\s*([A-Z]+\d+))", acmacs::regex::icase); // CDC H1pdm -> not a passage
+
 // MK M - Monkey Kidney Cell line
 static const std::regex re_m_mk_x("^K?[\\s\\-]*[X\\?]", acmacs::regex::icase);
 static const std::regex re_m_mk_n("^K?[\\s\\-]*(\\d+)", acmacs::regex::icase);
@@ -291,10 +294,14 @@ static const std::map<char, callback_t> normalize_data{
      }},
     {'L',
      [](processing_data_t& data, source_iter_t first, source_iter_t last) -> source_iter_t {
-         if (std::cmatch match; std::regex_search(first, last, match, re_l_lung))
-             return parts_push_i(data, "OR", {}, match[0].second);
+         std::cmatch match;
+         if (std::regex_search(first, last, match, re_l_lung))
+             parts_push_i(data, "OR", {});
+         else if (std::regex_search(first, last, match, re_l_lot))
+             add_to_extra(data, 'L', match.format("$1 $2")); // "LOT A1" not a passage
          else
              throw parsing_failed{};
+         return match[0].second;
      }},
     {'M',
      [](processing_data_t& data, source_iter_t first, source_iter_t last) -> source_iter_t {
