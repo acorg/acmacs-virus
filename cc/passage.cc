@@ -206,7 +206,7 @@ static const std::regex re_p_ignore("^ASSAGE[:\\-\\s]?(?:DETAILS:)?", acmacs::re
 static const std::regex re_dash_ori("^\\s*ORI\\s*$", acmacs::regex::icase);
 
 static const std::regex re_digits("^(\\d+)", acmacs::regex::icase);
-static const std::regex re_paren_date(R"(^(\d{4}-\d\d-\d\d|\d{1,2}/\d{1,2}/\d{2,4})\)(?:\s*[A-Z]{2})?)", acmacs::regex::icase); // CDC passage sometimes has location abbreviation after date
+static const std::regex re_paren_date(R"(^(\d{4}-\d\d-\d\d|\d{1,2}/\d{1,2}/\d{2,4})\)(?:\s*[A-Z]{2}\b)?)", acmacs::regex::icase); // CDC passage sometimes has location abbreviation after date
 
 #include "acmacs-base/diagnostics-pop.hh"
 
