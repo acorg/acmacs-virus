@@ -7,6 +7,9 @@
 
 namespace acmacs::virus::inline v2::name
 {
+    enum class warn_on_empty { no, yes };
+    enum class extract_passage { no, yes };
+
     struct parsed_fields_t
     {
         std::string raw;
@@ -24,6 +27,8 @@ namespace acmacs::virus::inline v2::name
         std::string continent{};
         acmacs::messages::messages_t messages{};
 
+        extract_passage extract_passage_{extract_passage::yes};
+
         bool good() const noexcept { return !location.empty() && !isolation.empty() && year.size() == 4; }
         bool good_but_no_country() const noexcept { return good() && country.empty(); }
         bool not_good() const noexcept { return !good() || country.empty(); }
@@ -31,9 +36,7 @@ namespace acmacs::virus::inline v2::name
         std::string full_name() const noexcept;
     };
 
-    enum class warn_on_empty { no, yes };
-
-    parsed_fields_t parse(std::string_view source, warn_on_empty woe = warn_on_empty::yes);
+    parsed_fields_t parse(std::string_view source, warn_on_empty woe = warn_on_empty::yes, extract_passage ep = extract_passage::yes);
     // std::vector<std::string> possible_locations_in_name(std::string_view source);
 
     inline bool is_good(std::string_view source) { return parse(source, warn_on_empty::no).good(); }

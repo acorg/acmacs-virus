@@ -216,10 +216,10 @@ template <> struct fmt::formatter<acmacs::virus::name::location_parts_t> : publi
 
 // ----------------------------------------------------------------------
 
-acmacs::virus::name::parsed_fields_t acmacs::virus::name::parse(std::string_view source, warn_on_empty woe)
+acmacs::virus::name::parsed_fields_t acmacs::virus::name::parse(std::string_view source, warn_on_empty woe, extract_passage ep)
 {
     source = acmacs::string::strip(source);
-    parsed_fields_t output{.raw = std::string{source}};
+    parsed_fields_t output{.raw = std::string{source}, .extract_passage_ = ep};
     if (source.empty()) {
         if (woe == warn_on_empty::yes)
             AD_WARNING("empty source");
@@ -927,20 +927,20 @@ void acmacs::virus::name::check_extra(parsed_fields_t& output)
     if (!output.extra.empty()) {
         AD_LOG_INDENT;
 
-        if (!output.extra.empty() && output.reassortant.empty())
+        if (!output.extra.empty() && output.reassortant.empty()) {
             std::tie(output.reassortant, output.extra) = parse_reassortant(output.extra);
+            AD_LOG(acmacs::log::name_parsing, "check_extra after extracting reassortant \"{}\"", output.extra);
+        }
 
-        AD_LOG(acmacs::log::name_parsing, "check_extra after extracting reassortant \"{}\"", output.extra);
-
-        if (!output.extra.empty() && output.mutations.empty())
+        if (!output.extra.empty() && output.mutations.empty()) {
             std::tie(output.mutations, output.extra) = parse_mutatations(output.extra);
+            AD_LOG(acmacs::log::name_parsing, "check_extra after extracting mutations \"{}\"", output.extra);
+        }
 
-        AD_LOG(acmacs::log::name_parsing, "check_extra after extracting mutations \"{}\"", output.extra);
-
-        if (!output.extra.empty() && output.passage.empty())
+        if (!output.extra.empty() && output.passage.empty() && output.extract_passage_ == extract_passage::yes) {
             std::tie(output.passage, output.extra) = parse_passage(output.extra, passage_only::no);
-
-        AD_LOG(acmacs::log::name_parsing, "check_extra after extracting passage \"{}\"", output.extra);
+            AD_LOG(acmacs::log::name_parsing, "check_extra after extracting passage \"{}\"", output.extra);
+        }
 
 #include "acmacs-base/global-constructors-push.hh"
         static const std::array normalize_data{
