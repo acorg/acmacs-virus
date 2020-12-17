@@ -892,10 +892,21 @@ std::string acmacs::virus::name::remove_reassortant_second_name(std::string_view
 
 bool acmacs::virus::name::check_nibsc_extra(std::vector<std::string_view>& parts)
 {
-    // remove (19/148) in "A/Beijing/2019-15554/2018  CNIC-1902  (19/148)"
-    if (parts.size() > 2 && paren_match(parts[parts.size() - 2]) > 0 && paren_match(parts[parts.size() - 1]) < 0) {
-        parts.erase(std::prev(std::end(parts)));
-        parts.back().remove_suffix(parts.back().size() - parts.back().find_last_of('('));
+#include "acmacs-base/global-constructors-push.hh"
+    static const std::regex re_1("\\s*\\(\\d*$", acmacs::regex::icase);
+    static const std::regex re_2("^\\d*\\)\\s*", acmacs::regex::icase);
+#include "acmacs-base/diagnostics-pop.hh"
+
+    // ! Should not modify: "B/Phuket/3073/2013 (Ferret POOL / CSID 2014768619) BOOSTED"
+    std::cmatch m1, m2;
+    if (acmacs::regex::search(parts[parts.size() - 2], m1, re_1) && acmacs::regex::search(parts.back(), m2, re_2)) {
+        // remove (19/148) in "A/Beijing/2019-15554/2018  CNIC-1902  (19/148)"
+        AD_LOG(acmacs::log::name_parsing, "check_nibsc_extra {}", parts);
+        parts[parts.size() - 2].remove_suffix(static_cast<size_t>(m1.length(0)));
+        parts.back().remove_prefix(static_cast<size_t>(m2.length(0)));
+        if (parts.back().empty())
+            parts.pop_back();
+        AD_LOG(acmacs::log::name_parsing, "check_nibsc_extra done {}", parts);
         return true;
     }
     else
