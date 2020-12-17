@@ -163,12 +163,13 @@ namespace acmacs::virus::inline v2::name
 
     // ----------------------------------------------------------------------
 
-    inline void add_extra(acmacs::virus::name::parsed_fields_t& output, std::string_view to_add)
+    inline void add_extra(acmacs::virus::name::parsed_fields_t& output, std::string_view to_add, char separator = ' ')
     {
         if (output.extra.empty())
             output.extra.assign(to_add);
         else
-            output.extra += fmt::format(" {}", to_add);
+            output.extra += fmt::format("{}{}", separator, to_add);
+        AD_LOG(acmacs::log::name_parsing, "add_extra \"{}\" <- \"{}\"", output.extra, to_add);
     }
 
     // ----------------------------------------------------------------------
@@ -430,7 +431,7 @@ void acmacs::virus::name::one_location_part_at_1(std::vector<std::string_view>& 
                 else if (!check_subtype(parts[0], output) || !check_isolation(parts[2], output) || !check_year(parts[3], output))
                     throw std::exception{};
                 else
-                    add_extra(output, parts[4]);
+                    add_extra(output, parts[4], '/');
                 break;
             case 0:
             case 1:
@@ -441,7 +442,7 @@ void acmacs::virus::name::one_location_part_at_1(std::vector<std::string_view>& 
                     throw std::exception{};
                 if (parts.size() > 4) {
                     for (auto part{std::next(std::begin(parts), 4)}; part != std::end(parts); ++part)
-                        add_extra(output, *part);
+                        add_extra(output, *part, '/');
                 }
                 break;
         }
@@ -761,9 +762,10 @@ bool acmacs::virus::name::check_year(std::string_view source, parsed_fields_t& o
 #include "acmacs-base/diagnostics-pop.hh"
 
     const auto digits = acmacs::string::digit_prefix(source);
+    AD_LOG(acmacs::log::name_parsing, "check_year digits: \"{}\" <- \"{}\"", digits, source);
 
     try {
-        if (paren_match(source) != 0) // e.g. last part in "A/Beijing/2019-15554/2018  CNIC-1902  (19/148)"
+        if (paren_match(source) < 0) // e.g. last part in "A/Beijing/2019-15554/2018  CNIC-1902  (19/148)"
             throw std::exception{};
         switch (digits.size()) {
             case 1:
@@ -789,6 +791,7 @@ bool acmacs::virus::name::check_year(std::string_view source, parsed_fields_t& o
         return true;
     }
     catch (std::exception&) {
+        // AD_LOG(acmacs::log::name_parsing, "check_year ERROR in \"{}\" digits:\"{}\" digits-size:{}", source, digits, digits.size());
         if (report == make_message::yes)
             output.messages.emplace_back(acmacs::messages::key::invalid_year, fmt::format("\"{}\" <- \"{}\"", source, output.raw), MESSAGE_CODE_POSITION);
         return false;
@@ -958,10 +961,10 @@ void acmacs::virus::name::check_extra(parsed_fields_t& output)
                                       acmacs::regex::icase),
                            {"$` $'", "$1"}}, // (H3N2) (H3N?) (H1N2V) (H1N1?) (H3) (H11N) ?H5N6? - subtype (in ? in gisaid)
             look_replace_t{std::regex("^(?:-LIKE|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)$", acmacs::regex::icase),
-                           {"$` $'"}},                                                             // remove few common annotations (meaningless for us)
-            look_replace_t{std::regex("^[_\\-\\s,\\.]+", acmacs::regex::icase), {"$'"}},           // remove meaningless prefixes used as separators in the name
-            look_replace_t{std::regex("^[\\(\\)_\\-\\s,\\.]+$", acmacs::regex::icase), {"$` $'"}}, // remove artefacts
-            look_replace_t{std::regex("^\\((.+)\\)$", acmacs::regex::icase), {"$1"}},              // remove parentheses that enclose entire extra
+                           {"$` $'"}},                                                              // remove few common annotations (meaningless for us)
+            look_replace_t{std::regex("^[_\\-\\s,\\.]+", acmacs::regex::icase), {"$'"}},            // remove meaningless prefixes used as separators in the name
+            look_replace_t{std::regex("^[\\(\\)_/\\-\\s,\\.]+$", acmacs::regex::icase), {"$` $'"}}, // remove artefacts
+            look_replace_t{std::regex("^\\((.+)\\)$", acmacs::regex::icase), {"$1"}},               // remove parentheses that enclose entire extra
         };
 
 #include "acmacs-base/diagnostics-pop.hh"
