@@ -4,6 +4,7 @@
 #include "acmacs-base/string.hh"
 #include "acmacs-base/string-strip.hh"
 #include "acmacs-virus/reassortant.hh"
+#include "acmacs-virus/log.hh"
 
 // ----------------------------------------------------------------------
 
@@ -23,8 +24,9 @@ std::tuple<acmacs::virus::Reassortant, std::string> acmacs::virus::parse_reassor
 #define PR_PREFIX_1 "(?:" PR_BOL "|" PR_BOL PR_AB_REASSORTANT "|" PR_BOL PR_AB "|" PR_HG_REASSORTANT "|" PR_LOOKAHEAD_NOT_PAREN_SPACE_DASH ")"
 // #define PREFIX_2 "(?:" BOL "|" BOL AB_REASSORTANT "|" LOOKAHEAD_NOT_PAREN_SPACE ")"
 
-#define PR_NYMC "(?:NYMC[\\s\\-]B?X|B?X|NYMC)[\\-\\s]?(\\d+[A-Z\\d\\-]*)\\b"
-//#define PR_NYMCX "X-(\\d+[A-Z\\d\\-]*)"
+#define PR_NYMC "(?:NYMC[\\s\\-]B?X|BX|NYMC)[\\-\\s]?(\\d+[A-Z\\d\\-]*)\\b"
+#define PR_NYMCX_1 "^X-(\\d+[A-Z\\d\\-]*)"
+#define PR_NYMCX_2 "([\\s_])X-(\\d+[A-Z\\d\\-]*)"
 #define PR_CBER "(?:CBER|BVR)[_\\-\\s]?(\\d+[A-Z]*)\\b" // Center for Biologics Evaluation and Research https://www.fda.gov/about-fda/fda-organization/center-biologics-evaluation-and-research-cber
 #define PR_IDCDC "(?:PR8[\\- ]*IDCDC[\\- _]*|I[DB]CDC-)?RG[\\- ]*([\\dA-Z\\.]+)"
 #define PR_NIB "NIB(?:SC|RG)?[\\-\\s]?([\\dA-Z]+)\\b"
@@ -33,7 +35,8 @@ std::tuple<acmacs::virus::Reassortant, std::string> acmacs::virus::parse_reassor
 
     static const std::array normalize_data{
         look_replace_t{std::regex(PR_PREFIX_1 PR_NYMC, std::regex::icase), {"NYMC-$1", "$` $'"}},
-        // look_replace_t{std::regex(PR_AB PR_NYMCX, std::regex::icase), {"NYMC-$1", "$'"}},
+        look_replace_t{std::regex(PR_AB PR_NYMCX_1, std::regex::icase), {"NYMC-$1", "$` $'"}},
+        look_replace_t{std::regex(PR_AB PR_NYMCX_2, std::regex::icase), {"NYMC-$2", "$`$1 $'"}},
         look_replace_t{std::regex(PR_PREFIX_1 PR_NIB, std::regex::icase), {"NIB-$1", "$` $'"}},
         look_replace_t{std::regex(PR_PREFIX_1 PR_IDCDC, std::regex::icase), {"RG-$1", "$` $'"}},
         look_replace_t{std::regex(PR_PREFIX_1 PR_CBER, std::regex::icase), {"CBER-$1", "$` $'"}},
@@ -48,7 +51,7 @@ std::tuple<acmacs::virus::Reassortant, std::string> acmacs::virus::parse_reassor
 
     // AD_DEBUG("parse_reassortant \"{}\"", source);
     if (const auto reassortant_rest = scan_replace(source, normalize_data); reassortant_rest.has_value()) {
-        // AD_DEBUG("reassortant separated \"{}\"  \"{}\"", reassortant_rest->front(), reassortant_rest->back());
+        AD_LOG(acmacs::log::name_parsing, "reassortant: \"{}\" \"{}\"", reassortant_rest->front(), reassortant_rest->back());
         return {Reassortant{reassortant_rest->front()}, ::string::collapse_spaces(acmacs::string::strip(reassortant_rest->back()))};
     }
     else {
