@@ -200,6 +200,9 @@ static const std::regex re_p_n("^-?\\s*(\\d+)", acmacs::regex::icase);
 // 0
 static const std::regex re_0_original("^(?:R|O?[RT]IGINAL)[;\\s\\-_\\(\\)A-Z0]*", acmacs::regex::icase);
 
+// (AM1AL3) - NIID and Crick Egg passage suffix
+static const std::regex re_parent_amal(R"((AM\d+)[/,]?(AL\d+)\))", acmacs::regex::icase);
+
 // ignore/remove
 static const std::regex re_c_ignore("^LONE-[A-Z\\d]+", acmacs::regex::icase); // clone-C12 in gisaid from Netehralnds
 static const std::regex re_p_ignore("^ASSAGE[:\\-\\s]?(?:DETAILS:)?", acmacs::regex::icase);
@@ -493,15 +496,20 @@ static const std::map<char, callback_t> normalize_data{
      }},
     {'(',
      [](processing_data_t& data, source_iter_t first, source_iter_t last) -> source_iter_t {
-         if (std::cmatch match; !data.parts.empty() && std::regex_search(first, last, match, re_paren_from))
-             return match[0].second; // ignore
+         std::cmatch match;
+         if ( data.last_passage_type == "E" && std::regex_search(first, last, match, re_parent_amal)) {
+             data.parts.push_back(match.format("($1$2)"));
+         }
+         else if (!data.parts.empty() && std::regex_search(first, last, match, re_paren_from)) {
+             // empty, ignore
+         }
          else if (!data.parts.empty() && std::regex_search(first, last, match, re_paren_date)) {
              data.parts.push_back(fmt::format(" ({})", date::from_string(match[1].str(), date::allow_incomplete::no, date::throw_on_error::yes, date::month_first::yes))); // passage date is CDC property -> month-first
              data.last_passage_type.clear();
-             return match[0].second;
          }
          else
              throw parsing_failed{};
+         return match[0].second;
      }},
 };
 
