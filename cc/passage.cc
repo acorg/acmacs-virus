@@ -139,7 +139,7 @@ static const std::regex re_s_spfe("^PFC?E$", acmacs::regex::icase);
 
 // HCK - humanized MDCK cell line for the efficient isolation and propagation of human influenza viruses https://www.researchgate.net/publication/332744615_A_humanized_MDCK_cell_line_for_the_efficient_isolation_and_propagation_of_human_influenza_viruses
 static const std::regex re_h_hck_n("^CK?[\\s\\-]*(\\d+)", acmacs::regex::icase);
-static const std::regex re_h_hck_x("^CK?[\\s\\-]*[X\\?]", acmacs::regex::icase);
+static const std::regex re_h_hck_x("^CK?[\\s\\-]*[X\\?]?", acmacs::regex::icase);
 
 // LOT - not a passage
 static const std::regex re_l_lot(R"(^(OT)\s*([A-Z]+\d+))", acmacs::regex::icase); // CDC H1pdm -> not a passage
