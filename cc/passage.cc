@@ -237,7 +237,7 @@ static const std::map<char, callback_t> normalize_data{
     {'C',
      [](processing_data_t& data, source_iter_t first, source_iter_t last) -> source_iter_t {
          std::cmatch match;
-         if (first == last)     // just C
+         if (first == last) // just C
              return parts_push_i(data, "MDCK", "?", first);
          if (std::regex_search(first, last, match, re_c_ignore))
              add_to_extra(data, 'C', match.str(0)); // CLONE-xxx is extra
@@ -265,7 +265,7 @@ static const std::map<char, callback_t> normalize_data{
     {'E',
      [](processing_data_t& data, source_iter_t first, source_iter_t last) -> source_iter_t {
          std::cmatch match;
-         if (first == last)     // just E
+         if (first == last) // just E
              return parts_push_i(data, "E", "?", first);
          if (std::regex_search(first, last, match, re_e_am_al))
              parts_push_i(data, "E", match.format("$1($2$3)$4"));
@@ -336,7 +336,8 @@ static const std::map<char, callback_t> normalize_data{
     {'N',
      [](processing_data_t& data, source_iter_t first, source_iter_t last) -> source_iter_t {
          std::cmatch match;
-         if (std::regex_search(first, last, match, re_n_nose) || std::regex_search(first, last, match, re_n_not_passaged) || std::regex_search(first, last, match, re_n_na) || std::regex_search(first, last, match, re_n_no_pass))
+         if (std::regex_search(first, last, match, re_n_nose) || std::regex_search(first, last, match, re_n_not_passaged) || std::regex_search(first, last, match, re_n_na) ||
+             std::regex_search(first, last, match, re_n_no_pass))
              parts_push_i(data, "OR");
          else if (std::regex_search(first, last, match, re_n_nc_n))
              parts_push_i(data, "QMC", match[1].str());
@@ -468,7 +469,16 @@ static const std::map<char, callback_t> normalize_data{
          return match[0].second;
      }},
     {' ', [](processing_data_t&, source_iter_t first, source_iter_t /*last*/) -> source_iter_t { return first; }},
-    {'/', [](processing_data_t& data, source_iter_t first, source_iter_t /*last*/) -> source_iter_t { return push_lab_separator(data, '/', first); }},
+    {'/',
+     [](processing_data_t& data, source_iter_t first, source_iter_t last) -> source_iter_t {
+         if (std::cmatch match; !data.last_passage_type.empty() && data.last_passage_type != "/" && std::regex_search(first, last, match, re_digits)) {
+             // NIID: "MDCKx/1 +2"
+             push_lab_separator(data, '/');
+             return parts_push_i(data, data.last_passage_type.data(), match[1].str(), match[0].second);
+         }
+         else
+             return push_lab_separator(data, '/', first);
+     }},
     {'\\',
      [](processing_data_t& data, source_iter_t first, source_iter_t last) -> source_iter_t {
          parts_push_i(data, "/");
@@ -497,14 +507,15 @@ static const std::map<char, callback_t> normalize_data{
     {'(',
      [](processing_data_t& data, source_iter_t first, source_iter_t last) -> source_iter_t {
          std::cmatch match;
-         if ( data.last_passage_type == "E" && std::regex_search(first, last, match, re_parent_amal)) {
+         if (data.last_passage_type == "E" && std::regex_search(first, last, match, re_parent_amal)) {
              data.parts.push_back(match.format("($1$2)"));
          }
          else if (!data.parts.empty() && std::regex_search(first, last, match, re_paren_from)) {
              // empty, ignore
          }
          else if (!data.parts.empty() && std::regex_search(first, last, match, re_paren_date)) {
-             data.parts.push_back(fmt::format(" ({})", date::from_string(match[1].str(), date::allow_incomplete::no, date::throw_on_error::yes, date::month_first::yes))); // passage date is CDC property -> month-first
+             data.parts.push_back(
+                 fmt::format(" ({})", date::from_string(match[1].str(), date::allow_incomplete::no, date::throw_on_error::yes, date::month_first::yes))); // passage date is CDC property -> month-first
              data.last_passage_type.clear();
          }
          else
