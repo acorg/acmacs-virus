@@ -208,7 +208,7 @@ static const std::regex re_c_ignore("^LONE-[A-Z\\d]+", acmacs::regex::icase); //
 static const std::regex re_p_ignore("^ASSAGE[:\\-\\s]?(?:DETAILS:)?", acmacs::regex::icase);
 static const std::regex re_dash_ori("^\\s*ORI\\s*$", acmacs::regex::icase);
 
-static const std::regex re_digits("^(\\d+)", acmacs::regex::icase);
+static const std::regex re_digits("^\\s*(\\d+)", acmacs::regex::icase);
 static const std::regex re_paren_date(R"(^(\d{4}-\d\d-\d\d|\d{1,2}/\d{1,2}/\d{2,4})\)(?:\s*[A-Z]{2}\b)?)", acmacs::regex::icase); // CDC passage sometimes has location abbreviation after date
 
 #include "acmacs-base/diagnostics-pop.hh"
@@ -486,7 +486,15 @@ static const std::map<char, callback_t> normalize_data{
              ++first;
          return first;
      }},
-    {',', [](processing_data_t& data, source_iter_t first, source_iter_t /*last*/) -> source_iter_t { return push_lab_separator(data, ',', first); }},
+    {',', [](processing_data_t& data, source_iter_t first, source_iter_t last) -> source_iter_t {
+         if (std::cmatch match; !data.last_passage_type.empty() && data.last_passage_type != "/" && std::regex_search(first, last, match, re_digits)) {
+             // VIDRL: "MDCK, 2"
+             push_lab_separator(data, '/');
+             return parts_push_i(data, data.last_passage_type.data(), match[1].str(), match[0].second);
+         }
+         else
+             return push_lab_separator(data, ',', first);
+    }},
     {'.', [](processing_data_t& data, source_iter_t first, source_iter_t /*last*/) -> source_iter_t { return push_lab_separator(data, '.', first); }},
     {'-',
      [](processing_data_t& data, source_iter_t first, source_iter_t last) -> source_iter_t {
