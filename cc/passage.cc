@@ -193,6 +193,9 @@ static const std::regex re_d_d_n("^(\\d+)(?![\\.])", acmacs::regex::icase); // n
 // Specific Pathogen Free Chicken Kidney Cell line
 static const std::regex re_s_spfck_n("^PFCK(\\d+)", acmacs::regex::icase);
 
+// VERO (African Green Monkey Kidney Cell https://en.wikipedia.org/wiki/Vero_cell) CDC H1pdm 20210107
+static const std::regex re_vero_n("^(?:E(?:R[O0])?)?(\\d+)", acmacs::regex::icase);
+
 // X
 static const std::regex re_x_n("^(\\d+)", acmacs::regex::icase);
 static const std::regex re_p_n("^-?\\s*(\\d+)", acmacs::regex::icase);
@@ -428,6 +431,15 @@ static const std::map<char, callback_t> normalize_data{
          std::cmatch match;
          if (std::regex_search(first, last, match, re_t_throat))
              parts_push_i(data, "OR");
+         else
+             throw parsing_failed{};
+         return match[0].second;
+     }},
+    {'V',
+     [](processing_data_t& data, source_iter_t first, source_iter_t last) -> source_iter_t {
+         std::cmatch match;
+         if (std::regex_search(first, last, match, re_vero_n))
+             parts_push_i(data, "VERO", match[1].str());
          else
              throw parsing_failed{};
          return match[0].second;
