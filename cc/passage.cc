@@ -58,7 +58,7 @@ std::string_view acmacs::virus::Passage::without_date() const
 std::string_view acmacs::virus::Passage::last_number() const // E2/E3 -> 3, X? -> ?
 {
 #include "acmacs-base/global-constructors-push.hh"
-    static std::regex re_num{std::string{"(\\d+|?)$"} + re_crick_am_al + re_crick_isolate +  re_niid_plus_number + re_passage_date + "$"};
+    static std::regex re_num{std::string{"(\\d+|\\?)"} + re_crick_am_al + re_crick_isolate +  re_niid_plus_number + re_passage_date + "$"};
 #include "acmacs-base/diagnostics-pop.hh"
 
     std::cmatch match;
@@ -73,7 +73,7 @@ std::string_view acmacs::virus::Passage::last_number() const // E2/E3 -> 3, X? -
 std::string_view acmacs::virus::Passage::last_type() const // MDCK3/SITA1 -> SIAT
 {
 #include "acmacs-base/global-constructors-push.hh"
-    static std::regex re_last_type{std::string{"([A-Z]+)(?:\\d+|?)"} + re_crick_am_al + re_crick_isolate +  re_niid_plus_number + re_passage_date + "$"};
+    static std::regex re_last_type{std::string{"([A-Z]+)(?:\\d+|\\?)"} + re_crick_am_al + re_crick_isolate +  re_niid_plus_number + re_passage_date + "$"};
 #include "acmacs-base/diagnostics-pop.hh"
 
     std::cmatch match;
