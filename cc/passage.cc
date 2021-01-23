@@ -43,15 +43,45 @@ bool acmacs::virus::Passage::is_cell() const
 
 // ----------------------------------------------------------------------
 
-std::string acmacs::virus::Passage::without_date() const
+std::string_view acmacs::virus::Passage::without_date() const
 {
     if (size() > 13 && get()[size() - 1] == ')' && get()[size() - 12] == '(' && get()[size() - 13] == ' ' && get()[size() - 4] == '-' &&
         get()[size() - 7] == '-')
-        return std::string(get(), 0, size() - 13);
+        return std::string_view(get().data(), size() - 13);
     else
         return get();
 
 } // acmacs::virus::Passage::without_date
+
+// ----------------------------------------------------------------------
+
+std::string_view acmacs::virus::Passage::last_number() const // E2/E3 -> 3, X? -> ?
+{
+#include "acmacs-base/global-constructors-push.hh"
+    static std::regex re_num{std::string{"(\\d+|?)$"} + re_crick_am_al + re_crick_isolate +  re_niid_plus_number + re_passage_date + "$"};
+#include "acmacs-base/diagnostics-pop.hh"
+
+    std::cmatch match;
+    if (acmacs::regex::search(get(), match, re_num))
+        return std::string_view{get().data() + match.position(1), static_cast<size_t>(match.length(1))};
+    else
+        return {};
+}
+
+// ----------------------------------------------------------------------
+
+std::string_view acmacs::virus::Passage::last_type() const // MDCK3/SITA1 -> SIAT
+{
+#include "acmacs-base/global-constructors-push.hh"
+    static std::regex re_last_type{std::string{"([A-Z]+)(?:\\d+|?)"} + re_crick_am_al + re_crick_isolate +  re_niid_plus_number + re_passage_date + "$"};
+#include "acmacs-base/diagnostics-pop.hh"
+
+    std::cmatch match;
+    if (acmacs::regex::search(get(), match, re_last_type))
+        return std::string_view{get().data() + match.position(1), static_cast<size_t>(match.length(1))};
+    else
+        return {};
+}
 
 // ----------------------------------------------------------------------
 
@@ -93,6 +123,23 @@ static inline void add_to_extra(processing_data_t& data, char orig_symbol, std::
     data.extra.append(1, ' ');
     data.extra.append(1, orig_symbol);
     data.extra.append(p2);
+}
+
+// ----------------------------------------------------------------------
+
+int acmacs::virus::passage_compare(const Passage& p1, const Passage& p2)
+{
+    if (p1 == p2)
+        return 0;
+    if (p1.last_type() == p2.last_type()) {
+        if (p1.last_number() == p2.last_number())
+            return 1;
+        else
+            return 2;
+    }
+    if (p1.is_egg() == p2.is_egg())
+        return 3;
+    return 10;
 }
 
 // ----------------------------------------------------------------------

@@ -14,7 +14,9 @@ namespace acmacs::virus
 
         bool is_egg() const;
         bool is_cell() const;
-        std::string without_date() const;
+        std::string_view without_date() const;
+        std::string_view last_number() const; // E2/E3 -> 3, X? -> ?
+        std::string_view last_type() const; // MDCK3/SITA1 -> SIAT
 
         std::string_view passage_type() const
         {
@@ -45,6 +47,8 @@ namespace acmacs::virus
         const auto [passage, extra] = parse_passage(source, passage_only::no);
         return !passage->empty() && extra.empty();
     }
+
+    int passage_compare(const Passage& p1, const Passage& p2);
 
 } // namespace acmacs::virus
 
