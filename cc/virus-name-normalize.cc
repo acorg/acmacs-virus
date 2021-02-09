@@ -121,6 +121,8 @@ namespace acmacs::virus::inline v2::name
                 case 'R': // RG
                 case 'X': // X-327
                     return true;
+                case 'C':
+                    return ::string::upper(source.substr(1, 4)) == "NIC-"sv; // CNIC-2006
                 case 'B':
                     switch (std::toupper(source[1])) {
                         case 'V': // BVR
