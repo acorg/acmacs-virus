@@ -603,49 +603,53 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
     AD_LOG_INDENT;
 
     for (auto first = source.begin(); first != source.end();) {
-        if (*first != ' ') {
-            bool skip = false;
-            if (const auto entry = normalize_data.find(static_cast<char>(std::toupper(*first))); entry != normalize_data.end()) {
-                try {
-                    first = entry->second(data, first + 1, source.end());
+        switch (*first) {
+            case ' ':
+            case '\n':
+                if (!data.extra.empty())
+                    data.extra.append(1, ' ');
+                ++first;
+                break;
+            default: {
+                bool skip = false;
+                if (const auto entry = normalize_data.find(static_cast<char>(std::toupper(*first))); entry != normalize_data.end()) {
+                    try {
+                        first = entry->second(data, first + 1, source.end());
+                    }
+                    catch (parsing_failed&) {
+                        skip = true;
+                    }
                 }
-                catch (parsing_failed&) {
+                else {
                     skip = true;
                 }
-            }
-            else {
-                skip = true;
-            }
-            if (skip) {
-                if (po == passage_only::yes)
-                    return parse_passage_t{{}, std::string{source}}; // parsing failed;
+                if (skip) {
+                    if (po == passage_only::yes)
+                        return parse_passage_t{{}, std::string{source}}; // parsing failed;
 
-                if (data.parts.empty()) { // passage not yet started
-                    if (std::isalnum(*first)) {
+                    if (data.parts.empty()) { // passage not yet started
+                        if (std::isalnum(*first)) {
                             // put word into extra
-                        const auto end = std::find_if(first + 1, source.end(), [](char chr) { return !std::isalnum(chr); });
-                        data.extra.append(first, end);
-                        first = end;
+                            const auto end = std::find_if(first + 1, source.end(), [](char chr) { return !std::isalnum(chr); });
+                            data.extra.append(first, end);
+                            first = end;
+                        }
+                        else {
+                            data.extra.append(1, *first);
+                            ++first;
+                        }
                     }
-                    else {
-                        data.extra.append(1, *first);
-                        ++first;
+                    else { // some parts of passage found
+                        if (!data.extra.empty())
+                            data.extra.append(1, ' ');
+                        data.extra.append(first, source.end());
+                        first = source.end(); // break for loop
                     }
                 }
-                else { // some parts of passage found
-                    if (!data.extra.empty())
-                        data.extra.append(1, ' ');
-                    data.extra.append(first, source.end());
-                    break;
-                }
-            }
+            } break;
         }
-        else {
-            if (!data.extra.empty())
-                data.extra.append(1, ' ');
-            ++first;
-        }
-        AD_LOG(acmacs::log::passage_parsing, "src:\"{}\" passage:{} last_passage_type:{} extra:\"{}\"", std::string_view(&*first, static_cast<size_t>(source.end() - first)), data.parts, data.last_passage_type, data.extra);
+        AD_LOG(acmacs::log::passage_parsing, "src:\"{}\" passage:{} last_passage_type:{} extra:\"{}\"", std::string_view(&*first, static_cast<size_t>(source.end() - first)), data.parts,
+               data.last_passage_type, data.extra);
     }
 
     auto extra = ::string::upper(acmacs::string::strip(data.extra));
