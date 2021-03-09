@@ -25,10 +25,11 @@ namespace acmacs::virus::inline v2
 
     // ----------------------------------------------------------------------
 
-    std::string_view host(const name_t& name) noexcept;
-    std::string_view location(const name_t& name) noexcept;
-    std::string_view isolation(const name_t& name) noexcept;
+    std::string_view host(const name_t& name, std::string_view if_not_found = {}) noexcept;
+    std::string_view location(const name_t& name, std::string_view if_not_found = {}) noexcept;
+    std::string_view isolation(const name_t& name, std::string_view if_not_found = {}) noexcept;
     std::optional<size_t> year(const name_t& name) noexcept;
+    std::string_view without_subtype(const name_t& name) noexcept;
 
     // ----------------------------------------------------------------------
 
