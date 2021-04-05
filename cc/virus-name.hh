@@ -35,6 +35,19 @@ namespace acmacs::virus::inline v2
 
     void set_type_subtype(name_t& name, const type_subtype_t& type_subtype) noexcept;
 
+    // ----------------------------------------------------------------------
+
+#pragma GCC diagnostic push
+#ifdef __clang__
+#pragma GCC diagnostic ignored "-Wexit-time-destructors"
+#pragma GCC diagnostic ignored "-Wglobal-constructors"
+#endif
+
+    inline const lineage_t VICTORIA{"VICTORIA"};
+    inline const lineage_t YAMAGATA{"YAMAGATA"};
+
+#pragma GCC diagnostic pop
+
 } // namespace acmacs::virus::inline v2
 
 // ----------------------------------------------------------------------
