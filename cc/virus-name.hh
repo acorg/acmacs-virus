@@ -43,8 +43,13 @@ namespace acmacs::virus::inline v2
 #pragma GCC diagnostic ignored "-Wglobal-constructors"
 #endif
 
-    inline const lineage_t VICTORIA{"VICTORIA"};
-    inline const lineage_t YAMAGATA{"YAMAGATA"};
+    namespace lineage
+    {
+        inline const lineage_t VICTORIA{"VICTORIA"};
+        inline const lineage_t YAMAGATA{"YAMAGATA"};
+        inline const lineage_t UNKNOWN{"UNKNOWN"};
+
+    } // namespace lineage
 
 #pragma GCC diagnostic pop
 
