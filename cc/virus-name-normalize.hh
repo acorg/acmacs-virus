@@ -32,6 +32,7 @@ namespace acmacs::virus::inline v2::name
         bool good() const noexcept { return !location.empty() && !isolation.empty() && year.size() == 4; }
         bool good_but_no_country() const noexcept { return good() && country.empty(); }
         bool not_good() const noexcept { return !good() || country.empty(); }
+        bool reassortant_only() const { return location.empty() && isolation.empty() && year.empty() && !reassortant.empty(); }
         name_t name() const noexcept;
         std::string full_name() const noexcept;
     };
