@@ -137,6 +137,10 @@ namespace acmacs::virus::inline v2::name
                 case 'A':
                     if (::string::upper(source.substr(1, 6)) == "/REASS"sv || ::string::upper(source.substr(1, 3)) == "/X-"sv || ::string::upper(source.substr(1, 5)) == "/NYMC"sv) // A/REASSORTANT/
                         return true;
+                    if (source[1] == '(') {
+                        if (const auto pos = source.find(')'); pos < (source.size() - 6) && ::string::upper(source.substr(pos + 1, 6)) == "/REASS"sv)
+                            return true;
+                    }
                     break;
             }
         }
@@ -805,6 +809,7 @@ bool acmacs::virus::name::check_year(std::string_view source, parsed_fields_t& o
 
 std::string acmacs::virus::name::check_reassortant_in_front(std::string_view source, parsed_fields_t& output)
 {
+    AD_DEBUG("check_reassortant_in_front \"{}\"", source);
     std::string result, rest;
     std::tie(output.reassortant, result) = parse_reassortant(source);
 
