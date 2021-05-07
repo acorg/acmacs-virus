@@ -42,6 +42,7 @@ std::tuple<acmacs::virus::Reassortant, std::string> acmacs::virus::parse_reassor
 #define PR_MELB       "(PR8)[-_\\s]*(?:HY)?"             // MELB (Malet) reassortant spec, e.g. "A/DRY VALLEYS/1/2020_PR8-HY"
 #define PR_CNIC        "(CNIC)" PR_NUMBER // CNIC-2006(B/Sichuan-Jingyang/12048/2019) in CDC B/Vic
 #define PR_IGY        "(IGYRP\\d+(?:\\.C\\d+)?)" // A/reassortant/IgYRP13.c1(California/07/2004 x Puerto Rico/8/1934)
+#define PR_CDC        PR_AB_REASSORTANT "(CDC\\d+)"
 
     static const std::array normalize_data{
         look_replace_t{std::regex(PR_NYMCX_2_1, std::regex::icase), {"NYMC-$1 NYMC-$2", "$` ($'"}}, // must be before PR_NYMC
@@ -59,6 +60,7 @@ std::tuple<acmacs::virus::Reassortant, std::string> acmacs::virus::parse_reassor
         look_replace_t{std::regex(PR_PREFIX_1 PR_MELB, std::regex::icase), {"$1", "$` $'"}},
         look_replace_t{std::regex(PR_PREFIX_1 PR_CNIC, std::regex::icase), {"$1-$2", "$` $'"}},
         look_replace_t{std::regex(PR_PREFIX_1 PR_IGY, std::regex::icase), {"$1", "$` $'"}},
+        look_replace_t{std::regex(PR_PREFIX_1 PR_CDC, std::regex::icase), {"$1", "$` $'"}},
 
         // CDC-LV is annotation, it is extra in the c2 excel parser // look_replace_t{std::regex("\\b(CDC)-?(LV\\d+[AB]?)\\b", std::regex::icase), "$1-$2"}, "$` $'",
         look_replace_t{std::regex(PR_LOOKAHEAD_NOT_PAREN_SPACE "X[\\s\\-]+PR8", std::regex::icase), {"REASSORTANT-PR8", "$` $'"}},
