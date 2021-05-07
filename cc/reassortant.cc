@@ -36,6 +36,7 @@ std::tuple<acmacs::virus::Reassortant, std::string> acmacs::virus::parse_reassor
 #define PR_IVR        "(IVR|CVR)" PR_NUMBER // IVR-153 (A(H1N1)/California/7/2009) is by CSL, CVR - by CSL/Seqirus
 #define PR_MELB       "(PR8)[-_\\s]*(?:HY)?"             // MELB (Malet) reassortant spec, e.g. "A/DRY VALLEYS/1/2020_PR8-HY"
 #define PR_CNIC        "(CNIC)" PR_NUMBER // CNIC-2006(B/Sichuan-Jingyang/12048/2019) in CDC B/Vic
+#define PR_IGY        "(IGYRP\\d+(?:\\.C\\d+)?)" // A/reassortant/IgYRP13.c1(California/07/2004 x Puerto Rico/8/1934)
 
     static const std::array normalize_data{
         look_replace_t{std::regex(PR_NYMC, std::regex::icase), {"NYMC-$1", "$` $'"}},
@@ -48,6 +49,7 @@ std::tuple<acmacs::virus::Reassortant, std::string> acmacs::virus::parse_reassor
         look_replace_t{std::regex(PR_PREFIX_1 PR_IVR, std::regex::icase), {"$1-$2", "$` $'"}},
         look_replace_t{std::regex(PR_PREFIX_1 PR_MELB, std::regex::icase), {"$1", "$` $'"}},
         look_replace_t{std::regex(PR_PREFIX_1 PR_CNIC, std::regex::icase), {"$1-$2", "$` $'"}},
+        look_replace_t{std::regex(PR_PREFIX_1 PR_IGY, std::regex::icase), {"$1", "$` $'"}},
 
         // CDC-LV is annotation, it is extra in the c2 excel parser // look_replace_t{std::regex("\\b(CDC)-?(LV\\d+[AB]?)\\b", std::regex::icase), "$1-$2"}, "$` $'",
         look_replace_t{std::regex(PR_LOOKAHEAD_NOT_PAREN_SPACE "X[\\s\\-]+PR8", std::regex::icase), {"REASSORTANT-PR8", "$` $'"}},
@@ -58,7 +60,7 @@ std::tuple<acmacs::virus::Reassortant, std::string> acmacs::virus::parse_reassor
     AD_LOG(acmacs::log::name_parsing, "reassortant source: \"{}\"", source);
     if (const auto reassortant_rest = scan_replace(source, normalize_data); reassortant_rest.has_value()) {
         AD_LOG(acmacs::log::name_parsing, "reassortant: \"{}\" extra:\"{}\" <-- \"{}\"", reassortant_rest->front(), reassortant_rest->back(), source);
-        return {Reassortant{reassortant_rest->front()}, ::string::collapse_spaces(acmacs::string::strip(reassortant_rest->back()))};
+        return {Reassortant{::string::upper(reassortant_rest->front())}, ::string::collapse_spaces(acmacs::string::strip(reassortant_rest->back()))};
     }
     else {
         // AD_DEBUG("no reassortant in \"{}\"", source);
