@@ -129,13 +129,13 @@ namespace acmacs::virus::inline v2::name
                         case 'X': // BX
                             return true;
                         case '/':
-                            if (::string::upper(source.substr(2, 5)) == "REASS"sv || ::string::upper(source.substr(2, 2)) == "X-"sv || ::string::upper(source.substr(2, 4)) == "NYMC"sv) // B/REASSORTANT/
+                            if (::string::upper(source.substr(2, 5)) == "REASS"sv || ::string::upper(source.substr(2, 5)) == "RESAS"sv || ::string::upper(source.substr(2, 2)) == "X-"sv || ::string::upper(source.substr(2, 4)) == "NYMC"sv) // B/REASSORTANT/
                                 return true;
                             break;
                     }
                     break;
                 case 'A':
-                    if (::string::upper(source.substr(1, 6)) == "/REASS"sv || ::string::upper(source.substr(1, 3)) == "/X-"sv || ::string::upper(source.substr(1, 5)) == "/NYMC"sv) // A/REASSORTANT/
+                    if (::string::upper(source.substr(1, 6)) == "/REASS"sv || ::string::upper(source.substr(1, 6)) == "/RESAS"sv || ::string::upper(source.substr(1, 3)) == "/X-"sv || ::string::upper(source.substr(1, 5)) == "/NYMC"sv) // A/REASSORTANT/
                         return true;
                     if (source[1] == '(') {
                         if (const auto pos = source.find(')'); pos < (source.size() - 6) && ::string::upper(source.substr(pos + 1, 6)) == "/REASS"sv)

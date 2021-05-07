@@ -17,8 +17,8 @@ std::tuple<acmacs::virus::Reassortant, std::string> acmacs::virus::parse_reassor
 #define PR_BOL "^"
 #define PR_LOOKAHEAD_NOT_PAREN_SPACE_DASH "(?=[^\\(\\s\\-])"
 #define PR_LOOKAHEAD_NOT_PAREN_SPACE "(?=[^\\(\\s])"
-#define PR_AB_REASSORTANT "(?:A(?:\\(H\\d+(?:N\\d+)?\\))?|B)/REASSORTANT/"
-#define PR_HG_REASSORTANT "HIGHGROWTH\\s+REASSORTANT\\s+"
+#define PR_AB_REASSORTANT "(?:A(?:\\(H\\d+(?:N\\d+)?\\))?|B)/RES?ASSORTANT/"
+#define PR_HG_REASSORTANT "HIGHGROWTH\\s+RES?ASSORTANT\\s+"
 #define PR_AB "[AB]/"
 
 #define PR_PREFIX_1 "(?:" PR_BOL "|" PR_BOL PR_AB_REASSORTANT "|" PR_BOL PR_AB "|" PR_HG_REASSORTANT "|" PR_LOOKAHEAD_NOT_PAREN_SPACE_DASH ")"
@@ -29,7 +29,7 @@ std::tuple<acmacs::virus::Reassortant, std::string> acmacs::virus::parse_reassor
 #define PR_NYMC       PR_PREFIX_1 "(?:NYMC[\\s\\-]B?X|BX|NYMC)" PR_NUMBER
 #define PR_NYMCX_0    "X" PR_NUMBER
 #define PR_NYMCX_1    "^" PR_NYMCX_0
-#define PR_NYMCX_2_1  PR_AB_REASSORTANT PR_NYMC_X PR_NUMBER "\\s*\\(\\s*" PR_NYMC_X PR_NUMBER "\\s+X\\s+" // double reassortant A/reassortant/NYMC X-179(NYMC X-157 x A/California/07/2009)(H1N1)
+#define PR_NYMCX_2_1  PR_AB_REASSORTANT PR_NYMC_X PR_NUMBER "\\s*\\((?:A/)?\\s*" PR_NYMC_X PR_NUMBER "\\s+X\\s+" // double reassortant A/reassortant/NYMC X-179(NYMC X-157 x A/California/07/2009)(H1N1)
 #define PR_NYMCX_2_2  PR_AB_REASSORTANT PR_NYMC_X PR_NUMBER "(.+)" "\\s+X\\s+" PR_NYMC_X PR_NUMBER // double reassortant A(H1N1)/REASSORTANT/X-83(CHILE/1/1983 X X-31)
 #define PR_NYMCX_3    PR_AB_REASSORTANT "X" PR_NUMBER
 #define PR_NYMCX_4    "([\\s_])" PR_NYMCX_0
@@ -38,6 +38,7 @@ std::tuple<acmacs::virus::Reassortant, std::string> acmacs::virus::parse_reassor
 #define PR_IDCDC      "(?:PR8[\\- ]*IDCDC[\\- _]*|I[DB]CDC-)?RG[\\- ]*([\\dA-Z\\.]+)"
 #define PR_NIB        "NIB(?:SC|RG)?" PR_NUMBER
 #define PR_IVR        "(IVR|CVR)" PR_NUMBER // IVR-153 (A(H1N1)/California/7/2009) is by CSL, CVR - by CSL/Seqirus
+#define PR_IVR_2      PR_AB_REASSORTANT "(IVR|CVR)" PR_NUMBER "(.+)\\s+X\\s+" "(IVR|CVR)" PR_NUMBER // A/resassortant/IVR-153(A/California/07/2009 x IVR-6)(H1N1)
 #define PR_MELB       "(PR8)[-_\\s]*(?:HY)?"             // MELB (Malet) reassortant spec, e.g. "A/DRY VALLEYS/1/2020_PR8-HY"
 #define PR_CNIC        "(CNIC)" PR_NUMBER // CNIC-2006(B/Sichuan-Jingyang/12048/2019) in CDC B/Vic
 #define PR_IGY        "(IGYRP\\d+(?:\\.C\\d+)?)" // A/reassortant/IgYRP13.c1(California/07/2004 x Puerto Rico/8/1934)
@@ -53,6 +54,7 @@ std::tuple<acmacs::virus::Reassortant, std::string> acmacs::virus::parse_reassor
         look_replace_t{std::regex(PR_PREFIX_1 PR_NIB, std::regex::icase), {"NIB-$1", "$` $'"}},
         look_replace_t{std::regex(PR_PREFIX_1 PR_IDCDC, std::regex::icase), {"RG-$1", "$` $'"}},
         look_replace_t{std::regex(PR_PREFIX_1 PR_CBER, std::regex::icase), {"CBER-$1", "$` $'"}},
+        look_replace_t{std::regex(PR_PREFIX_1 PR_IVR_2, std::regex::icase), {"$1-$2 $4-$5", "$` $3 $'"}}, // before PR_IVR
         look_replace_t{std::regex(PR_PREFIX_1 PR_IVR, std::regex::icase), {"$1-$2", "$` $'"}},
         look_replace_t{std::regex(PR_PREFIX_1 PR_MELB, std::regex::icase), {"$1", "$` $'"}},
         look_replace_t{std::regex(PR_PREFIX_1 PR_CNIC, std::regex::icase), {"$1-$2", "$` $'"}},
