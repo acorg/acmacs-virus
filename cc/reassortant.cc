@@ -17,7 +17,7 @@ std::tuple<acmacs::virus::Reassortant, std::string> acmacs::virus::parse_reassor
 #define PR_BOL "^"
 #define PR_LOOKAHEAD_NOT_PAREN_SPACE_DASH "(?=[^\\(\\s\\-])"
 #define PR_LOOKAHEAD_NOT_PAREN_SPACE "(?=[^\\(\\s])"
-#define PR_AB_REASSORTANT "[AB]/REASSORTANT/"
+#define PR_AB_REASSORTANT "(?:A(?:\\(H\\d+(?:N\\d+)?\\))?|B)/REASSORTANT/"
 #define PR_HG_REASSORTANT "HIGHGROWTH\\s+REASSORTANT\\s+"
 #define PR_AB "[AB]/"
 
@@ -28,8 +28,10 @@ std::tuple<acmacs::virus::Reassortant, std::string> acmacs::virus::parse_reassor
 #define PR_NYMC       PR_PREFIX_1 "(?:NYMC[\\s\\-]B?X|BX|NYMC)" PR_NUMBER
 #define PR_NYMCX_0    "X" PR_NUMBER
 #define PR_NYMCX_1    "^" PR_NYMCX_0
-#define PR_NYMCX_2    "([\\s_])" PR_NYMCX_0
-#define PR_NYMCX_3    PR_PREFIX_1 PR_NYMCX_0
+#define PR_NYMCX_2    PR_AB_REASSORTANT "X" PR_NUMBER "(.+)" "\\s+X\\s+X" PR_NUMBER // double reassortant A(H1N1)/REASSORTANT/X-83(CHILE/1/1983 X X-31)
+#define PR_NYMCX_3    PR_AB_REASSORTANT "X" PR_NUMBER
+#define PR_NYMCX_4    "([\\s_])" PR_NYMCX_0
+#define PR_NYMCX_5    PR_PREFIX_1 PR_NYMCX_0
 #define PR_CBER       "(?:CBER|BVR)" PR_NUMBER // Center for Biologics Evaluation and Research https://www.fda.gov/about-fda/fda-organization/center-biologics-evaluation-and-research-cber
 #define PR_IDCDC      "(?:PR8[\\- ]*IDCDC[\\- _]*|I[DB]CDC-)?RG[\\- ]*([\\dA-Z\\.]+)"
 #define PR_NIB        "NIB(?:SC|RG)?" PR_NUMBER
@@ -41,8 +43,10 @@ std::tuple<acmacs::virus::Reassortant, std::string> acmacs::virus::parse_reassor
     static const std::array normalize_data{
         look_replace_t{std::regex(PR_NYMC, std::regex::icase), {"NYMC-$1", "$` $'"}},
         look_replace_t{std::regex(PR_NYMCX_1, std::regex::icase), {"NYMC-$1", "$` $'"}},
-        look_replace_t{std::regex(PR_NYMCX_2, std::regex::icase), {"NYMC-$2", "$`$1 $'"}},
-        look_replace_t{std::regex(PR_NYMCX_3, std::regex::icase), {"NYMC-$1", "$` $'"}},
+        look_replace_t{std::regex(PR_NYMCX_2, std::regex::icase), {"NYMC-$1 NYMC-$3", "$` $2 $'"}}, // must be before PR_NYMCX_4, double reassortant A(H1N1)/REASSORTANT/X-83(CHILE/1/1983 X X-31)
+        look_replace_t{std::regex(PR_NYMCX_3, std::regex::icase), {"NYMC-$1", "$` $'"}}, // must be before PR_NYMCX_4
+        look_replace_t{std::regex(PR_NYMCX_4, std::regex::icase), {"NYMC-$2", "$`$1 $'"}},
+        look_replace_t{std::regex(PR_NYMCX_5, std::regex::icase), {"NYMC-$1", "$` $'"}},
         look_replace_t{std::regex(PR_PREFIX_1 PR_NIB, std::regex::icase), {"NIB-$1", "$` $'"}},
         look_replace_t{std::regex(PR_PREFIX_1 PR_IDCDC, std::regex::icase), {"RG-$1", "$` $'"}},
         look_replace_t{std::regex(PR_PREFIX_1 PR_CBER, std::regex::icase), {"CBER-$1", "$` $'"}},

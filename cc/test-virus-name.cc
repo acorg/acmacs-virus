@@ -128,6 +128,7 @@ void test_builtin()
         TestData{"A/turkey/Netherlands/03010496/03 clone-C12",      to_compare_t{A,               hst{"TURKEY"}, "NETHERLANDS", "3010496", "2003", R, P, "CLONE-C12"}},
         TestData{"A/reassortant/IDCDC-RG22(New York/18/2009 x Puerto Rico/8/1934)", to_compare_t{A, H, "NEW YORK", "18", "2009", Reassortant{"RG-22"}, P, E}},
         TestData{"A/reassortant/IgYRP13.c1(California/07/2004 x Puerto Rico/8/1934)", to_compare_t{A, H, "CALIFORNIA", "7", "2004", Reassortant{"IGYRP13.C1"}, P, E}},
+        TestData{"A/REASSORTANT/X-83(CHILE/1/1983 X X-31)(H1N1)",   to_compare_t{typ{"A(H1N1)"},  H, "CHILE", "1", "1983", Reassortant{"NYMC-83 NYMC-31"}, P, E}},
         TestData{"A/X-53A(Puerto Rico/8/1934-New Jersey/11/1976)",  to_compare_t{A,               H, "NEW JERSEY", "11", "1976", Reassortant{"NYMC-53A"}, P, E}},
         TestData{"A/Anas platyrhynchos/bonn/7/03(H2N?)",            to_compare_t{typ{"A(H2)"},    hst{"MALLARD"}, "BONN", "7", "2003", R, P, E}},
         TestData{"A/California/7/2004 (cell-passaged)(H3)",         to_compare_t{typ{"A(H3)"},    H, "CALIFORNIA", "7", "2004", R, Passage{"MDCK?"}, E}},

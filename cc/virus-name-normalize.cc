@@ -809,7 +809,6 @@ bool acmacs::virus::name::check_year(std::string_view source, parsed_fields_t& o
 
 std::string acmacs::virus::name::check_reassortant_in_front(std::string_view source, parsed_fields_t& output)
 {
-    AD_DEBUG("check_reassortant_in_front \"{}\"", source);
     std::string result, rest;
     std::tie(output.reassortant, result) = parse_reassortant(source);
 
