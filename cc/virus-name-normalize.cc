@@ -973,17 +973,28 @@ void acmacs::virus::name::check_extra(parsed_fields_t& output)
             look_replace_t{std::regex("^\\((.+)\\)$", acmacs::regex::icase), {"$1"}},               // remove parentheses that enclose entire extra
         };
 
+        static const std::array extra_for_reassortants{
+            look_replace_t{std::regex("^/?high\\s+yield(?:ing)?(?:\\s+reassortant)?", acmacs::regex::icase), {"$'"}}, // remove meaningless prefixes used as separators in the name
+        };
+
 #include "acmacs-base/diagnostics-pop.hh"
 
-        while (!output.extra.empty()) {
-            if (const auto res = scan_replace(output.extra, normalize_data); res.has_value()) {
+        const auto fix_extra = [&output](const scan_replace_result_t& scan_replace_result) {
+            if (scan_replace_result.has_value()) {
                 // AD_DEBUG("check_extra {} {}", *res, output);
-                output.extra = acmacs::string::strip(res->front());
-                if (res->size() > 1 && !(*res)[1].empty()) { // subtype
+                output.extra = acmacs::string::strip(scan_replace_result->at(0));
+                if (scan_replace_result->size() > 1 && !scan_replace_result->at(1).empty()) { // subtype
                     // AD_DEBUG("check_extra {} {}", *res, output.subtype);
                     if (output.subtype == type_subtype_t{"A"})
-                        check_subtype(fmt::format("A({})", (*res)[1]), output);
+                        check_subtype(fmt::format("A({})", scan_replace_result->at(1)), output);
                 }
+            }
+            return scan_replace_result.has_value();
+        };
+
+        while (!output.extra.empty()) {
+            if (fix_extra(scan_replace(output.extra, normalize_data)) || (!output.reassortant.empty() && fix_extra(scan_replace(output.extra, extra_for_reassortants)))) {
+                // pass
             }
             else
                 break;
