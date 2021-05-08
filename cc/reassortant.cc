@@ -26,6 +26,7 @@ std::tuple<acmacs::virus::Reassortant, std::string> acmacs::virus::parse_reassor
 
 #define PR_NUMBER     "[\\-\\s]?(\\d+[A-Z\\d\\-]*)\\b"
 #define PR_NYMC_X     "(?:NYMC[\\s\\-]*)?X"
+#define PR_NYMC_X_CL  PR_AB_REASSORTANT "NYMC\\s+X[\\-\\s]+(\\d+)\\s+CL[\\-\\s]+(\\d+)" // A/reassortant/NYMC X-157 CL-3(New York/55/2004 x Puerto Rico/8/1934)(H3N2)
 #define PR_NYMC       PR_PREFIX_1 "(?:NYMC[\\s\\-]B?X|BX|NYMC)" PR_NUMBER
 #define PR_NYMCX_0    "X" PR_NUMBER
 #define PR_NYMCX_1    "^" PR_NYMCX_0
@@ -43,24 +44,27 @@ std::tuple<acmacs::virus::Reassortant, std::string> acmacs::virus::parse_reassor
 #define PR_CNIC        "(CNIC)" PR_NUMBER // CNIC-2006(B/Sichuan-Jingyang/12048/2019) in CDC B/Vic
 #define PR_IGY        "(IGYRP\\d+(?:\\.C\\d+)?)" // A/reassortant/IgYRP13.c1(California/07/2004 x Puerto Rico/8/1934)
 #define PR_CDC        PR_AB_REASSORTANT "(CDC\\d+)"
+#define PR_BS         PR_AB_REASSORTANT "(BS)" // A/reassortant/BS(Philippines/2/1982 x Puerto Rico/8/1934)(H3N2)
 
     static const std::array normalize_data{
-        look_replace_t{std::regex(PR_NYMCX_2_1, std::regex::icase), {"NYMC-$1 NYMC-$2", "$` ($'"}}, // must be before PR_NYMC
-        look_replace_t{std::regex(PR_NYMCX_2_2, std::regex::icase), {"NYMC-$1 NYMC-$3", "$` $2 $'"}}, // must be before PR_NYMC
-        look_replace_t{std::regex(PR_NYMC, std::regex::icase), {"NYMC-$1", "$` $'"}},
-        look_replace_t{std::regex(PR_NYMCX_1, std::regex::icase), {"NYMC-$1", "$` $'"}},
-        look_replace_t{std::regex(PR_NYMCX_3, std::regex::icase), {"NYMC-$1", "$` $'"}}, // must be before PR_NYMCX_4
-        look_replace_t{std::regex(PR_NYMCX_4, std::regex::icase), {"NYMC-$2", "$`$1 $'"}},
-        look_replace_t{std::regex(PR_NYMCX_5, std::regex::icase), {"NYMC-$1", "$` $'"}},
-        look_replace_t{std::regex(PR_PREFIX_1 PR_NIB, std::regex::icase), {"NIB-$1", "$` $'"}},
+        look_replace_t{std::regex(PR_NYMCX_2_1,         std::regex::icase), {"NYMC-$1 NYMC-$2", "$` ($'"}}, // must be before PR_NYMC
+        look_replace_t{std::regex(PR_NYMCX_2_2,         std::regex::icase), {"NYMC-$1 NYMC-$3", "$` $2 $'"}}, // must be before PR_NYMC
+        look_replace_t{std::regex(PR_NYMC_X_CL,         std::regex::icase), {"NYMC-$1 CL-$2", "$` $'"}}, // before PR_NYMC
+        look_replace_t{std::regex(PR_NYMC,              std::regex::icase), {"NYMC-$1", "$` $'"}},
+        look_replace_t{std::regex(PR_NYMCX_1,           std::regex::icase), {"NYMC-$1", "$` $'"}},
+        look_replace_t{std::regex(PR_NYMCX_3,           std::regex::icase), {"NYMC-$1", "$` $'"}}, // must be before PR_NYMCX_4
+        look_replace_t{std::regex(PR_NYMCX_4,           std::regex::icase), {"NYMC-$2", "$`$1 $'"}},
+        look_replace_t{std::regex(PR_NYMCX_5,           std::regex::icase), {"NYMC-$1", "$` $'"}},
+        look_replace_t{std::regex(PR_PREFIX_1 PR_NIB,   std::regex::icase), {"NIB-$1", "$` $'"}},
         look_replace_t{std::regex(PR_PREFIX_1 PR_IDCDC, std::regex::icase), {"RG-$1", "$` $'"}},
-        look_replace_t{std::regex(PR_PREFIX_1 PR_CBER, std::regex::icase), {"CBER-$1", "$` $'"}},
+        look_replace_t{std::regex(PR_PREFIX_1 PR_CBER,  std::regex::icase), {"CBER-$1", "$` $'"}},
         look_replace_t{std::regex(PR_PREFIX_1 PR_IVR_2, std::regex::icase), {"$1-$2 $4-$5", "$` $3 $'"}}, // before PR_IVR
-        look_replace_t{std::regex(PR_PREFIX_1 PR_IVR, std::regex::icase), {"$1-$2", "$` $'"}},
-        look_replace_t{std::regex(PR_PREFIX_1 PR_MELB, std::regex::icase), {"$1", "$` $'"}},
-        look_replace_t{std::regex(PR_PREFIX_1 PR_CNIC, std::regex::icase), {"$1-$2", "$` $'"}},
-        look_replace_t{std::regex(PR_PREFIX_1 PR_IGY, std::regex::icase), {"$1", "$` $'"}},
-        look_replace_t{std::regex(PR_PREFIX_1 PR_CDC, std::regex::icase), {"$1", "$` $'"}},
+        look_replace_t{std::regex(PR_PREFIX_1 PR_IVR,   std::regex::icase), {"$1-$2", "$` $'"}},
+        look_replace_t{std::regex(PR_PREFIX_1 PR_MELB,  std::regex::icase), {"$1", "$` $'"}},
+        look_replace_t{std::regex(PR_PREFIX_1 PR_CNIC,  std::regex::icase), {"$1-$2", "$` $'"}},
+        look_replace_t{std::regex(PR_PREFIX_1 PR_IGY,   std::regex::icase), {"$1", "$` $'"}},
+        look_replace_t{std::regex(PR_PREFIX_1 PR_CDC,   std::regex::icase), {"$1", "$` $'"}},
+        look_replace_t{std::regex(PR_PREFIX_1 PR_BS,    std::regex::icase), {"$1", "$` $'"}},
 
         // CDC-LV is annotation, it is extra in the c2 excel parser // look_replace_t{std::regex("\\b(CDC)-?(LV\\d+[AB]?)\\b", std::regex::icase), "$1-$2"}, "$` $'",
         look_replace_t{std::regex(PR_LOOKAHEAD_NOT_PAREN_SPACE "X[\\s\\-]+PR8", std::regex::icase), {"REASSORTANT-PR8", "$` $'"}},
