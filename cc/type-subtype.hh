@@ -51,6 +51,20 @@ namespace acmacs::virus::inline v2
             return value_;
         }
 
+        // returns part of the type_subtype: B for B, H1N1 for A(H1N1), etc.
+        std::string_view hn_or_b() const
+        {
+            if (!value_.empty()) {
+                switch (value_[0]) {
+                    case 'B':
+                        return std::string_view(value_.data(), 1);
+                    case 'A':
+                        return std::string_view(value_.data() + 2, value_.size() - 3);
+                }
+            }
+            return value_;
+        }
+
         bool contains(std::string_view sub) const { return value_.find(sub) != std::string::npos; }
 
         char type() const
