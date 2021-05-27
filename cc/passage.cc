@@ -625,7 +625,7 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
                 }
                 if (skip) {
                     if (po == passage_only::yes)
-                        return parse_passage_t{{}, std::string{source}}; // parsing failed;
+                        return parse_passage_t{Passage{}, std::string{source}}; // parsing failed;
 
                     if (data.parts.empty()) { // passage not yet started
                         if (std::isalnum(*first)) {
