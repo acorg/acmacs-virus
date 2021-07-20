@@ -119,6 +119,7 @@ namespace acmacs::virus::inline v2::name
                 case 'I': // IVR
                 case 'N': // NIB, NYMC
                 case 'R': // RG
+                case 'S': // SAN
                 case 'X': // X-327
                     return true;
                 case 'C':
