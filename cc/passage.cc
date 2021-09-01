@@ -183,6 +183,7 @@ static const std::regex re_e_egg_n("^(?:GG(?:[\\s\\-]+PASSAGED?)?)?[\\s\\-]*(\\d
 static const std::regex re_s_spfe_n("^PFC?E[\\s\\-]*(\\d+)", acmacs::regex::icase);
 static const std::regex re_s_spfe_x("^PFC?E[X\\?]", acmacs::regex::icase);
 static const std::regex re_s_spfe("^PFC?E$", acmacs::regex::icase);
+static const std::regex re_s_spe_n("^PE[\\s\\-]*(\\d+)", acmacs::regex::icase); // NIID H3
 
 // HCK - humanized MDCK cell line for the efficient isolation and propagation of human influenza viruses https://www.researchgate.net/publication/332744615_A_humanized_MDCK_cell_line_for_the_efficient_isolation_and_propagation_of_human_influenza_viruses
 static const std::regex re_h_hck_n("^CK?[\\s\\-]*(\\d+)", acmacs::regex::icase);
@@ -461,6 +462,8 @@ static const std::map<char, callback_t> normalize_data{
              parts_push_i(data, "SPFE", match[1].str());
          else if (std::regex_search(first, last, match, re_s_spfe_x) || std::regex_search(first, last, match, re_s_spfe))
              parts_push_i(data, "SPFE", "?");
+         else if (std::regex_search(first, last, match, re_s_spe_n))
+             parts_push_i(data, "SPE", match[1].str());
          else if (std::regex_search(first, last, match, re_s_spf_n))
              parts_push_i(data, "SPF", match[1].str());
          else if (std::regex_search(first, last, match, re_s_spfck_n))
