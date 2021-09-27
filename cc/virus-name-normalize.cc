@@ -691,6 +691,9 @@ std::optional<acmacs::virus::name::location_data_t> acmacs::virus::name::locatio
         }
     }
 
+    if (static_cast<unsigned char>(source[0]) >= 0x80)
+        AD_WARNING("unrecognized location \"{}\"", source);
+
     return std::nullopt;
 
 } // acmacs::virus::name::location_lookup
