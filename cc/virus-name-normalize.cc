@@ -61,6 +61,7 @@ namespace acmacs::virus::inline v2::name
         std::string name;
         std::string country;
         std::string continent;
+        constexpr bool good() const { return true; }
     };
 
     struct location_part_t
@@ -108,7 +109,44 @@ namespace acmacs::virus::inline v2::name
     static void check_extra(parsed_fields_t& output);
     static bool location_part_as_isolation_prefix(std::string_view isolation, parsed_fields_t& output);
 
-    static std::optional<location_data_t> location_lookup(std::string_view source);
+    // ----------------------------------------------------------------------
+
+    struct location_not_found_t
+    {
+        std::string name;
+        location_not_found_t(std::string_view nn) : name{nn} {}
+        constexpr bool good() const { return false; }
+    };
+    struct location_chinese_name_t
+    {
+        std::string name;
+        location_chinese_name_t(std::string_view nn) : name{nn} {}
+        constexpr bool good() const { return false; }
+    };
+
+    using location_lookup_result_t = std::variant<location_not_found_t, location_data_t, location_chinese_name_t>;
+
+    constexpr bool good(const location_lookup_result_t& res) {
+        return std::visit([](auto&& arg) { return arg.good(); }, res);
+    }
+
+    inline location_data_t& get(location_lookup_result_t& res)
+    {
+        return std::visit(
+            []<typename Arg>(Arg&& arg) -> location_data_t& {
+                if constexpr (std::is_same_v<location_data_t, std::decay_t<Arg>>)
+                    return arg;
+                else if constexpr (std::is_same_v<location_chinese_name_t, std::decay_t<Arg>>)
+                    throw std::runtime_error{AD_FORMAT("lookup_result_t is location_chinese_name_t \"{}\"", arg.name)};
+                else
+                    throw std::runtime_error{AD_FORMAT("lookup_result_t is location_not_found_t \"{}\"", arg.name)};
+            },
+            res);
+    }
+
+    static location_lookup_result_t location_lookup(std::string_view source);
+
+    // ----------------------------------------------------------------------
 
     // quick check to avoid calling slow (many regexp based check_reassortant_in_front)
     inline bool possible_reassortant_in_front(std::string_view source)
@@ -130,13 +168,15 @@ namespace acmacs::virus::inline v2::name
                         case 'X': // BX
                             return true;
                         case '/':
-                            if (::string::upper(source.substr(2, 5)) == "REASS"sv || ::string::upper(source.substr(2, 5)) == "RESAS"sv || ::string::upper(source.substr(2, 2)) == "X-"sv || ::string::upper(source.substr(2, 4)) == "NYMC"sv) // B/REASSORTANT/
+                            if (::string::upper(source.substr(2, 5)) == "REASS"sv || ::string::upper(source.substr(2, 5)) == "RESAS"sv || ::string::upper(source.substr(2, 2)) == "X-"sv ||
+                                ::string::upper(source.substr(2, 4)) == "NYMC"sv) // B/REASSORTANT/
                                 return true;
                             break;
                     }
                     break;
                 case 'A':
-                    if (::string::upper(source.substr(1, 6)) == "/REASS"sv || ::string::upper(source.substr(1, 6)) == "/RESAS"sv || ::string::upper(source.substr(1, 3)) == "/X-"sv || ::string::upper(source.substr(1, 5)) == "/NYMC"sv) // A/REASSORTANT/
+                    if (::string::upper(source.substr(1, 6)) == "/REASS"sv || ::string::upper(source.substr(1, 6)) == "/RESAS"sv || ::string::upper(source.substr(1, 3)) == "/X-"sv ||
+                        ::string::upper(source.substr(1, 5)) == "/NYMC"sv) // A/REASSORTANT/
                         return true;
                     if (source[1] == '(') {
                         if (const auto pos = source.find(')'); pos < (source.size() - 6) && ::string::upper(source.substr(pos + 1, 6)) == "/REASS"sv)
@@ -354,10 +394,10 @@ void acmacs::virus::name::no_location_parts(std::vector<std::string_view>& parts
 bool acmacs::virus::name::location_as_prefix(std::vector<std::string_view>& parts, size_t part_to_check, parsed_fields_t& output)
 {
     const auto check_prefix = [&](std::string_view prefix) -> bool {
-        if (auto location_data = location_lookup(prefix); location_data.has_value()) { // A/Baylor1A/81
+        if (auto location_data = location_lookup(prefix); good(location_data)) { // A/Baylor1A/81
             parts.insert(std::next(std::begin(parts), static_cast<ssize_t>(part_to_check)), prefix);
             parts[part_to_check + 1].remove_prefix(prefix.size());
-            one_location_part(parts, location_part_t{.part_no = part_to_check, .location = *location_data}, output);
+            one_location_part(parts, location_part_t{.part_no = part_to_check, .location = get(location_data)}, output);
             return true;
         }
         else
@@ -423,8 +463,8 @@ void acmacs::virus::name::one_location_part_at_1(std::vector<std::string_view>& 
                 break;
             case 5:
                 if (check_year(parts[4], output, make_message::no)) {
-                    if (auto location_data = location_lookup(string::join(acmacs::string::join_space, parts[1], parts[2])); location_data.has_value()) { // A/Lyon/CHU/R19.03.77/2019
-                        set_location(output, std::move(*location_data));
+                    if (auto location_data = location_lookup(string::join(acmacs::string::join_space, parts[1], parts[2])); good(location_data)) { // A/Lyon/CHU/R19.03.77/2019
+                        set_location(output, std::move(get(location_data)));
                         if (!check_subtype(parts[0], output) || !check_isolation(parts[3], output)) // A/Algeria/G0164/15/2015 :h1n1
                             throw std::exception{};
                     }
@@ -469,15 +509,15 @@ bool acmacs::virus::name::location_part_as_isolation_prefix(std::string_view iso
 
     for (auto prefix = acmacs::string::non_digit_prefix(isolation); prefix.size() > 2 && prefix.size() < isolation.size(); prefix.remove_suffix(1)) {
         // AD_DEBUG("location_part_as_isolation_prefix \"{}\" + \"{}\"", output.location, prefix);
-        if (auto location_data_combined = location_lookup(fmt::format("{} {}", output.location, prefix)); location_data_combined.has_value()) { // "LYON CHU" <- A/Lyon/CHU19.03.77/2019
-            set_location(output, std::move(*location_data_combined));
+        if (auto location_data_combined = location_lookup(fmt::format("{} {}", output.location, prefix)); good(location_data_combined)) { // "LYON CHU" <- A/Lyon/CHU19.03.77/2019
+            set_location(output, std::move(get(location_data_combined)));
             check_isolation(isolation.substr(prefix.size()), output);
             return true;
         }
         else if (output.host.empty() && is_host(output.location)) {
-            if (auto location_data_isolation = location_lookup(prefix); location_data_isolation.has_value()) { // "A/turkey/Italy12rs206-2/1999(H7N1)" -> A/Turkey/Italy/12rs206-2/1999(H7N1)
+            if (auto location_data_isolation = location_lookup(prefix); good(location_data_isolation)) { // "A/turkey/Italy12rs206-2/1999(H7N1)" -> A/Turkey/Italy/12rs206-2/1999(H7N1)
                 check_host(output.location, output);
-                set_location(output, std::move(*location_data_isolation));
+                set_location(output, std::move(get(location_data_isolation)));
                 check_isolation(isolation.substr(prefix.size()), output);
                 return true;
             }
@@ -505,8 +545,8 @@ void acmacs::virus::name::one_location_part_at_2(std::vector<std::string_view>& 
                 break;
             case 6:
                 if (check_year(parts[5], output, make_message::no)) {
-                    if (auto location_data = location_lookup(string::join(acmacs::string::join_space, parts[2], parts[3])); location_data.has_value()) { // A/swine/Lyon/CHU/R19.03.77/2019
-                        set_location(output, std::move(*location_data));
+                    if (auto location_data = location_lookup(string::join(acmacs::string::join_space, parts[2], parts[3])); good(location_data)) { // A/swine/Lyon/CHU/R19.03.77/2019
+                        set_location(output, std::move(get(location_data)));
                         if (!check_subtype(parts[0], output) || !check_host(parts[1], output) || !check_isolation(parts[4], output))
                             throw std::exception{};
                     }
@@ -663,24 +703,24 @@ bool acmacs::virus::name::check_host(std::string_view source, parsed_fields_t& o
 
 // ----------------------------------------------------------------------
 
-std::optional<acmacs::virus::name::location_data_t> acmacs::virus::name::location_lookup(std::string_view source)
+acmacs::virus::name::location_lookup_result_t acmacs::virus::name::location_lookup(std::string_view source)
 {
     using namespace std::string_view_literals;
 
     const auto upcased{::string::upper(source)};
     if (upcased == "UNKNOWN"sv)
-        return std::nullopt;
+        return location_not_found_t{source};
 
     if (const auto loc = acmacs::locationdb::get().find(source, acmacs::locationdb::include_continent::yes); loc.has_value())
         return location_data_t{.name{loc->name}, .country{std::string{loc->country()}}, .continent{loc->continent}};
 
+    // https://www.shabsin.com/~rshabsin/chineseutf8chars.html
+    if (static_cast<unsigned char>(source[0]) >= 0xE3 && static_cast<unsigned char>(source[0]) < 0xEA) // chinese or possibly chinese symbol
+        return location_chinese_name_t{source};
+
     using pp = std::pair<std::string_view, std::string_view>;
     static const std::array common_abbreviations{
-        pp{"UK"sv, "UNITED KINGDOM"sv},
-        pp{"NY"sv, "NEW YORK"sv},
-        pp{"HK"sv, "HONG KONG"sv},
-        pp{"DE"sv, "GERMANY"sv},
-        pp{"TX"sv, "TEXAS"sv},
+        pp{"UK"sv, "UNITED KINGDOM"sv}, pp{"NY"sv, "NEW YORK"sv}, pp{"HK"sv, "HONG KONG"sv}, pp{"DE"sv, "GERMANY"sv}, pp{"TX"sv, "TEXAS"sv},
         // MN - Mongolia, Montenegro (obsolete ISO code), Minnesota
     };
 
@@ -691,10 +731,7 @@ std::optional<acmacs::virus::name::location_data_t> acmacs::virus::name::locatio
         }
     }
 
-    if (static_cast<unsigned char>(source[0]) >= 0x80)
-        AD_WARNING("unrecognized location \"{}\"", source);
-
-    return std::nullopt;
+    return location_not_found_t{source};
 
 } // acmacs::virus::name::location_lookup
 
@@ -702,10 +739,11 @@ std::optional<acmacs::virus::name::location_data_t> acmacs::virus::name::locatio
 
 bool acmacs::virus::name::check_location(std::string_view source, parsed_fields_t& output)
 {
-    if (const auto loc = location_lookup(source); loc.has_value()) {
-        output.location = loc->name;
-        output.country = loc->country;
-        output.continent = loc->continent;
+    if (auto loc_enc = location_lookup(source); good(loc_enc)) {
+        const auto& loc = get(loc_enc);
+        output.location = loc.name;
+        output.country = loc.country;
+        output.continent = loc.continent;
         return true;
     }
     else {
@@ -721,8 +759,8 @@ acmacs::virus::name::location_parts_t acmacs::virus::name::find_location_parts(s
 {
     location_parts_t location_parts;
     for (size_t part_no = 0; part_no < parts.size(); ++part_no) {
-        if (const auto loc1 = location_lookup(parts[part_no]); loc1.has_value())
-            location_parts.push_back({part_no, *loc1});
+        if (auto loc1 = location_lookup(parts[part_no]); good(loc1))
+            location_parts.push_back({part_no, get(loc1)});
     }
 
     // if just one location part found, it is in place 0 or 1, next part starts with a letter, this location is perhaps a host (e.g. TURKEY)
