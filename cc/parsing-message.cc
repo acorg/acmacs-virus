@@ -41,6 +41,17 @@ void acmacs::virus::v2::name::report(acmacs::messages::messages_t& messages)
 
 // ----------------------------------------------------------------------
 
+void acmacs::virus::v2::name::collect_not_found_locations(std::set<std::string>& locations, const acmacs::messages::messages_t& messages)
+{
+    for (const auto& msg : messages) {
+        if (msg.key == acmacs::messages::key::location_not_found)
+            locations.insert(msg.value);
+    }
+
+} // acmacs::virus::v2::name::collect_not_found_locations
+
+// ----------------------------------------------------------------------
+
 // void count_locations_to_check(acmacs::messages::iter_t first, acmacs::messages::iter_t last, acmacs::Counter<std::string>& locations_to_check)
 // {
 //     const auto add = [&locations_to_check](std::string_view part) {
