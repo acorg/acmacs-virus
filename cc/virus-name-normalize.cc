@@ -758,21 +758,23 @@ acmacs::virus::name::location_parts_t acmacs::virus::name::find_location_parts(s
 {
     location_parts_t location_parts;
     for (size_t part_no = 0; part_no < parts.size(); ++part_no) {
-        std::visit([&location_parts, part_no, &messages]<typename Arg>(Arg&& arg) {
+        std::visit(
+            [&location_parts, part_no, &messages]<typename Arg>(Arg&& arg) {
                 if constexpr (std::is_same_v<location_data_t, std::decay_t<Arg>>) {
                     location_parts.push_back({part_no, arg});
                 }
                 else if constexpr (std::is_same_v<location_chinese_name_t, std::decay_t<Arg>>) {
                     location_parts.push_back({part_no, arg});
-                    messages.push_back(acmacs::messages::message_t{acmacs::messages::key::unrecognized, arg.name});
+                    messages.emplace_back(acmacs::messages::key::location_not_found, arg.name);
                 }
-        }, location_lookup(parts[part_no]));
+            },
+            location_lookup(parts[part_no]));
     }
 
     // if just one location part found, it is in place 0 or 1, next part starts with a letter, this location is perhaps a host (e.g. TURKEY)
-    if (location_parts.size() == 1 && location_parts[0].part_no < 2 && location_parts[0].part_no < (parts.size() - 1) &&  is_host(location_parts[0].location.name)) {
+    if (location_parts.size() == 1 && location_parts[0].part_no < 2 && location_parts[0].part_no < (parts.size() - 1) && is_host(location_parts[0].location.name)) {
         if (acmacs::string::non_digit_prefix(parts[location_parts[0].part_no + 1]).size() == parts[location_parts[0].part_no + 1].size())
-            return {};          // location is most probably next part, but locdb cannot detect it
+            return {}; // location is most probably next part, but locdb cannot detect it
     }
 
     if (location_parts.size() > 2 && is_host(location_parts[0].location.name)) // A/Turkey/Bulgaria/Haskovo/336/2018
