@@ -117,10 +117,9 @@ namespace acmacs::virus::inline v2::name
         location_not_found_t(std::string_view nn) : name{nn} {}
         constexpr bool good() const { return false; }
     };
-    struct location_chinese_name_t
+    struct location_chinese_name_t : public location_data_t
     {
-        std::string name;
-        location_chinese_name_t(std::string_view nn) : name{nn} {}
+        location_chinese_name_t(std::string_view nn) : location_data_t{.name{nn}} {}
         constexpr bool good() const { return false; }
     };
 
@@ -755,12 +754,19 @@ bool acmacs::virus::name::check_location(std::string_view source, parsed_fields_
 
 // ----------------------------------------------------------------------
 
-acmacs::virus::name::location_parts_t acmacs::virus::name::find_location_parts(std::vector<std::string_view>& parts, acmacs::messages::messages_t& /*messages*/)
+acmacs::virus::name::location_parts_t acmacs::virus::name::find_location_parts(std::vector<std::string_view>& parts, acmacs::messages::messages_t& messages)
 {
     location_parts_t location_parts;
     for (size_t part_no = 0; part_no < parts.size(); ++part_no) {
-        if (auto loc1 = location_lookup(parts[part_no]); good(loc1))
-            location_parts.push_back({part_no, get(loc1)});
+        std::visit([&location_parts, part_no, &messages]<typename Arg>(Arg&& arg) {
+                if constexpr (std::is_same_v<location_data_t, std::decay_t<Arg>>) {
+                    location_parts.push_back({part_no, arg});
+                }
+                else if constexpr (std::is_same_v<location_chinese_name_t, std::decay_t<Arg>>) {
+                    location_parts.push_back({part_no, arg});
+                    messages.push_back(acmacs::messages::message_t{acmacs::messages::key::unrecognized, arg.name});
+                }
+        }, location_lookup(parts[part_no]));
     }
 
     // if just one location part found, it is in place 0 or 1, next part starts with a letter, this location is perhaps a host (e.g. TURKEY)
