@@ -119,7 +119,7 @@ namespace acmacs::virus::inline v2::name
     };
     struct location_chinese_name_t : public location_data_t
     {
-        location_chinese_name_t(std::string_view nn) : location_data_t{.name{nn}} {}
+        location_chinese_name_t(std::string_view nn) : location_data_t{.name = std::string{nn}} {}
         constexpr bool good() const { return false; }
     };
 
