@@ -59,8 +59,8 @@ namespace acmacs::virus::inline v2::name
     struct location_data_t
     {
         std::string name;
-        std::string country;
-        std::string continent;
+        std::string country{};
+        std::string continent{};
         constexpr bool good() const { return true; }
     };
 
