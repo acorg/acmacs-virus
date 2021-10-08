@@ -1,3 +1,5 @@
+#include <array>
+
 #include "acmacs-base/string-split.hh"
 #include "acmacs-base/string-join.hh"
 #include "acmacs-base/string-digits.hh"
