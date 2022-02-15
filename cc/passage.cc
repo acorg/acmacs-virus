@@ -673,6 +673,3 @@ acmacs::virus::parse_passage_t acmacs::virus::parse_passage(std::string_view sou
 } // acmacs::virus::parse_passage
 
 // ----------------------------------------------------------------------
-/// Local Variables:
-/// eval: (if (fboundp 'eu-rename-buffer) (eu-rename-buffer))
-/// End:

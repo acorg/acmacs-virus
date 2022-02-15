@@ -174,6 +174,3 @@ void test_from_command_line(int argc, const char* const* argv)
 } // test_from_command_line
 
 // ----------------------------------------------------------------------
-/// Local Variables:
-/// eval: (if (fboundp 'eu-rename-buffer) (eu-rename-buffer))
-/// End:
