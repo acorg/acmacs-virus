@@ -57,7 +57,7 @@ template <> struct fmt::formatter<to_compare_t> : public fmt::formatter<acmacs::
 {
     template <typename FormatContext> auto format(const to_compare_t& fields, FormatContext& ctx)
     {
-        return format_to(ctx.out(), "{{\"{}\" \"{}\" \"{}\" \"{}\" \"{}\" <{}> \"{}\" \"{}\"}}", fields.subtype, fields.host, fields.location, fields.isolation, fields.year, fields.extra, fields.reassortant, fields.passage);
+        return fmt::format_to(ctx.out(), "{{\"{}\" \"{}\" \"{}\" \"{}\" \"{}\" <{}> \"{}\" \"{}\"}}", fields.subtype, fields.host, fields.location, fields.isolation, fields.year, fields.extra, fields.reassortant, fields.passage);
     }
 };
 

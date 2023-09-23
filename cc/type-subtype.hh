@@ -87,7 +87,7 @@ namespace acmacs::virus::inline v2
 
 template <> struct fmt::formatter<acmacs::virus::type_subtype_t> : public fmt::formatter<acmacs::fmt_helper::default_formatter>
 {
-    template <typename FormatContext> auto format(const acmacs::virus::type_subtype_t& ts, FormatContext& ctx) { return format_to(ctx.out(), "{}", static_cast<std::string_view>(ts)); }
+    template <typename FormatContext> auto format(const acmacs::virus::type_subtype_t& ts, FormatContext& ctx) { return fmt::format_to(ctx.out(), "{}", static_cast<std::string_view>(ts)); }
 };
 
 

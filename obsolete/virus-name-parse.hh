@@ -37,17 +37,17 @@ template <> struct fmt::formatter<acmacs::virus::parse_result_t> : public fmt::f
 {
     template <typename FormatContext> auto format(const acmacs::virus::parse_result_t& res, FormatContext& ctx)
     {
-        format_to(ctx.out(), "\"{}\"", res.name);
+        fmt::format_to(ctx.out(), "\"{}\"", res.name);
         if (!res.reassortant.empty())
-            format_to(ctx.out(), " R:\"{}\"", res.reassortant);
+            fmt::format_to(ctx.out(), " R:\"{}\"", res.reassortant);
         if (!res.extra.empty())
-            format_to(ctx.out(), " <{}>", res.extra);
+            fmt::format_to(ctx.out(), " <{}>", res.extra);
         if (!res.passage.empty())
-            format_to(ctx.out(), " P:\"{}\"", res.passage);
+            fmt::format_to(ctx.out(), " P:\"{}\"", res.passage);
         if (!res.host.empty())
-            format_to(ctx.out(), " H:\"{}\"", res.host);
+            fmt::format_to(ctx.out(), " H:\"{}\"", res.host);
         if (!res.messages.empty())
-            format_to(ctx.out(), " msg:{}", res.messages);
+            fmt::format_to(ctx.out(), " msg:{}", res.messages);
         return ctx.out();
     }
 };

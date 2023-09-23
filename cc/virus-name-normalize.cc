@@ -255,10 +255,10 @@ template <> struct fmt::formatter<acmacs::virus::name::location_parts_t> : publi
 {
     template <typename FormatContext> auto format(const acmacs::virus::name::location_parts_t& parts, FormatContext& ctx)
     {
-        format_to(ctx.out(), "{{");
+        fmt::format_to(ctx.out(), "{{");
         for (const auto& part : parts)
-            format_to(ctx.out(), " {}", part.part_no);
-        return format_to(ctx.out(), "}}");
+            fmt::format_to(ctx.out(), " {}", part.part_no);
+        return fmt::format_to(ctx.out(), "}}");
     }
 };
 

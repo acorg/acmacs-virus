@@ -50,16 +50,16 @@ template <> struct fmt::formatter<acmacs::virus::mutations_t> : public fmt::form
 {
     template <typename FormatContext> auto format(const acmacs::virus::mutations_t& mutations, FormatContext& ctx)
     {
-        format_to(ctx.out(), "[");
+        fmt::format_to(ctx.out(), "[");
         bool first{true};
         for (const auto& mut : mutations) {
             if (first)
                 first = false;
             else
-                format_to(ctx.out(), ", ");
-            format_to(ctx.out(), "\"{}\"", mut);
+                fmt::format_to(ctx.out(), ", ");
+            fmt::format_to(ctx.out(), "\"{}\"", mut);
         }
-        return format_to(ctx.out(), "]");
+        return fmt::format_to(ctx.out(), "]");
     }
 };
 
@@ -67,18 +67,18 @@ template <> struct fmt::formatter<acmacs::virus::name::parsed_fields_t> : public
 {
     template <typename FormatContext> auto format(const acmacs::virus::name::parsed_fields_t& fields, FormatContext& ctx)
     {
-        format_to(ctx.out(), "{{\"{}\" \"{}\" \"{}\" \"{}\" \"{}\"", fields.subtype, fields.host, fields.location, fields.isolation, fields.year);
+        fmt::format_to(ctx.out(), "{{\"{}\" \"{}\" \"{}\" \"{}\" \"{}\"", fields.subtype, fields.host, fields.location, fields.isolation, fields.year);
         if (!fields.extra.empty())
-            format_to(ctx.out(), " A:\"{}\"", fields.extra);
+            fmt::format_to(ctx.out(), " A:\"{}\"", fields.extra);
         if (!fields.reassortant.empty())
-            format_to(ctx.out(), " R:\"{}\"", fields.reassortant);
+            fmt::format_to(ctx.out(), " R:\"{}\"", fields.reassortant);
         if (!fields.passage.empty())
-            format_to(ctx.out(), " P:\"{}\"", fields.passage);
+            fmt::format_to(ctx.out(), " P:\"{}\"", fields.passage);
         if (!fields.mutations.empty())
-            format_to(ctx.out(), " M:{}", fields.mutations);
+            fmt::format_to(ctx.out(), " M:{}", fields.mutations);
         if (!fields.country.empty())
-            format_to(ctx.out(), " {{\"{}\" {}}}", fields.country, fields.continent);
-        return format_to(ctx.out(), "}}");
+            fmt::format_to(ctx.out(), " {{\"{}\" {}}}", fields.country, fields.continent);
+        return fmt::format_to(ctx.out(), "}}");
     }
 };
 
